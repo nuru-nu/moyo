@@ -1,0 +1,185 @@
+2019-04-06 17:18:32,850 - INFO - Start recording.
+2019-04-09 22:03:47,449 - INFO - Start recording.
+2019-04-09 22:05:09,227 - INFO - Caught Ctrl-C
+2019-04-09 22:05:09,233 - INFO - Stop recording.
+2019-04-09 22:05:11,371 - INFO - Start recording.
+2019-04-09 22:05:12,772 - INFO - Caught Ctrl-C
+2019-04-09 22:05:12,775 - INFO - Stop recording.
+2019-04-09 22:09:53,720 - INFO - Start recording.
+2019-04-09 22:10:06,873 - INFO - Start recording.
+2019-04-09 22:10:20,830 - INFO - Start recording.
+2019-04-09 22:10:30,388 - INFO - Start recording.
+2019-04-09 22:10:39,257 - INFO - Caught Ctrl-C
+2019-04-09 22:10:39,260 - INFO - Stop recording.
+2019-04-09 22:33:45,882 - INFO - Start recording.
+2019-04-09 22:48:44,032 - INFO - Caught Ctrl-C
+2019-04-09 22:48:44,038 - INFO - Stop recording.
+2019-04-09 23:17:28,115 - INFO - Start recording.
+2019-04-09 23:19:37,185 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:19:38,055 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:19:42,524 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:20:09,568 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:22:42,124 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:08,513 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:27,497 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:28,425 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:40,453 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:42,024 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:42,823 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:43,754 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:23:45,286 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:05,708 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:06,090 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:08,263 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:09,007 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:16,971 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:19,141 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:19,755 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:33,806 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:24:55,051 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:25:28,869 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:25:33,840 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:25:35,153 - INFO - len(keeper.data) == 10 - start
+2019-04-09 23:46:55,153 - INFO - Caught Ctrl-C
+2019-04-09 23:46:55,159 - INFO - Stop recording.
+2019-04-09 23:46:57,332 - INFO - Start recording.
+2019-04-09 23:46:57,339 - INFO - Loaded a_welle 7.0s
+2019-04-09 23:46:57,340 - INFO - Loaded 1 recordings in 0.008s
+2019-04-09 23:49:17,165 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:00:35,520 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:05:49,101 - INFO - Caught Ctrl-C
+2019-04-10 00:05:49,113 - INFO - Stop recording.
+2019-04-10 00:08:15,736 - INFO - Start recording.
+2019-04-10 00:08:15,745 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:08:15,746 - INFO - Loaded 1 recordings in 0.009s
+2019-04-10 00:08:26,483 - INFO - Start recording.
+2019-04-10 00:08:26,483 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:08:26,483 - INFO - Loaded 1 recordings in 0.001s
+2019-04-10 00:08:32,701 - INFO - Start recording.
+2019-04-10 00:08:32,701 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:08:32,701 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:09:09,066 - INFO - Will play a_welle
+2019-04-10 00:09:44,937 - INFO - Start recording.
+2019-04-10 00:09:44,945 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:09:44,945 - INFO - Loaded 1 recordings in 0.007s
+2019-04-10 00:09:57,157 - INFO - Will play a_welle
+2019-04-10 00:09:57,217 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:10:03,297 - INFO - Will play a_welle
+2019-04-10 00:10:03,356 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:10:04,776 - INFO - Will play a_welle
+2019-04-10 00:10:04,823 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:10:06,466 - INFO - Will play a_welle
+2019-04-10 00:10:06,521 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:11:47,430 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:11:48,518 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:14:48,965 - INFO - Caught Ctrl-C
+2019-04-10 00:14:48,968 - INFO - Stop recording.
+2019-04-10 00:14:50,700 - INFO - Start recording.
+2019-04-10 00:14:50,708 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:14:50,708 - INFO - Loaded 1 recordings in 0.007s
+2019-04-10 00:14:57,642 - INFO - Will play a_welle
+2019-04-10 00:14:58,285 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:24:58,843 - INFO - Caught Ctrl-C
+2019-04-10 00:24:58,863 - INFO - Stop recording.
+2019-04-10 00:25:01,277 - INFO - Start recording.
+2019-04-10 00:25:01,290 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:25:01,290 - INFO - Loaded 1 recordings in 0.013s
+2019-04-10 00:26:21,519 - INFO - Start recording.
+2019-04-10 00:26:21,519 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:26:21,519 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:26:34,901 - INFO - Start recording.
+2019-04-10 00:26:34,901 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:26:34,901 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:27:03,068 - INFO - Start recording.
+2019-04-10 00:27:03,070 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:27:03,071 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:27:32,811 - INFO - Start recording.
+2019-04-10 00:27:32,812 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:27:32,812 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:28:06,382 - INFO - Start recording.
+2019-04-10 00:28:06,396 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:28:06,397 - INFO - Loaded 1 recordings in 0.014s
+2019-04-10 00:28:26,042 - INFO - Start recording.
+2019-04-10 00:28:26,055 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:28:26,056 - INFO - Loaded 1 recordings in 0.014s
+2019-04-10 00:36:21,509 - INFO - Will play a_welle
+2019-04-10 00:36:22,154 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:36:39,853 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:36:40,528 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:21,622 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:25,904 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:26,707 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:28,437 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:30,154 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:31,661 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:33,483 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:38:37,365 - INFO - Will play a_welle
+2019-04-10 00:38:38,033 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:39:14,261 - INFO - Will play a_welle
+2019-04-10 00:39:14,919 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:39:41,776 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:39:45,387 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:39:46,419 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:39:54,230 - INFO - Will play a_welle
+2019-04-10 00:39:54,929 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:44:28,848 - INFO - Caught Ctrl-C
+2019-04-10 00:44:28,861 - INFO - Stop recording.
+2019-04-10 00:44:30,687 - INFO - Start recording.
+2019-04-10 00:44:30,695 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:44:30,696 - INFO - Loaded 1 recordings in 0.008s
+2019-04-10 00:44:38,715 - INFO - Will play a_welle
+2019-04-10 00:45:06,472 - INFO - Caught Ctrl-C
+2019-04-10 00:45:06,479 - INFO - Stop recording.
+2019-04-10 00:45:30,316 - INFO - Start recording.
+2019-04-10 00:45:30,323 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:45:30,324 - INFO - Loaded 1 recordings in 0.008s
+2019-04-10 00:45:36,379 - INFO - Will play a_welle
+2019-04-10 00:45:36,521 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:45:42,084 - INFO - Will play a_welle
+2019-04-10 00:45:42,248 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:45:58,496 - INFO - Caught Ctrl-C
+2019-04-10 00:45:58,500 - INFO - Stop recording.
+2019-04-10 00:46:00,346 - INFO - Start recording.
+2019-04-10 00:46:00,354 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:46:00,354 - INFO - Loaded 1 recordings in 0.008s
+2019-04-10 00:46:06,944 - INFO - Will play a_welle
+2019-04-10 00:46:07,600 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:04,581 - INFO - Caught Ctrl-C
+2019-04-10 00:49:04,589 - INFO - Stop recording.
+2019-04-10 00:49:06,207 - INFO - Start recording.
+2019-04-10 00:49:06,214 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:49:06,214 - INFO - Loaded 1 recordings in 0.007s
+2019-04-10 00:49:12,972 - INFO - Will play a_welle
+2019-04-10 00:49:13,609 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:25,608 - INFO - Caught Ctrl-C
+2019-04-10 00:49:25,612 - INFO - Stop recording.
+2019-04-10 00:49:37,570 - INFO - Start recording.
+2019-04-10 00:49:37,571 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:49:37,571 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:49:40,437 - INFO - Will play a_welle
+2019-04-10 00:49:40,604 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:43,702 - INFO - Will play a_welle
+2019-04-10 00:49:43,962 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:45,273 - INFO - Will play a_welle
+2019-04-10 00:49:45,528 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:47,929 - INFO - Will play a_welle
+2019-04-10 00:49:48,189 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:50,715 - INFO - Will play a_welle
+2019-04-10 00:49:50,974 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:49:53,851 - INFO - Will play a_welle
+2019-04-10 00:49:54,109 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:50:12,845 - INFO - Caught Ctrl-C
+2019-04-10 00:50:12,849 - INFO - Stop recording.
+2019-04-10 00:50:14,458 - INFO - Start recording.
+2019-04-10 00:50:14,458 - INFO - Loaded a_welle 7.0s
+2019-04-10 00:50:14,458 - INFO - Loaded 1 recordings in 0.000s
+2019-04-10 00:50:16,634 - INFO - Will play a_welle
+2019-04-10 00:50:17,050 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:50:23,299 - INFO - Will play a_welle
+2019-04-10 00:50:23,845 - INFO - len(keeper.data) == 10 - start
+2019-04-10 00:51:41,691 - INFO - Will play a_welle
+2019-04-10 00:51:42,088 - INFO - len(keeper.data) == 10 - start
+2019-04-10 01:01:32,785 - INFO - Will play a_welle
+2019-04-10 01:01:33,203 - INFO - len(keeper.data) == 10 - start
+2019-04-10 01:01:54,449 - INFO - Caught Ctrl-C
+2019-04-10 01:01:54,452 - INFO - Stop recording.
