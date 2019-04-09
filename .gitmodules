@@ -1,0 +1,3 @@
+[submodule "recordings"]
+	path = recordings
+	url = rizhom@figur.li:recordings.git
