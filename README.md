@@ -19,6 +19,8 @@ pip install --global-option='build_ext' --global-option='-I/usr/local/include' -
 
 ## Use
 
+Note that you'll need to check out submodules: `git submodule init && git submodule update`
+
 - `notebooks/audio.ipynb` : record (into `./recordings` repo), analyze, effects
 - `notebooks/dmx.ipynb` : install, develop
 - `py/features.py` : extract logmel, ceps
