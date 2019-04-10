@@ -3,6 +3,14 @@
 import numpy as np
 import pyaudio
 
+import os
+import sys
+lib_path = os.path.join(os.path.dirname(__file__), '../../py')
+if lib_path not in sys.path:
+    sys.path.insert(0, lib_path)
+
+import settings
+
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -12,15 +20,15 @@ NORMALIZE_CST = 32768.0
 
 # http://people.csail.mit.edu/hubert/pyaudio/
 
-def record(secs, rate=RATE):
+def record(secs, rate=settings.rate, dtype=settings.dtype, hop_size=settings.hop_size):
 
     p = pyaudio.PyAudio()
 
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
+    stream = p.open(format=dtype,
+                    channels=1,
                     rate=rate,
                     input=True,
-                    frames_per_buffer=CHUNK)
+                    frames_per_buffer=hop_size)
 
     print("* recording")
 
