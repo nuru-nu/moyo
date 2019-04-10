@@ -226,6 +226,7 @@ def is_over(x):
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 monitor_address = (args.address, args.monitor_port)
+fadecandy_address = (args.address, settings.fadecandy_port)
 lighter_address = (args.address, args.lighter_port)
 
 i = 0
@@ -297,6 +298,8 @@ while running:
 
     monitor_message = json.dumps(monitor_message).encode('utf8')
     sock.sendto(monitor_message, monitor_address)
+
+    sock.sendto(monitor_message, fadecandy_address)
 
     lighter_message = json.dumps(lighter_message).encode('utf8')
     sock.sendto(lighter_message, lighter_address)
