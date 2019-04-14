@@ -70,7 +70,7 @@ def float_to_int16(a):
 def plot_logmel(logmel, ax=None, rate=settings.rate,
                 hop_secs=settings.hop_secs):
     from matplotlib import pyplot as plt
-    f2hz = rate / logmel.shape[1]
+    f2hz = rate / logmel.shape[1] / np.pi
     if ax is None:
         plt.figure(figsize=(12, 4))
         ax = plt.subplot(111)
