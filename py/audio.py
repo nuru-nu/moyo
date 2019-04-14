@@ -6,22 +6,34 @@ import settings, util
 
 
 class AudioInterface:
+    """Record / play sounds.
+
+    Channels are interleaved sample by sample, e.g.
+    LEFT = [1, 2, 3, 4]
+    RIGHT = [10, 20, 30, 40]
+    => buf=[1, 10, 2, 20, 3, 30, 4, 40]
+
+    Don't forget to convert samples with `util.float_to_int16()` and
+    `util.int16_to_float()` when apllying effects...
+    """
 
     CHUNK = 1024
 
-    def __init__(self, input, output):
+    def __init__(self, input=False, output=False,
+                 input_channels=1, output_channels=1):
         self.p = pyaudio.PyAudio()
-        if input:
+        # (or for compatibility)
+        if input or input_channels > 0:
             self.input_stream = self.p.open(
                 format=settings.dtype,
-                channels=1,
+                channels=input_channels,
                 rate=settings.rate,
                 input=True,
                 frames_per_buffer=settings.hop_size)
-        if output:
+        if output or output_channels > 0:
             self.output_stream = self.p.open(
                 format=settings.dtype,
-                channels=1,
+                channels=output_channels,
                 rate=settings.rate,
                 output=True,
                 frames_per_buffer=settings.hop_size)
