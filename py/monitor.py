@@ -111,10 +111,14 @@ class Monitor:
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
         self.root.resizable(False, False)
 
+        self.style = ttk.Style(self.root)
+        self.style.configure('TFrame', background='white')
+        self.style.configure('TLabel', background='white')
+
         top = ttk.Frame(self.root)
         ttk.Label(top, text=settings.to_string()).pack()
         self.fpsvar = tk.StringVar()
-        ttk.Label(top, textvar=self.fpsvar).pack()
+        ttk.Label(top, textvar=self.fpsvar, background='white').pack()
         top.grid(column=0, row=0, sticky=(E, W))
 
         self.fig = Figure(figsize=(8, 5), dpi=100)
@@ -141,12 +145,17 @@ class Monitor:
         self.ani = animation.FuncAnimation(
             self.fig, self.anim, interval=1000 / args.monitor_freq, blit=False)
 
-        buttons = ttk.Frame(self.root)
+        button_rows = ttk.Frame(self.root)
+        first_letters = None
         for name in sorted(settings.recordings):
-            ttk.Button(buttons, text=name,
+            if first_letters != name[:3]:
+                first_letters = name[:3]
+                button_row = ttk.Frame(button_rows)
+            ttk.Button(button_row, text=name,
                        command=functools.partial(self.play, name)
                        ).pack(side=tk.LEFT)
-        buttons.grid(column=0, row=2, sticky=E)
+            button_row.pack(side=tk.TOP)
+        button_rows.grid(column=0, row=2, sticky=E)
 
     def play(self, name):
         logger.info('Playing {}'.format(name))

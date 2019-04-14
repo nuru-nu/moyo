@@ -3,10 +3,9 @@ import argparse, io, json, logging, os, signal, socket, time
 
 import aubio
 import numpy as np
-import pyaudio
 import scipy.io.wavfile
 
-import detector, features, settings, streaming, util
+import audio, detector, features, settings, streaming, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -63,7 +62,8 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 class Player:
-    def __init__(self):
+
+    def __init__(self, audio_interface):
         self.data = {}
         t0 = time.time()
         for name, path in settings.recordings.items():
@@ -79,19 +79,14 @@ class Player:
             logger.info('Loaded {} {:.1f}s'.format(
                 name, len(data) / sr))
             self.data[name] = data
-        logger.info('Loaded {} recordings in {:.3f}s'.format(
+        logger.info('Loaded {} recordings in {:.3f}ms'.format(
             len(self.data), time.time() - t0))
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.settimeout(0)
         self.sock.bind((args.listen_address, args.port))
 
-        p = pyaudio.PyAudio()
-        self.stream = p.open(format=settings.dtype,
-                             channels=1,
-                             rate=settings.rate,
-                             output=True,
-                             frames_per_buffer=settings.hop_size)
+        self.audio_interface = audio_interface
 
         self.stop()
 
@@ -121,7 +116,7 @@ class Player:
             n = min(samples, len(data) - self.bufi)
             buf[:n] = data[self.bufi: self.bufi + n]
             self.bufi += n
-            self.stream.write(buf.tostring())
+            self.audio_interface.output_stream.write(buf.tostring())
             # dt = time.time() - t0
             # if dt < samples / settings.rate:
             #     time.sleep(samples / settings.rate - dt)
@@ -131,18 +126,11 @@ class Player:
         return buf
 
 
-class Audio(object):
+class InputStreamer(object):
 
-    def __init__(self):
-        self.player = Player()
-
-        self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(
-            format=settings.dtype,
-            channels=1,
-            rate=settings.rate,
-            input=True,
-            frames_per_buffer=settings.hop_size)
+    def __init__(self, audio_interface):
+        self.player = Player(audio_interface)
+        self.audio_interface = audio_interface
 
         self.pitcher = aubio.pitch(method='yinfft',
                                    buf_size=settings.buf_size,
@@ -162,7 +150,8 @@ class Audio(object):
         if self.player.playing():
             data = self.player.get(samples)
         else:
-            data = self.stream.read(samples, exception_on_overflow=False)
+            data = self.audio_interface.input_stream.read(
+                samples, exception_on_overflow=False)
             data = np.frombuffer(data, np.int16)
         data = util.int16_to_float(data)
         self.t += float(len(data)) / settings.rate
@@ -189,11 +178,6 @@ class Audio(object):
 
     def get_dt(self):
         return time.time() - self.t0 - self.t
-
-    def stop(self):
-        self.stream.stop_stream()
-        self.stream.close()
-        self.p.terminate()
 
 
 def timestamp():
@@ -247,13 +231,14 @@ if args.detector1_model:
 keeper = detector.Keeper(**keeper_kw)
 
 logger.info('Start recording.')
-audio = Audio()
+audio_interface = audio.AudioInterface(input=True, output=True)
+input_streamer = InputStreamer(audio_interface)
 
 started = False
 think_t0 = None
 while running:
     t0 = time.time()
-    data, ceps, logmel, pitch, loud = audio.get()
+    data, ceps, logmel, pitch, loud = input_streamer.get()
 
     intensity = ceps.max()
     i += 1
@@ -305,4 +290,4 @@ while running:
     sock.sendto(lighter_message, lighter_address)
 
 logger.info('Stop recording.')
-audio.stop()
+del audio_interface
