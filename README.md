@@ -19,7 +19,8 @@ pip install --global-option='build_ext' --global-option='-I/usr/local/include' -
 
 ## Use
 
-Note that you'll need to check out submodules: `git submodule init && git submodule update`
+Note that you might also want to check out submodules:
+`git submodule init && git submodule update`
 
 - `notebooks/audio.ipynb` : record (into `./recordings` repo), analyze, effects
 - `notebooks/dmx.ipynb` : install, develop
@@ -36,6 +37,10 @@ Note that you'll need to check out submodules: `git submodule init && git submod
 See instructions in `notebooks/dmx.ipynb`.
 
 ## Development
+
+### Git
+
+git config status.submodulesummary 1
 
 ### VIM config
 
