@@ -1,7 +1,7 @@
 import bpy
 import bmesh
 
-def create_sphere(name, location, diameter=1, u_segments=32, v_segments=16):
+def create_sphere(name, location, material, diameter=1, u_segments=32, v_segments=16):
 	# Create an empty mesh and the object.
 	scn = bpy.context.scene
 	mesh = bpy.data.meshes.new(name)
@@ -19,7 +19,7 @@ def create_sphere(name, location, diameter=1, u_segments=32, v_segments=16):
 	bm.free()
 
 	basic_sphere.location = location
-	basic_sphere.data.materials.append(bpy.data.materials.get("pixel").copy())
+	basic_sphere.data.materials.append(material)
 
 
 # obj = bpy.context.active_object

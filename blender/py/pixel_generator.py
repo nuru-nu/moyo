@@ -22,7 +22,7 @@ for i in range(nr_pixels):
 	vert_idx = np.random.randint(nr_verts)
 	co = sphere.data.vertices[vert_idx].co
 
-	bf.create_sphere("pixel_"+str(i+1).zfill(3), co, diameter=0.2, u_segments=16, v_segments=8)
+	bf.create_sphere("pixel_"+str(i+1).zfill(3), co, bpy.data.materials.get("pixel").copy(), diameter=0.2, u_segments=16, v_segments=8)
 
 	theta = np.arccos(co[2]/radius)
 	phi = np.arctan(co[1]/co[0])
