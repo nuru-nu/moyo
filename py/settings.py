@@ -25,7 +25,6 @@ address = 'localhost'
 monitor_port = 6100
 recorder_port = 6101
 lighter_port = 6102
-fadecandy_port = 6103
 
 
 def to_string():
