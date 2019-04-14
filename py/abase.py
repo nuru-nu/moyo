@@ -111,7 +111,7 @@ class ABase:
 
     def query(self, query):
         queries = tuple(list(self.queries) + [query])
-        return ABase(self.base, df=self.df.query(query), queries=queries)
+        return ABase(df=self.df.query(query), queries=queries)
 
     def __str__(self):
         return ('{class_}(n={n}, series={series}, what={what}, '
