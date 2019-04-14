@@ -3,6 +3,8 @@ import json, logging, sys
 
 import numpy as np
 
+import settings
+
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 
@@ -26,10 +28,10 @@ def createLogger(name, stderr=True, logfile=True):
 class XtermScale(object):
 
     def __init__(self, f, n):
-        hex2tuple = lambda color: (
-            int(color[:2], 16) / 255.,
-            int(color[2:4], 16) / 255.,
-            int(color[4:], 16) / 255.)
+        def hex2tuple(color):
+            return (int(color[:2], 16) / 255.,
+                    int(color[2:4], 16) / 255.,
+                    int(color[4:], 16) / 255.)
         colors = [
             hex2tuple(color)
             for color in json.load(open('colors.json'))
@@ -38,43 +40,71 @@ class XtermScale(object):
         def colordist(c1, c2):
             # https://en.wikipedia.org/wiki/Color_difference
             return sum([((a - b)**2) for a, b in zip(c1, c2)]) ** .5
+
         def closest(c):
-            return min([(colordist(c, color), i) for i, color in enumerate(colors)])[1]
+            return min([(colordist(c, color), i)
+                        for i, color in enumerate(colors)])[1]
 
         self.scale = [
-                closest(f(1. * i / (n - 1))[:3])
-                for i in range(n)
-                ]
+            closest(f(1. * i / (n - 1))[:3])
+            for i in range(n)
+        ]
 
     def __call__(self, x):
         i = int(len(self.scale) * min(1, max(0, x)))
         return self.scale[min(i, len(self.scale) - 1)]
 
 
-def debounce(dt, f, wait_first=True):
-    #TODO write version that works with logging
-    t0 = None
-    def wrapper(*args, **kwargs):
-        if t0 is None:
-            t0 = time.time()
-            return
-        if time.time() - t0 < dt:
-            return
-        if wait_first:
-            wait_first = False
-            return
-        t0 = time.time()
-        return f(*args, **kwargs)
-    return wrapper
-
-
 def int16_to_float(a):
     if a.dtype.name == 'int16':
-        a =  (a / 32768.0).astype(np.float32)
+        a = (a / 32768.0).astype(np.float32)
     return a
+
 
 def float_to_int16(a):
     if not a.dtype.name == 'int16':
         a = (a * 32768.0).astype('int16')
     return a
 
+
+def plot_logmel(logmel, ax=None, rate=settings.rate,
+                hop_secs=settings.hop_secs):
+    from matplotlib import pyplot as plt
+    f2hz = rate / logmel.shape[1]
+    if ax is None:
+        plt.figure(figsize=(12, 4))
+        ax = plt.subplot(111)
+    ax.matshow(logmel.T, cmap='jet')
+    ax.set_xticklabels([
+        '%.1f' % (frame * hop_secs)
+        for frame in plt.gca().get_xticks()
+    ])
+    ax.set_yticklabels([
+        '{:,}'.format(int(f * f2hz))
+        for f in plt.gca().get_yticks()
+    ])
+    ax.set_xlabel('t [s]')
+    ax.set_ylabel('f [Hz]')
+
+
+class Streamer:
+    """Access array in buf_size-sized chunks hop_size apart."""
+
+    def __init__(self, data, buf_size=settings.buf_size,
+                 hop_size=settings.hop_size):
+        self.i = 0
+        self.data = data
+        self.buf_size = buf_size
+        self.hop_size = hop_size
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.i >= len(self.data):
+            raise StopIteration
+        ret = self.data[self.i:self.i + self.buf_size]
+        self.i += self.hop_size
+        if len(ret) < self.buf_size:
+            ret = np.pad(ret, [(0, self.buf_size - len(ret))], mode='constant')
+        return ret

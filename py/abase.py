@@ -10,7 +10,6 @@ Synposis:
 import collections, hashlib, os, pickle, random, struct, time
 
 from matplotlib import pyplot as plt
-import numpy as np
 import pandas
 import scipy.io.wavfile
 
@@ -34,8 +33,12 @@ class ABase:
             self.df = df
             self.df.is_copy = False
 
-    def reload(self, **kwargs):
+    def reload(self, load_wav=False, **kwargs):
         self.df = self.make_df(settings.recordings.values(), **kwargs)
+        if load_wav:
+            for name in self.df.index:
+                if self.df.loc[name, 'wav'] is None:
+                    self.df.at[name, 'wav'] = self.wav(name)
         for query in self.queries:
             self.df = self.df.query(query)
 
@@ -57,7 +60,7 @@ class ABase:
             ('inseries', []),
             ('rand', []),
             ('rand_stable', []),
-            # (original encoding)
+            # original format
             ('wav', []),
         ))
         more = []
@@ -89,10 +92,6 @@ class ABase:
                     df[kw] = [False] * len(df['name'])
                     more.append(kw)
 
-            wav = None
-            if load_wav:
-                wav = self.wav(path)
-
             for m in more:
                 df[m].append(m in kws)
             df['path'].append(path)
@@ -104,7 +103,7 @@ class ABase:
             df['inseries'].append(inseries)
             df['rand'].append(random.random())
             df['rand_stable'].append(rand_stable(path))
-            df['wav'].append(wav)
+            df['wav'].append(None)
 
         df = pandas.DataFrame(df).set_index('name')
         df['name'] = df.index
@@ -137,14 +136,13 @@ class ABase:
             print('ignoring "{}" : rate {}!={}'.format(
                 name, sr, settings.rate))
 
-    def transform(self, name, transformer, progress_secs=5.):
+    def transform(self, col, transformer, progress_secs=5.):
         data, index = [], []
         transformed = 0
         t0 = time.time()
         for name, row in self.df.iterrows():
-            if name in row and row[name] is not None and not np.any(
-                    np.isnan(row[name])):
-                d = row[name]
+            if col in row and row[col] is not None:
+                d = row[col]
             else:
                 d = transformer(row)
                 transformed += 1
@@ -157,12 +155,13 @@ class ABase:
                     100. * transformed / len(self.df)))
                 t0 = time.time()
         cache = os.path.join(settings.abase_cache_dir,
-                             '{}.pickle'.format(name))
+                             '{}.pickle'.format(col))
         data = pandas.Series(data=data, index=index)
         with open(cache, 'wb') as f:
             pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-        print('{} : {:.2f}M'.format(
-            cache, os.stat(cache).st_size / 1024. / 1024))
+        print('{} : {:.2f}M ({:.1f}s)'.format(
+            cache, os.stat(cache).st_size / 1024. / 1024, time.time() - t0))
+        self.df.loc[:, col] = data
 
     def load(self, cols, notexists_ok=True):
         """Loads columns from cache (`cols` can be singel col name or list)."""
