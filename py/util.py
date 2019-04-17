@@ -68,13 +68,13 @@ def float_to_int16(a):
 
 
 def plot_logmel(logmel, ax=None, rate=settings.rate,
-                hop_secs=settings.hop_secs):
+                hop_secs=settings.hop_secs, **matshow_kw):
     from matplotlib import pyplot as plt
     f2hz = rate / logmel.shape[1] / np.pi
     if ax is None:
         plt.figure(figsize=(12, 4))
         ax = plt.subplot(111)
-    ax.matshow(logmel.T, cmap='jet')
+    ax.matshow(logmel.T, cmap='jet', **matshow_kw)
     ax.set_xticklabels([
         '%.1f' % (frame * hop_secs)
         for frame in plt.gca().get_xticks()
