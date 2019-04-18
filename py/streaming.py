@@ -1,5 +1,6 @@
 
 import numpy as np
+from PIL import Image
 
 
 class OutlierFilter:
@@ -71,3 +72,55 @@ class EnvelopAverager:
         self.buf[self.i % self.n] = np.abs(buf)
         self.i += 1
         return np.mean(self.buf)
+
+
+class WithPrevious:
+    """Streaming implementation of with_previous()."""
+    def __init__(self, n, d):
+        self.n = n
+        self.d = d
+        self.buf = np.zeros((self.n, self.d), dtype='float32')
+        self.i = 0
+
+    def __call__(self, logmel):
+        x = logmel
+        if self.d != len(logmel):
+            x = np.array(
+                Image.fromarray(x.reshape((1, -1))).resize((self.d, 1)))[0]
+        self.buf[self.i % self.n, :] = x
+        self.i += 1
+        return np.concatenate([logmel, self.buf.mean(axis=0)])
+
+
+class KerasDetector:
+    """Transforms logmel to keras model scalar output."""
+    def __init__(self, model, preprocessor):
+        self.model = model
+        self.preprocessor = preprocessor
+        self.t = None
+        self.lv = None
+
+    def __call__(self, logmel, t=None):
+        if t and self.t == t:
+            return self.lv
+        self.lv = self.model.predict(
+            np.array([self.preprocessor(logmel)]))[0, 1]
+        return self.lv
+
+
+class MedianFilter:
+    """To be used with e.g. a ML detector."""
+
+    def __init__(self, detector, n, threshold=None):
+        self.detector = detector
+        self.threshold = threshold
+        self.buf = np.zeros(n, dtype='float32')
+        self.i = 0
+
+    def __call__(self, logmel, t=None):
+        self.buf[self.i % len(self.buf)] = self.detector(logmel, t=t)
+        self.i += 1
+        x = np.median(self.buf)
+        if self.threshold:
+            x = 1. * (x > self.threshold)
+        return x

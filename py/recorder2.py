@@ -1,3 +1,11 @@
+"""Records audio, generates features and sends messages.
+
+Example invocation using a detector model:
+
+    python recorder2.py
+        --detector_model=../data/models/linear_wp_5_5.h5
+        --preprocessor=wp_5_5
+"""
 
 import argparse, io, json, logging, os, signal, socket, time
 
@@ -5,10 +13,14 @@ import aubio
 import numpy as np
 import scipy.io.wavfile
 
-import audio, detector, features, settings, streaming, util
+import audio, features, settings, streaming, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
+PREPROCESSORS = {
+    'none': lambda x: x,
+    'wp_5_5': streaming.WithPrevious(n=5, d=5),
+}
 
 parser = argparse.ArgumentParser(
     description='Records audio and transforms the signal.')
@@ -31,9 +43,12 @@ parser.add_argument('--monitor_port', type=int, default=settings.monitor_port,
 parser.add_argument('--address', type=str, default=settings.address,
                     help='Which address to send to.')
 
-parser.add_argument('--detector1_model', type=str, default='',
-                    help='Path to saved model of detector1 model. '
+parser.add_argument('--detector_model', type=str, default='',
+                    help='Path to Keras detector model.'
                     'Empty string disables ML.')
+parser.add_argument('--preprocessor', type=str, default='none',
+                    choices=PREPROCESSORS.keys(),
+                    help='What preprocessor to use.')
 
 parser.add_argument('--output_dir', type=str, default='',
                     help='Where to store recorded .json/.wav files. '
@@ -76,8 +91,6 @@ class Player:
                 logger.warning('IGNORING {} {}!={}'.format(
                     name, data.dtype.name, settings.dtype_np.name))
                 continue
-            logger.info('Loaded {} {:.1f}s'.format(
-                name, len(data) / sr))
             self.data[name] = data
         logger.info('Loaded {} recordings in {:.3f}ms'.format(
             len(self.data), time.time() - t0))
@@ -223,12 +236,19 @@ if os.path.exists(ALIVE_PATH):
     os.rename(ALIVE_PATH, dst)
 
 keeper_kw = dict(logger=logger)
-if args.detector1_model:
-    import detector1  # Don't import TF if not needed.
-    logger.info('Loading TF model "%s"', args.detector1_model)
-    keeper_kw['detector'] = detector.detector1_adaptor(
-        detector1.Detector1(args.detector1_model))
-keeper = detector.Keeper(**keeper_kw)
+detectors = {}
+if args.detector_model:
+    logger.info('Importing TensorFlow')
+    import tensorflow as tf
+    logger.info('Loading TF model "%s"', args.detector_model)
+    model = tf.keras.models.load_model(args.detector_model)
+    detectors['tf'] = streaming.KerasDetector(
+        model, PREPROCESSORS[args.preprocessor])
+    detectors['m4'] = streaming.MedianFilter(detectors['tf'], n=4)
+    detectors['m10'] = streaming.MedianFilter(detectors['tf'], n=10)
+    detectors['m10.7'] = streaming.MedianFilter(
+        detectors['tf'], n=10, threshold=0.7)
+# keeper = detector.Keeper(**keeper_kw)
 
 logger.info('Start recording.')
 audio_interface = audio.AudioInterface(input=True, output=True)
@@ -258,28 +278,31 @@ while running:
         'mel': list(ceps),
         'logmel': list(logmel),
         'loudness': intensity,
-        'keeper': keeper.lastdbg(),
+        # 'keeper': keeper.lastdbg(),
         'pitch': pitch,
         'loud': loud,
     }
+    for detector_name, detector in detectors.items():
+        monitor_message[detector_name] = float(detector(logmel, t=i))
     lighter_message = {}
     if overdrive:
         lighter_message['overdrive'] = True
 
-    if keeper.add(data, ceps, logmel) and args.output_dir:
-        stats['recorded'] += 1
-        msg = store(np.concatenate(keeper.bufs.data.as_list()), keeper.stats())
-        monitor_message['msg'] = msg
-        lighter_message['state'] = 'search'
-        started = False
-    elif len(keeper.bufs.data) == 10:
-        stats['started'] += 1
-        logger.info('len(keeper.data) == 10 - start')
-        lighter_message['state'] = 'start'
-        started = True
-    elif started and keeper.state == keeper.BELOW:
-        lighter_message['state'] = 'wait'
-        started = False
+    # if keeper.add(data, ceps, logmel) and args.output_dir:
+    #     stats['recorded'] += 1
+    #     msg = store(np.concatenate(keeper.bufs.data.as_list()),
+    #                 keeper.stats())
+    #     monitor_message['msg'] = msg
+    #     lighter_message['state'] = 'search'
+    #     started = False
+    # elif len(keeper.bufs.data) == 10:
+    #     stats['started'] += 1
+    #     logger.info('len(keeper.data) == 10 - start')
+    #     lighter_message['state'] = 'start'
+    #     started = True
+    # elif started and keeper.state == keeper.BELOW:
+    #     lighter_message['state'] = 'wait'
+    #     started = False
 
     monitor_message = json.dumps(monitor_message).encode('utf8')
     sock.sendto(monitor_message, monitor_address)
