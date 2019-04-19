@@ -13,7 +13,7 @@ import aubio
 import numpy as np
 import scipy.io.wavfile
 
-import audio, features, settings, streaming, util
+import audio, config, features, settings, streaming, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -63,6 +63,7 @@ logger = util.createLogger('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
+conf = config.Config(logger)
 
 running = True
 
@@ -150,7 +151,6 @@ class InputStreamer(object):
                                    hop_size=settings.hop_size,
                                    samplerate=settings.rate)
         self.pitcher.set_unit('Hz')
-        self.pitcher.set_tolerance(0.8)
         self.outlier_filter = streaming.OutlierFilter(d=100, n=2)
         self.envelop_averager = streaming.EnvelopAverager(
             buf_size=settings.buf_size, n=10)
@@ -183,9 +183,10 @@ class InputStreamer(object):
         assert logmel.shape[0] == 1
         assert ceps.shape[0] == 1
 
+        self.pitcher.set_tolerance(conf['pitcher_tolerance'])
         pitch = self.pitcher(self.data[-settings.hop_size:])[0]
         pitch = float(self.outlier_filter(pitch))
-        loud = float(self.envelop_averager(self.data))
+        loud = float(self.envelop_averager(self.data)) * conf['loud_scale']
 
         return self.data, ceps[0], logmel[0], pitch, loud
 

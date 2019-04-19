@@ -6,12 +6,11 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import tkinter as tk
-from tkinter import W, E, N, S
 from tkinter import ttk
 from matplotlib import animation
 import numpy as np
 
-import settings, util
+import config, settings, util
 
 
 matplotlib.use("TkAgg")
@@ -39,6 +38,8 @@ logger = util.createLogger('monitor')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 logger.info('starting monitor')
+
+conf = config.Config(logger)
 
 
 class Stats:
@@ -98,54 +99,109 @@ class Monitor:
         self.recorder_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.recorder_address = (args.address, args.recorder_port)
 
+        self.axcols = {
+            'ax2': {
+                'loud': 'k',
+                'tf': 'k--',
+                'm4': 'g',
+                'm10': 'g--',
+                'm10.7': 'b',
+            },
+            'ax3': {
+                'pitch': 'r',
+            },
+        }
+
         self.steps = 200
-        self.data = np.zeros((self.steps, settings.num_mel_bins))
-        self.loud = np.zeros(self.steps)
-        self.pitch = np.zeros(self.steps)
-        self.data[0, 0] = -6
-        self.data[0, 1] = 5
+        self.logmel = np.zeros((self.steps, settings.num_mel_bins))
+        self.logmel[0, 0] = -6
+        self.logmel[0, 1] = 5
 
         self.initui()
+        self.initdata()
+
+    def initdata(self):
+        self.axdata = {ax: {} for ax in self.axcols}
+        self.axlines = {ax: {} for ax in self.axcols}
+        self.zeros = np.zeros(self.steps)
+        for ax, cols in self.axcols.items():
+            for name, col in cols.items():
+                self.axdata[ax][name] = data = np.zeros(self.steps)
+                self.axlines[ax][name], = self.axs[ax].plot(data, col)
 
     def initui(self):
         self.root = tk.Tk()
         self.root.wm_title('rizhoom monitor')
-        self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
         self.root.resizable(False, False)
+        # "close" button hangs ...
+        # ... doesn't really work
+        self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
+        # ... also disables ttk.Entry selection
+        # self.root.overrideredirect(True)
 
         self.style = ttk.Style(self.root)
         self.style.configure('TFrame', background='white')
         self.style.configure('TLabel', background='white')
 
         top = ttk.Frame(self.root)
-        ttk.Label(top, text=settings.to_string()).pack()
+        top_buttons = ttk.Frame(top)
+        ttk.Button(top_buttons, text='quit', command=self.shutdown).pack(
+            side=tk.LEFT)
+        self.frozen = tk.IntVar()
+        self.frozen.set(0)
+        ttk.Checkbutton(top_buttons, text='frozen', variable=self.frozen).pack(
+            side=tk.LEFT)
+        top_buttons.pack()
+        top_labels = ttk.Frame(top)
+        ttk.Label(top_labels, text=settings.to_string()).pack(side=tk.LEFT)
         self.fpsvar = tk.StringVar()
-        ttk.Label(top, textvar=self.fpsvar, background='white').pack()
-        top.grid(column=0, row=0, sticky=(E, W))
+        ttk.Label(top_labels, textvar=self.fpsvar).pack(side=tk.LEFT)
+        top_labels.pack()
+        top.pack()
 
+        self.axs = {}
         self.fig = Figure(figsize=(8, 5), dpi=100)
-        self.ax1 = self.fig.add_subplot(211)
-        self.ax1.set_xticks([])
-        self.ax1.set_yticks([])
-        self.img = self.ax1.matshow(self.data.T, cmap='jet')
-        self.ax2 = self.fig.add_subplot(212)
-        self.ax2.set_ylim([0, .3])
-        self.ax2.set_ylabel('loud (blue)')
-        self.line_loud, = self.ax2.plot(self.loud, 'b')
-        self.ax3 = self.ax2.twinx()
-        self.ax3.set_ylim([0, 800])
-        self.ax3.set_ylabel('pitch (red)')
-        self.line_pitch, = self.ax3.plot(self.pitch, 'r')
+        ax1 = self.fig.add_subplot(211)
+        ax1.set_xticks([])
+        ax1.set_yticks([])
+        self.img = ax1.matshow(self.logmel.T, cmap='jet')
+        self.axs['ax2'] = ax2 = self.fig.add_subplot(212)
+        ax2.set_ylim([0, 1.1])
+        self.axs['ax3'] = ax3 = ax2.twinx()
+        ax3.set_ylim([0, 800])
 
         self.frame = ttk.Frame(self.root)
         self.canvas = FigureCanvasTkAgg(self.fig, self.frame)
         self.canvas.draw()
-        self.canvas.get_tk_widget().grid(
-            column=0, row=0, sticky=(N, W, E, S))
+        self.canvas.get_tk_widget().pack()
 
-        self.frame.grid(column=0, row=1, columnspan=2, sticky=(N, W, E, S))
+        self.frame.pack()
         self.ani = animation.FuncAnimation(
             self.fig, self.anim, interval=1000 / args.monitor_freq, blit=False)
+
+        controls = ttk.Frame(self.root)
+        controls_row1 = ttk.Frame(controls)
+        self.axvars = {ax: {} for ax in self.axcols}
+        for label, ax in ((' left:', 'ax2'), (' right:', 'ax3')):
+            ttk.Label(controls_row1, text=label).pack(side=tk.LEFT)
+            for name, col in self.axcols[ax].items():
+                self.axvars[ax][name] = var = tk.IntVar()
+                var.set(1 if name in ('loud', 'pitch') else 0)
+                text = '{} ({})'.format(name, col)
+                ttk.Checkbutton(controls_row1, text=text, variable=var).pack(
+                    side=tk.LEFT)
+        controls_row1.pack()
+        controls_row2 = ttk.Frame(controls)
+        self.confvars = {}
+        for name in ('loud_scale', 'pitcher_tolerance'):
+            self.confvars[name] = var = tk.StringVar()
+            var.set(conf[name])
+            ttk.Label(controls_row2, text=' {}='.format(name)).pack(
+                side=tk.LEFT)
+            ttk.Entry(controls_row2, textvariable=var, width=4).pack(
+                side=tk.LEFT)
+        controls_row2.pack()
+        controls.pack()
 
         button_rows = ttk.Frame(self.root)
         first_letters = None
@@ -153,11 +209,11 @@ class Monitor:
             if first_letters != name[:3]:
                 first_letters = name[:3]
                 button_row = ttk.Frame(button_rows)
-            ttk.Button(button_row, text=name,
-                       command=functools.partial(self.play, name)
-                       ).pack(side=tk.LEFT)
+            command = functools.partial(self.play, name)
+            ttk.Button(button_row, text=name, command=command).pack(
+                side=tk.LEFT)
             button_row.pack(side=tk.TOP)
-        button_rows.grid(column=0, row=2, sticky=E)
+        button_rows.pack()
 
     def play(self, name):
         logger.info('Playing {}'.format(name))
@@ -167,19 +223,37 @@ class Monitor:
         self.recorder_sock.sendto(msg, self.recorder_address)
 
     def anim(self, *args):
-        self.stats.inc('anim')
         while self.recv():
             self.stats.inc('recv')
-            pass
-        self.img.set_data(self.data.T)
-        self.line_loud.set_ydata(self.loud)
-        self.line_pitch.set_ydata(self.pitch)
+        self.updateui()
+
+    def updateui(self):
         if self.stats.ready():
-            self.fpsvar.set(self.stats.get())
+            self.axs['ax2'].set_title(self.stats.get())
+        for name, var in self.confvars.items():
+            try:
+                value = float(var.get())
+            except ValueError:
+                value = 0
+                var.set(value)
+            # don't bother to read from conf
+            conf[name] = value
+
+        if self.frozen.get():
+            return
+        self.stats.inc('anim')
+        self.img.set_data(self.logmel.T)
+        for ax, datas in self.axdata.items():
+            for name, data in datas.items():
+                if self.axvars[ax][name].get():
+                    self.axlines[ax][name].set_ydata(data)
+                else:
+                    self.axlines[ax][name].set_ydata(self.zeros)
 
     def shutdown(self):
         logger.info('shutting down...')
-        del self.ani
+        # del self.ani
+        self.ani.event_source.stop()
         self.root.destroy()
 
     def recv(self):
@@ -192,15 +266,14 @@ class Monitor:
         except json.JSONDecodeError as e:
             logger.warning('Could not decode {!r} : {}'.format(data, e))
             return False
-        self.data = np.roll(self.data, shift=-1, axis=0)
+        self.logmel = np.roll(self.logmel, shift=-1, axis=0)
         self.stats.minmax('logmel', data['logmel'])
-        self.data[-1, :] = data['logmel']
-        self.loud = np.roll(self.loud, shift=-1, axis=0)
-        self.loud[-1] = data.get('loud', 0)
-        self.stats.minmax('loud', self.loud[-1])
-        self.pitch = np.roll(self.pitch, shift=-1, axis=0)
-        self.pitch[-1] = data.get('pitch', 0)
-        self.stats.minmax('pitch', self.pitch[-1])
+        self.logmel[-1, :] = data['logmel']
+
+        for ax, datas in self.axdata.items():
+            for name in datas:
+                datas[name] = np.roll(datas[name], shift=-1, axis=0)
+                datas[name][-1] = data.get(name, 0)
         return True
 
 
