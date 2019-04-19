@@ -16,6 +16,11 @@ OS X
 brew install portaudio
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
 
+### 360 images
+
+view with w.g. Google Cardboard:
+
+- https://play.google.com/store/apps/details?id=com.xojot.vrplayer
 
 ## Use
 
