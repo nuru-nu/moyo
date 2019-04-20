@@ -1,5 +1,5 @@
 
-import argparse, functools, io, json, logging, socket
+import argparse, functools, io, json, logging, os, pickle, socket
 import time
 
 import matplotlib
@@ -119,6 +119,7 @@ class Monitor:
 
         self.initui()
         self.initdata()
+        self.update_freeze()
 
     def initdata(self):
         self.axdata = {ax: {} for ax in self.axcols}
@@ -145,11 +146,12 @@ class Monitor:
 
         top = ttk.Frame(self.root)
         top_buttons = ttk.Frame(top)
-        ttk.Button(top_buttons, text='quit', command=self.shutdown).pack(
+        self.freeze_button = ttk.Button(
+            top_buttons, text='(un)freeze', command=self.freeze)
+        self.freeze_button.pack(side=tk.LEFT)
+        ttk.Button(top_buttons, text='store', command=self.store).pack(
             side=tk.LEFT)
-        self.frozen = tk.IntVar()
-        self.frozen.set(0)
-        ttk.Checkbutton(top_buttons, text='frozen', variable=self.frozen).pack(
+        ttk.Button(top_buttons, text='quit', command=self.shutdown).pack(
             side=tk.LEFT)
         top_buttons.pack()
         top_labels = ttk.Frame(top)
@@ -215,6 +217,29 @@ class Monitor:
             button_row.pack(side=tk.TOP)
         button_rows.pack()
 
+    def freeze(self):
+        conf['frozen'] = 1 - conf['frozen']
+        self.update_freeze()
+
+    def update_freeze(self):
+        if conf['frozen']:
+            self.ani.event_source.stop()
+            self.freeze_button.configure(text='unfreeze')
+        else:
+            self.ani.event_source.start()
+            self.freeze_button.configure(text='freeze')
+
+    def store(self):
+        i = 0
+        while True:
+            path = 'logmel{:03d}.pickle'.format(i)
+            if not os.path.exists(path):
+                break
+            i += 1
+        with open(path, 'wb') as f:
+            pickle.dump(self.logmel, f)
+        logger.info('stored logmel to "{}"'.format(path))
+
     def play(self, name):
         logger.info('Playing {}'.format(name))
         msg = json.dumps({
@@ -239,8 +264,6 @@ class Monitor:
             # don't bother to read from conf
             conf[name] = value
 
-        if self.frozen.get():
-            return
         self.stats.inc('anim')
         self.img.set_data(self.logmel.T)
         for ax, datas in self.axdata.items():

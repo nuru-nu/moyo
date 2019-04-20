@@ -3,8 +3,8 @@
 Example invocation using a detector model:
 
     python recorder2.py
-        --detector_model=../data/models/linear_wp_5_5.h5
-        --preprocessor=wp_5_5
+        --detector_model=../data/models/tmo_wp_10_10_linear.h5
+        --preprocessor=wp_10_10
 """
 
 import argparse, io, json, logging, os, signal, socket, time
@@ -20,6 +20,7 @@ ALIVE_PATH = 'alive/ongoing.json'
 PREPROCESSORS = {
     'none': lambda x: x,
     'wp_5_5': streaming.WithPrevious(n=5, d=5),
+    'wp_10_10': streaming.WithPrevious(n=10, d=10),
 }
 
 parser = argparse.ArgumentParser(
@@ -170,6 +171,9 @@ class InputStreamer(object):
         self.t += float(len(data)) / settings.rate
         return data
 
+    def hop_over(self):
+        self.read(settings.hop_size)
+
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
@@ -258,6 +262,9 @@ input_streamer = InputStreamer(audio_interface)
 started = False
 think_t0 = None
 while running:
+    if conf['frozen']:
+        input_streamer.hop_over()
+        continue
     t0 = time.time()
     data, ceps, logmel, pitch, loud = input_streamer.get()
 

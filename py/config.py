@@ -14,25 +14,19 @@ class DataDiff:
     def log_diff(self, data, logger):
         if self.data is None:
             return ''
-        removed, changed, added = set(self.data.keys()), set(), set()
-        for k, v in self.data.items():
+        removed = set(self.data.keys())
+        diff = ''
+        for k, v in data.items():
             if k in removed:
                 removed.remove(k)
             if k not in self.data:
-                added.add(k)
-            elif v != data[k]:
-                changed.add(k)
-        diffs = '; '.join([
-            '{} {}'.format(n, s)
-            for n, s in (
-                ('removed', removed),
-                ('added', added),
-                ('changed', changed)
-            )
-            if s
-        ])
-        if diffs:
-            logger.info('re-read config : {}'.format(diffs))
+                diff += ' {}:->{}'.format(k, v)
+            elif v != self.data[k]:
+                diff += ' {}:{}->{}'.format(k, self.data[k], v)
+        if removed:
+            diff += '; del {}'.format(', '.join(sorted(removed)))
+        if diff:
+            logger.info('re-read config : {}'.format(diff))
 
 
 class Config:
