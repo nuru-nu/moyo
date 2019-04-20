@@ -83,7 +83,7 @@ class Player:
     def __init__(self, audio_interface):
         self.data = {}
         t0 = time.time()
-        for name, path in settings.recordings.items():
+        for name, path in settings.get_recordings().items():
             sr, data = scipy.io.wavfile.read(path)
             if sr != settings.rate:
                 logger.warning('IGNORING {} {}!={}'.format(

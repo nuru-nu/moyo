@@ -207,7 +207,7 @@ class Monitor:
 
         button_rows = ttk.Frame(self.root)
         first_letters = None
-        for name in sorted(settings.recordings):
+        for name in sorted(settings.get_recordings()):
             if first_letters != name[:3]:
                 first_letters = name[:3]
                 button_row = ttk.Frame(button_rows)

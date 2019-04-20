@@ -42,7 +42,9 @@ root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
 
-recordings = {
-    os.path.basename(path)[:-4]: path
-    for path in glob.glob(os.path.join(recordings_dir, '*.wav'))
-}
+
+def get_recordings():
+    return {
+        os.path.basename(path)[:-4]: path
+        for path in glob.glob(os.path.join(recordings_dir, '*.wav'))
+    }

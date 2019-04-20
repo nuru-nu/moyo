@@ -34,7 +34,7 @@ class ABase:
             self.df.is_copy = False
 
     def reload(self, load_wav=False, **kwargs):
-        self.df = self.make_df(settings.recordings.values(), **kwargs)
+        self.df = self.make_df(settings.get_recordings().values(), **kwargs)
         if load_wav:
             for name in self.df.index:
                 if self.df.loc[name, 'wav'] is None:
@@ -136,7 +136,7 @@ class ABase:
             print('ignoring "{}" : rate {}!={}'.format(
                 name, sr, settings.rate))
 
-    def transform(self, col, transformer, progress_secs=5.):
+    def transform(self, col, transformer, progress_secs=5., write=True):
         data, index = [], []
         transformed = 0
         t0 = time.time()
@@ -157,8 +157,9 @@ class ABase:
         cache = os.path.join(settings.abase_cache_dir,
                              '{}.pickle'.format(col))
         data = pandas.Series(data=data, index=index)
-        with open(cache, 'wb') as f:
-            pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+        if write:
+            with open(cache, 'wb') as f:
+                pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
         print('{} : {:.2f}M ({:.1f}s)'.format(
             cache, os.stat(cache).st_size / 1024. / 1024, time.time() - t0))
         self.df.loc[:, col] = data
