@@ -31,19 +31,19 @@ def init(cont):
 	own['drop_radius'] = own['drop_min_radius']
 	own['drop_pos'] = np.array([np.pi, np.pi/2])
 
-	scene = bge.logic.getCurrentScene()
+	own['pixels'] = np.zeros((own['nr_pixels'], 3))
+	own['polar_mapping'] = np.zeros((own['nr_pixels'], 2))
+
 
 	with open(bge.logic.expandPath("//../data/blender_polar.json")) as json_file:  
 		data = json.load(json_file)
-		own['polar_coords'] = np.zeros((len(data),3))
 		for coord_data in data:
 			idx = int(coord_data['idx'])
 			phi = float(coord_data['phi'])
 			theta = float(coord_data['theta'])
-			own['polar_coords'][idx-1] = [phi, theta, 0]		# phi(0 - 2pi), theta(0 - pi), intensity (0 - 1)
-		own['polar_coords'] = np.array(own['polar_coords'])
-		print("Loaded pixels with shape:", own['polar_coords'].shape)
-
+			own['polar_mapping'][idx-1] = np.array([phi, theta])
+	
+		print("Loaded pixels with shape:", own['polar_mapping'].shape)
 
 def run(cont):
 	scene = bge.logic.getCurrentScene()
@@ -63,20 +63,10 @@ def run(cont):
 	# a = 1.0
 	r, g, b, a = [0,0,0,1]
 
-	own['drop_radius'] += own['drop_growth_rate']
-	if own['drop_radius'] > own['drop_max_radius']:
-		own['drop_radius'] = own['drop_min_radius']
-	# own['drop_radius'] = np.pi
-
 	kernel = multivariate_normal(own['drop_pos'], [[own['drop_radius'], 0], [0, own['drop_radius']]])
-	width = 4
 
-	clear_pixels(cont)
-	rotate_theta_ring(cont, width, [1,0,1], 20)
-	rotate_phi_ring(cont, width, [1,0,1], 20)
-
-	pixels = own['polar_coords'].copy()
-	
+	pixels = rotate_phi_ring(own['polar_mapping'], 4, [1,0,0], 20) + rotate_theta_ring(own['polar_mapping'], 4, [1,0,0], 20)
+	set_pixels(pixels)
 
 
 	# for i in range(own['nr_pixels']):
@@ -102,33 +92,35 @@ def clear_pixels(cont):
 	for i in range(own['nr_pixels']):
 		scene.objects['pixel_' + str(i+1).zfill(3)].color = [0,0,0,1]
 
-def rotate_theta_ring(cont, width, color, speed):
+def set_pixels(pixels):
 	scene = bge.logic.getCurrentScene()
-	own = cont.owner
+	for idx, pix in enumerate(pixels):
+		scene.objects['pixel_' + str(idx+1).zfill(3)].color = list(pix) + [1]
 
-	for i in range(own['nr_pixels']):
-		coord = own['polar_coords'][i]
+def rotate_theta_ring(mapping, width, color, speed):
+	pixels = np.zeros((len(mapping), 3))
+
+	for i in range(len(pixels)):
+		coord = mapping[i]
 
 		rad_pos = np.pi * ((speed*time.time() % 60) / 60.0)
 
 		I = np.clip((0.5*np.pi - width*np.abs(coord[1] + (rad_pos - np.pi))), 0, 0.5*np.pi) / (0.5*np.pi)
 
-		scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
+		pixels[i] = I*np.array(color)
 
-def rotate_phi_ring(cont, width, color, speed):
-	scene = bge.logic.getCurrentScene()
-	own = cont.owner
+	return pixels
 
-	for i in range(own['nr_pixels']):
-		coord = own['polar_coords'][i]
+def rotate_phi_ring(mapping, width, color, speed):
+	pixels = np.zeros((len(mapping), 3))
+
+	for i in range(len(pixels)):
+		coord = mapping[i]
 
 		rad_pos = 2 * np.pi * ((speed*time.time() % 60) / 60.0)
 
 		I = np.clip((np.pi - width*np.abs(coord[0] + (rad_pos - (np.pi)))), 0, np.pi) / (np.pi)
 
-		scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
+		pixels[i] = I*np.array(color)
 
-
-		# I = np.clip((2*np.pi - width*(coord[0])), 0, 2*np.pi) / (2*np.pi)
-		# print(i, I)
-		# scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
+	return pixels
