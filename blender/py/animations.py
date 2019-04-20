@@ -6,6 +6,7 @@ import json
 import numpy as np
 import colorsys
 from scipy.stats import multivariate_normal
+import time
 
 lib_path = bge.logic.expandPath("//../py/")
 assert os.path.exists(lib_path), 'Make sure "." path is where notebooks are!'
@@ -23,24 +24,23 @@ def init(cont):
 	own['sock'].bind((settings.address, settings.fadecandy_port))
 
 	own['nr_pixels'] = 5*60
-	own['init_drop_radius'] = np.pi/5
-	own['drop_growth_rate'] = np.pi/50
+	own['drop_min_radius'] = np.pi/5
+	own['drop_growth_rate'] = np.pi/100
 	own['drop_max_radius'] = np.pi
 
-	own['drop_radius'] = own['init_drop_radius']
+	own['drop_radius'] = own['drop_min_radius']
 	own['drop_pos'] = np.array([np.pi, np.pi/2])
 
 	scene = bge.logic.getCurrentScene()
 
 	with open(bge.logic.expandPath("//../data/blender_polar.json")) as json_file:  
 		data = json.load(json_file)
-		own['polar_coords'] = [None]*len(data)
-		own['polar_coords'][0] = (0,0)
+		own['polar_coords'] = np.zeros((len(data),3))
 		for coord_data in data:
 			idx = int(coord_data['idx'])
 			phi = float(coord_data['phi'])
 			theta = float(coord_data['theta'])
-			own['polar_coords'][idx - 1] = [phi, theta, 0]		# phi(0 - 2pi), theta(0 - pi), intensity (0 - 1)
+			own['polar_coords'][idx-1] = [phi, theta, 0]		# phi(0 - 2pi), theta(0 - pi), intensity (0 - 1)
 		own['polar_coords'] = np.array(own['polar_coords'])
 		print("Loaded pixels with shape:", own['polar_coords'].shape)
 
@@ -65,21 +65,70 @@ def run(cont):
 
 	own['drop_radius'] += own['drop_growth_rate']
 	if own['drop_radius'] > own['drop_max_radius']:
-		own['drop_radius'] = own['init_drop_radius']
+		own['drop_radius'] = own['drop_min_radius']
 	# own['drop_radius'] = np.pi
 
 	kernel = multivariate_normal(own['drop_pos'], [[own['drop_radius'], 0], [0, own['drop_radius']]])
+	width = 4
+
+	clear_pixels(cont)
+	rotate_theta_ring(cont, width, [1,0,1], 20)
+	rotate_phi_ring(cont, width, [1,0,1], 20)
+
+	pixels = own['polar_coords'].copy()
+	
+
+
+	# for i in range(own['nr_pixels']):
+	# 	coord = own['polar_coords'][i]
+	# 	coord[2] = kernel.pdf(coord[0:2])
+	# 	# r = coord[2]
+
+	# 	# print(i, coord)
+	# 	# r = own['drop_radius'] / np.pi
+		
+	# 	# r = (coord[0] + np.pi/2) / np.pi own['drop_radius']
+	# 	r = np.clip((0.5*np.pi - width*np.abs(coord[0] + (own['drop_radius'] - (0.5*np.pi)))), 0, 0.5*np.pi) / (0.5*np.pi)
+
+	# 	# print(r, np.clip((0.5*np.pi - width*np.abs(coord[0])), 0, 0.5*np.pi) / (0.5*np.pi), 
+	# 	#          np.clip((0.5*np.pi - width*np.abs(coord[0])), 0, 0.5*np.pi), "/", 0.5*np.pi)
+
+	# 	scene.objects['pixel_' + str(i+1).zfill(3)].color = [r, g, b, a]
+
+def clear_pixels(cont):
+	scene = bge.logic.getCurrentScene()
+	own = cont.owner
+
+	for i in range(own['nr_pixels']):
+		scene.objects['pixel_' + str(i+1).zfill(3)].color = [0,0,0,1]
+
+def rotate_theta_ring(cont, width, color, speed):
+	scene = bge.logic.getCurrentScene()
+	own = cont.owner
 
 	for i in range(own['nr_pixels']):
 		coord = own['polar_coords'][i]
-		coord[2] = kernel.pdf(coord[0:2])
-		# r = coord[2]
 
-		# print(i, coord)
-		# r = own['drop_radius'] / np.pi
-		
-		# r = (coord[0] + np.pi/2) / np.pi own['drop_radius']
-		r = coord[1] / np.pi # np.pi own['drop_radius']
+		rad_pos = np.pi * ((speed*time.time() % 60) / 60.0)
+
+		I = np.clip((0.5*np.pi - width*np.abs(coord[1] + (rad_pos - np.pi))), 0, 0.5*np.pi) / (0.5*np.pi)
+
+		scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
+
+def rotate_phi_ring(cont, width, color, speed):
+	scene = bge.logic.getCurrentScene()
+	own = cont.owner
+
+	for i in range(own['nr_pixels']):
+		coord = own['polar_coords'][i]
+
+		rad_pos = 2 * np.pi * ((speed*time.time() % 60) / 60.0)
+
+		I = np.clip((np.pi - width*np.abs(coord[0] + (rad_pos - (np.pi)))), 0, np.pi) / (np.pi)
+
+		scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
 
 
-		scene.objects['pixel_' + str(i+1).zfill(3)].color = [r, g, b, a]
+		# I = np.clip((2*np.pi - width*(coord[0])), 0, 2*np.pi) / (2*np.pi)
+		# print(i, I)
+		# scene.objects['pixel_' + str(i+1).zfill(3)].color = np.array(scene.objects['pixel_' + str(i+1).zfill(3)].color) + I*np.array(color + [1])
