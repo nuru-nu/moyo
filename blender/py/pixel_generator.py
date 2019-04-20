@@ -14,7 +14,7 @@ import audio, features, settings, streaming, util
 
 sphere = bpy.data.objects['Sphere']
 nr_verts = len(sphere.data.vertices)
-nr_pixels = 5*60
+nr_pixels = 10*60
 
 radius = np.linalg.norm(sphere.data.vertices[0].co)
 

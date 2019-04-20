@@ -1,6 +1,6 @@
 import bpy
 
-nr_pixels = 5*60
+nr_pixels = 10*60
 
 for i in range(0,nr_pixels):
 	obj = bpy.data.objects['pixel_'+str(i+1).zfill(3)]
