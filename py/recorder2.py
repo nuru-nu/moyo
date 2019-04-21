@@ -3,8 +3,8 @@
 Example invocation using a detector model:
 
     python recorder2.py
-        --detector_model=../data/models/tmo_wp_10_10_linear.h5
-        --preprocessor=wp_10_10
+        --detector_model=../data/models/tmo_wp_20_50_linear.h5
+        --preprocessor=wp_20_50
 """
 
 import argparse, io, json, logging, os, signal, socket, time
@@ -21,6 +21,7 @@ PREPROCESSORS = {
     'none': lambda x: x,
     'wp_5_5': streaming.WithPrevious(n=5, d=5),
     'wp_10_10': streaming.WithPrevious(n=10, d=10),
+    'wp_20_50': streaming.WithPrevious(n=20, d=50),
 }
 
 parser = argparse.ArgumentParser(

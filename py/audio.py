@@ -26,14 +26,14 @@ class AudioInterface:
         if input or input_channels > 0:
             self.input_stream = self.p.open(
                 format=settings.dtype,
-                channels=max(input_channels, 0),
+                channels=max(input_channels, 1),
                 rate=settings.rate,
                 input=True,
                 frames_per_buffer=settings.hop_size)
         if output or output_channels > 0:
             self.output_stream = self.p.open(
                 format=settings.dtype,
-                channels=max(output_channels, 0),
+                channels=max(output_channels, 1),
                 rate=settings.rate,
                 output=True,
                 frames_per_buffer=settings.hop_size)

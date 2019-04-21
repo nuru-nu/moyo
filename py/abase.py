@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 import pandas
 import scipy.io.wavfile
 
-import audio, settings
+import audio, settings, util
 
 
 def rand_stable(s):
@@ -130,6 +130,7 @@ class ABase:
 
     def wav(self, name):
         sr, data = scipy.io.wavfile.read(self.df.loc[name, 'path'])
+        data = util.int16_to_float(data)
         if sr == settings.rate:
             return data
         else:
