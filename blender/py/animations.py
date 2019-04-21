@@ -24,12 +24,19 @@ def init(cont):
 	own['sock'].settimeout(0)
 	own['sock'].bind((settings.address, settings.fadecandy_port))
 
-	own['drop_radius'] = np.pi/4
-	own['drop_pos'] = np.array([0, 0])
-
 	own['pixels'] = np.zeros((pf.nr_pixels, 3))
 	own['polar_mapping'] = np.zeros((pf.nr_pixels, 2))
+
+	own['max_time'] = 9000000 # 2500 hours
+	own['reset_time'] = time.time() % own['max_time']
+
+	# Animation Variables
 	own['speed'] = 60
+	own['anim_durtion'] = 2
+	own['drop_radius'] = np.pi/4
+	own['drop_pos'] = np.array([0.0, 0.0])
+
+
 
 
 	with open(bge.logic.expandPath("//../data/blender_polar.json")) as json_file:  
@@ -42,7 +49,7 @@ def init(cont):
 	
 		print("Loaded pixels with shape:", own['polar_mapping'].shape)
 
-	own['prev_t'] = time.time()
+	own['prev_t'] = time.time() % 120
 
 def run(cont):
 	scene = bge.logic.getCurrentScene()
@@ -59,20 +66,20 @@ def run(cont):
 	# 	print('Could not decode {!r} : {}'.format(data, e))
 	# 	return False
 
-	print(own['speed']*(time.time() - own['prev_t']))
-	if own['speed']*(time.time() - own['prev_t']) > 60:
-		own['prev_t'] = time.time()
+
+	if (time.time() % own['max_time']) - own['reset_time'] > own['anim_durtion']:
+		own['reset_time'] = time.time() % own['max_time']
 		own['drop_pos'] = np.squeeze([np.random.rand(1)*np.pi, np.random.rand(1)*2*np.pi - np.pi])
-		print(own['drop_pos'])
 
-	
+	t_global = time.time() % own['max_time']
+	t_anim = (time.time() % own['max_time']) - own['reset_time']
 
-	pixels = pf.gaussian_droplet(own['polar_mapping'], own['drop_pos'], own['drop_radius'], [0,0,1], own['speed'])
-	# pixels = pf.rotate_phi_ring(own['polar_mapping'], 4, [1,0,0], own['speed']) + pf.rotate_theta_ring(own['polar_mapping'], 4, [0,0,1], own['speed'])
+	print(t_anim, own['drop_pos'])
+	sigma = ((np.sin(own['speed']*t_anim*np.pi) + 1)/2)*own['drop_radius']
+	sigma = (t_anim / own['anim_durtion'])*own['drop_radius']
 
-
+	pixels = pf.gaussian_droplet(own['polar_mapping'], own['drop_pos'], sigma, [0,0,1])
 	set_pixels(pixels)
-
 
 def clear_pixels(cont):
 	scene = bge.logic.getCurrentScene()
