@@ -53,6 +53,7 @@ class MovingAverage:
         except TypeError:
             pass
         self.buf[self.i % len(self.buf)] = v
+        self.i += 1
         return self.buf.mean()
 
 

@@ -179,11 +179,7 @@ class InputStreamer(object):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
 
-        logmel = features.log_mel_spectrogram(
-            self.data, audio_sample_rate=settings.rate,
-            window_length_secs=settings.buf_secs,
-            hop_length_secs=settings.hop_secs,
-            num_mel_bins=settings.num_mel_bins)
+        logmel = features.log_mel_spectrogram(self.data)
         ceps = features.mfccs(self.data, logmel=logmel)
         assert logmel.shape[0] == 1
         assert ceps.shape[0] == 1
@@ -293,6 +289,10 @@ while running:
     }
     for detector_name, detector in detectors.items():
         monitor_message[detector_name] = float(detector(logmel, t=i))
+
+    monitor_message['sig1'] = (
+        monitor_message['loud'] * monitor_message['m10.7'])
+
     lighter_message = {}
     if overdrive:
         lighter_message['overdrive'] = True

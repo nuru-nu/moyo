@@ -102,6 +102,7 @@ class Monitor:
         self.axcols = {
             'ax2': {
                 'loud': 'k',
+                'sig1': 'k',
                 'tf': 'k--',
                 'm4': 'g',
                 'm10': 'g--',
