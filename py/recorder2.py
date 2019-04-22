@@ -7,13 +7,12 @@ Example invocation using a detector model:
         --preprocessor=wp_20_50
 """
 
-import argparse, io, json, logging, os, signal, socket, time
+import argparse, io, json, logging, os, signal as pysig, socket, time
 
-import aubio
 import numpy as np
 import scipy.io.wavfile
 
-import audio, config, features, settings, streaming, util
+import audio, config, features, hotplug, settings, streaming, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -66,6 +65,7 @@ if args.debug:
     logger.setLevel(logging.DEBUG)
 
 conf = config.Config(logger)
+hp = hotplug.HotPlug()
 
 running = True
 
@@ -76,7 +76,7 @@ def signal_handler(signal, frame):
     running = False
 
 
-signal.signal(signal.SIGINT, signal_handler)
+pysig.signal(pysig.SIGINT, signal_handler)
 
 
 class Player:
@@ -148,15 +148,6 @@ class InputStreamer(object):
         self.player = Player(audio_interface)
         self.audio_interface = audio_interface
 
-        self.pitcher = aubio.pitch(method='yinfft',
-                                   buf_size=settings.buf_size,
-                                   hop_size=settings.hop_size,
-                                   samplerate=settings.rate)
-        self.pitcher.set_unit('Hz')
-        self.outlier_filter = streaming.OutlierFilter(d=100, n=2)
-        self.envelop_averager = streaming.EnvelopAverager(
-            buf_size=settings.buf_size, n=10)
-
         self.t = 0
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
@@ -178,18 +169,7 @@ class InputStreamer(object):
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
-
-        logmel = features.log_mel_spectrogram(self.data)
-        ceps = features.mfccs(self.data, logmel=logmel)
-        assert logmel.shape[0] == 1
-        assert ceps.shape[0] == 1
-
-        self.pitcher.set_tolerance(conf['pitcher_tolerance'])
-        pitch = self.pitcher(self.data[-settings.hop_size:])[0]
-        pitch = float(self.outlier_filter(pitch))
-        loud = float(self.envelop_averager(self.data)) * conf['loud_scale']
-
-        return self.data, ceps[0], logmel[0], pitch, loud
+        return features.wav2features(self.data)
 
     def get_dt(self):
         return time.time() - self.t0 - self.t
@@ -263,12 +243,12 @@ while running:
         input_streamer.hop_over()
         continue
     t0 = time.time()
-    data, ceps, logmel, pitch, loud = input_streamer.get()
+    feats = input_streamer.get()
 
-    intensity = ceps.max()
+    # intensity = ceps.max()
     i += 1
-    overdrive = bool(is_over(data).mean() > args.overdrive_threshold)
-    i_o += overdrive
+    # overdrive = bool(is_over(data).mean() > args.overdrive_threshold)
+    # i_o += overdrive
 
     if args.alive_secs and (
             i - last_alive) * settings.hop_secs > args.alive_secs:
@@ -280,22 +260,20 @@ while running:
         last_alive = i
 
     monitor_message = {
-        'mel': list(ceps),
-        'logmel': list(logmel),
-        'loudness': intensity,
-        # 'keeper': keeper.lastdbg(),
-        'pitch': pitch,
-        'loud': loud,
+        'mfccs': feats.mfccs,
+        'logmel': feats.logmel,
     }
+    for name, signal in hp.signals.items():
+        monitor_message[name] = signal(feats)
     for detector_name, detector in detectors.items():
-        monitor_message[detector_name] = float(detector(logmel, t=i))
+        monitor_message[detector_name] = float(detector(feats.logmel, t=i))
 
     monitor_message['sig1'] = (
         monitor_message['loud'] * monitor_message['m10.7'])
 
     lighter_message = {}
-    if overdrive:
-        lighter_message['overdrive'] = True
+    # if overdrive:
+    #     lighter_message['overdrive'] = True
 
     # if keeper.add(data, ceps, logmel) and args.output_dir:
     #     stats['recorded'] += 1
@@ -313,6 +291,7 @@ while running:
     #     lighter_message['state'] = 'wait'
     #     started = False
 
+    monitor_message = util.pythonize(monitor_message)
     monitor_message = json.dumps(monitor_message).encode('utf8')
     sock.sendto(monitor_message, monitor_address)
 

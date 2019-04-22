@@ -87,24 +87,14 @@ def plot_logmel(logmel, ax=None, rate=settings.rate,
     ax.set_ylabel('f [Hz]')
 
 
-class Streamer:
-    """Access array in buf_size-sized chunks hop_size apart."""
-
-    def __init__(self, data, buf_size=settings.buf_size,
-                 hop_size=settings.hop_size):
-        self.i = 0
-        self.data = data
-        self.buf_size = buf_size
-        self.hop_size = hop_size
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.i >= len(self.data):
-            raise StopIteration
-        ret = self.data[self.i:self.i + self.buf_size]
-        self.i += self.hop_size
-        if len(ret) < self.buf_size:
-            ret = np.pad(ret, [(0, self.buf_size - len(ret))], mode='constant')
-        return ret
+def pythonize(d):
+    """Transforms numpy arrays, float32, int64 to native Python dtypes."""
+    if isinstance(d, dict):
+        return {pythonize(k): pythonize(v) for k, v in d.items()}
+    if isinstance(d, np.ndarray) or isinstance(d, list):
+        return [pythonize(v) for v in d]
+    if isinstance(d, np.float32):
+        return float(d)
+    if isinstance(d, np.int64):
+        return int(d)
+    return d

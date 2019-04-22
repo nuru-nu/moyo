@@ -1,6 +1,32 @@
+"""Some streaming utils. See also "signals" module."""
 
 import numpy as np
 from PIL import Image
+
+import settings
+
+
+class Streamer:
+    """Access array in buf_size-sized chunks hop_size apart."""
+
+    def __init__(self, data, buf_size=settings.buf_size,
+                 hop_size=settings.hop_size):
+        self.i = 0
+        self.data = data
+        self.buf_size = buf_size
+        self.hop_size = hop_size
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.i >= len(self.data):
+            raise StopIteration
+        ret = self.data[self.i:self.i + self.buf_size]
+        self.i += self.hop_size
+        if len(ret) < self.buf_size:
+            ret = np.pad(ret, [(0, self.buf_size - len(ret))], mode='constant')
+        return ret
 
 
 class OutlierFilter:

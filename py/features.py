@@ -1,8 +1,13 @@
 
+import collections
+
 import scipy.fftpack
 
 from audioset import vggish_params, mel_features
 import settings
+
+
+Features = collections.namedtuple('Features', ['wav', 'logmel', 'mfccs'])
 
 
 def log_mel_spectrogram(data,
@@ -29,3 +34,12 @@ def mfccs(data, logmel=None, num_ceps=12, **kwargs):
         logmel = log_mel_spectrogram(data, **kwargs)
     mfcc = scipy.fftpack.dct(logmel, type=2, axis=1, norm='ortho')
     return mfcc[:, 1: (num_ceps + 1)]
+
+
+def wav2features(wav):
+    logmel = log_mel_spectrogram(wav)
+    return Features(
+        wav=wav,
+        logmel=logmel[0],
+        mfccs=mfccs(wav, logmel)[0],
+    )

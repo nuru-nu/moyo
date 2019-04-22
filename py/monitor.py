@@ -84,6 +84,68 @@ class Stats:
         ])
 
 
+class Graphs:
+    """Updates two axes with incoming data."""
+
+    def __init__(self, steps, controls, ax1, ax2, ignore=('logmel', 'mfccs')):
+        """Using `ax1` for values 0..1 and `ax2` for values >1."""
+        self.axs = dict(ax1=ax1, ax2=ax2)
+        self.controls = controls
+        self.ignore = ignore
+        self.palette = 'krgbm'
+        self.lines = dict(ax1={}, ax2={})
+        self.data = {}
+        self.cols = {}
+        self.vars = {}
+        self.mtimes = {}
+        self.zeros = np.zeros(steps)
+
+    def create(self, key):
+        self.data[key] = self.zeros.copy()
+        self.cols[key] = self.palette[len(self.data) % len(self.palette)]
+        self.lines['ax1'][key], = self.axs['ax1'].plot(
+            self.data[key], self.cols[key])
+        text = '{} ({})  '.format(key, self.cols[key])
+        self.vars[key] = var = tk.IntVar()
+        var.set(1 if key in ('loud', 'pitch') else 0)
+        ttk.Checkbutton(self.controls, text=text, variable=var).pack(
+            side=tk.LEFT)
+
+    def ax1ax2(self, key):
+        self.lines['ax1'][key].set_ydata(self.zeros)
+        del self.lines['ax1'][key]
+        self.lines['ax2'][key], = self.axs['ax2'].plot(
+            self.data[key], self.cols[key])
+        self.updateui()
+
+    def update(self, data):
+        t = time.time()
+        for k, v in data.items():
+            if k in self.ignore:
+                continue
+            self.mtimes[k] = t
+            if k not in self.data:
+                self.create(k)
+            self.data[k] = np.roll(self.data[k], shift=-1)
+            self.data[k][-1] = v
+
+            # move to 'ax2' if values > 1.0 are observed.
+            if self.data[k].max() > 1.0 and k in self.lines['ax1']:
+                self.ax1ax2(k)
+
+    def updateui(self):
+        for name, data in self.data.items():
+            line = None
+            for lines in self.lines.values():
+                if name in lines:
+                    line = lines[name]
+                    break
+            if self.vars[name].get():
+                line.set_ydata(data)
+            else:
+                line.set_ydata(self.zeros)
+
+
 class Monitor:
 
     def __init__(self):
@@ -99,37 +161,13 @@ class Monitor:
         self.recorder_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.recorder_address = (args.address, args.recorder_port)
 
-        self.axcols = {
-            'ax2': {
-                'loud': 'k',
-                'sig1': 'k',
-                'tf': 'k--',
-                'm4': 'g',
-                'm10': 'g--',
-                'm10.7': 'b',
-            },
-            'ax3': {
-                'pitch': 'r',
-            },
-        }
-
         self.steps = 200
         self.logmel = np.zeros((self.steps, settings.num_mel_bins))
         self.logmel[0, 0] = -6
         self.logmel[0, 1] = 5
 
         self.initui()
-        self.initdata()
         self.update_freeze()
-
-    def initdata(self):
-        self.axdata = {ax: {} for ax in self.axcols}
-        self.axlines = {ax: {} for ax in self.axcols}
-        self.zeros = np.zeros(self.steps)
-        for ax, cols in self.axcols.items():
-            for name, col in cols.items():
-                self.axdata[ax][name] = data = np.zeros(self.steps)
-                self.axlines[ax][name], = self.axs[ax].plot(data, col)
 
     def initui(self):
         self.root = tk.Tk()
@@ -184,19 +222,13 @@ class Monitor:
 
         controls = ttk.Frame(self.root)
         controls_row1 = ttk.Frame(controls)
-        self.axvars = {ax: {} for ax in self.axcols}
-        for label, ax in ((' left:', 'ax2'), (' right:', 'ax3')):
-            ttk.Label(controls_row1, text=label).pack(side=tk.LEFT)
-            for name, col in self.axcols[ax].items():
-                self.axvars[ax][name] = var = tk.IntVar()
-                var.set(1 if name in ('loud', 'pitch') else 0)
-                text = '{} ({})'.format(name, col)
-                ttk.Checkbutton(controls_row1, text=text, variable=var).pack(
-                    side=tk.LEFT)
+        self.graphs = Graphs(
+            steps=self.steps, controls=controls_row1, ax1=ax2, ax2=ax3)
         controls_row1.pack()
         controls_row2 = ttk.Frame(controls)
         self.confvars = {}
-        for name in ('loud_scale', 'pitcher_tolerance'):
+        # for name in ('loud_scale', 'pitcher_tolerance'):
+        for name in ():
             self.confvars[name] = var = tk.StringVar()
             var.set(conf[name])
             ttk.Label(controls_row2, text=' {}='.format(name)).pack(
@@ -267,12 +299,7 @@ class Monitor:
 
         self.stats.inc('anim')
         self.img.set_data(self.logmel.T)
-        for ax, datas in self.axdata.items():
-            for name, data in datas.items():
-                if self.axvars[ax][name].get():
-                    self.axlines[ax][name].set_ydata(data)
-                else:
-                    self.axlines[ax][name].set_ydata(self.zeros)
+        self.graphs.updateui()
 
     def shutdown(self):
         logger.info('shutting down...')
@@ -294,10 +321,7 @@ class Monitor:
         self.stats.minmax('logmel', data['logmel'])
         self.logmel[-1, :] = data['logmel']
 
-        for ax, datas in self.axdata.items():
-            for name in datas:
-                datas[name] = np.roll(datas[name], shift=-1, axis=0)
-                datas[name][-1] = data.get(name, 0)
+        self.graphs.update(data)
         return True
 
 
