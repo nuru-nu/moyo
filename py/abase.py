@@ -9,7 +9,6 @@ Synposis:
 
 import collections, hashlib, os, pickle, random, struct, time
 
-from matplotlib import pyplot as plt
 import pandas
 import scipy.io.wavfile
 
@@ -20,6 +19,41 @@ def rand_stable(s):
     """Returns a random value 0..1 based on hash(s)."""
     return struct.unpack(
         '<L', hashlib.md5(s.encode('utf8')).digest()[:4])[0] / 2.0**32
+
+
+class ValueByColumn:
+    """Makes dataframe's row's values autocomplete-accessible by their col."""
+
+    def __init__(self, row):
+        self.row = row
+
+    def __dir__(self):
+        return list(self.row.keys())
+
+    def __getitem__(self, col):
+        return self.row[col]
+
+    def __getattr__(self, col):
+        return self.row[col]
+
+    def play(self, start=0, stop=None, plot=False):
+        wav = self.wav[int(settings.rate * start):]
+        if stop:
+            wav = wav[:int(settings.rate * (stop - start))]
+        audio.playback(wav)
+
+
+class RowByIndex:
+    """Makes dataframe's rows autocomplete-accessible by their index."""
+
+    def __init__(self, df):
+        self.df = df
+
+    def __dir__(self):
+        return list(self.df.index)
+
+    def __getattr__(self, idx):
+        return ValueByColumn(self.df.loc[idx])
 
 
 class ABase:
@@ -41,6 +75,7 @@ class ABase:
                     self.df.at[name, 'wav'] = self.wav(name)
         for query in self.queries:
             self.df = self.df.query(query)
+        self.data = RowByIndex(self.df)
 
     def name(self, path):
         return os.path.basename(path)[:-4]
@@ -194,8 +229,6 @@ class ABase:
         if stop:
             wav = wav[:int(settings.rate * (stop - start))]
         audio.playback(wav)
-        if plot:
-            plt.plot(wav)
 
     def sample(self, n=1):
         if n == 1:
