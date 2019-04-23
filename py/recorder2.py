@@ -1,27 +1,14 @@
-"""Records audio, generates features and sends messages.
-
-Example invocation using a detector model:
-
-    python recorder2.py
-        --detector_model=../data/models/tmo_wp_20_50_linear.h5
-        --preprocessor=wp_20_50
-"""
+"""Records audio, generates features and sends messages."""
 
 import argparse, io, json, logging, os, signal as pysig, socket, time
 
 import numpy as np
 import scipy.io.wavfile
 
-import audio, config, features, hotplug, settings, streaming, util
+import audio, config, features, hotplug, settings, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
-PREPROCESSORS = {
-    'none': lambda x: x,
-    'wp_5_5': streaming.WithPrevious(n=5, d=5),
-    'wp_10_10': streaming.WithPrevious(n=10, d=10),
-    'wp_20_50': streaming.WithPrevious(n=20, d=50),
-}
 
 parser = argparse.ArgumentParser(
     description='Records audio and transforms the signal.')
@@ -44,13 +31,6 @@ parser.add_argument('--monitor_port', type=int, default=settings.monitor_port,
 parser.add_argument('--address', type=str, default=settings.address,
                     help='Which address to send to.')
 
-parser.add_argument('--detector_model', type=str, default='',
-                    help='Path to Keras detector model.'
-                    'Empty string disables ML.')
-parser.add_argument('--preprocessor', type=str, default='none',
-                    choices=PREPROCESSORS.keys(),
-                    help='What preprocessor to use.')
-
 parser.add_argument('--output_dir', type=str, default='',
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
@@ -65,7 +45,7 @@ if args.debug:
     logger.setLevel(logging.DEBUG)
 
 conf = config.Config(logger)
-hp = hotplug.HotPlug()
+hp = hotplug.HotPlug(logger)
 
 running = True
 
@@ -217,21 +197,6 @@ if os.path.exists(ALIVE_PATH):
     dst = os.path.join(os.path.dirname(ALIVE_PATH), timestamp() + '.json')
     os.rename(ALIVE_PATH, dst)
 
-keeper_kw = dict(logger=logger)
-detectors = {}
-if args.detector_model:
-    logger.info('Importing TensorFlow')
-    import tensorflow as tf
-    logger.info('Loading TF model "%s"', args.detector_model)
-    model = tf.keras.models.load_model(args.detector_model)
-    detectors['tf'] = streaming.KerasDetector(
-        model, PREPROCESSORS[args.preprocessor])
-    detectors['m4'] = streaming.MedianFilter(detectors['tf'], n=4)
-    detectors['m10'] = streaming.MedianFilter(detectors['tf'], n=10)
-    detectors['m10.7'] = streaming.MedianFilter(
-        detectors['tf'], n=10, threshold=0.7)
-# keeper = detector.Keeper(**keeper_kw)
-
 logger.info('Start recording.')
 audio_interface = audio.AudioInterface(input=True, output=True)
 input_streamer = InputStreamer(audio_interface)
@@ -265,11 +230,6 @@ while running:
     }
     for name, signal in hp.signals.items():
         monitor_message[name] = signal(feats)
-    for detector_name, detector in detectors.items():
-        monitor_message[detector_name] = float(detector(feats.logmel, t=i))
-
-    monitor_message['sig1'] = (
-        monitor_message['loud'] * monitor_message['m10.7'])
 
     lighter_message = {}
     # if overdrive:

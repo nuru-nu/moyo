@@ -48,3 +48,8 @@ def get_recordings():
         os.path.basename(path)[:-4]: path
         for path in glob.glob(os.path.join(recordings_dir, '*.wav'))
     }
+
+
+def get_model_path(model_name):
+    return os.path.join(
+        os.path.dirname(__file__), '../data/models', model_name)

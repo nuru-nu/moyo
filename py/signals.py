@@ -2,8 +2,11 @@
 
 import aubio
 import numpy as np
+import PIL
+import tensorflow as tf
 
-import settings, streaming, util
+import settings, util
+
 
 # utils
 ###############################################################################
@@ -25,6 +28,24 @@ class SignalChain(Signal):
     def __repr__(self):
         return ' | '.join([repr(self.sig1), repr(self.sig2)])
 
+
+class WithPrevious:
+    """Extends features with scaled averaged copy."""
+    def __init__(self, n, d):
+        self.n = n
+        self.d = d
+        self.buf = np.zeros((self.n, self.d), dtype='float32')
+        self.i = 0
+
+    def __call__(self, logmel):
+        x = logmel
+        if self.d != len(logmel):
+            x = np.array(
+                PIL.Image.fromarray(x.reshape((1, -1))).resize((self.d, 1)))[0]
+        self.buf[self.i % self.n, :] = x
+        self.i += 1
+        return np.concatenate([logmel, self.buf.mean(axis=0)])
+
 # features.wav
 ###############################################################################
 
@@ -37,37 +58,37 @@ class Pitcher(Signal):
             hop_size=settings.hop_size, samplerate=settings.rate)
         self.pitcher.set_unit('Hz')
         self.pitcher.set_tolerance(tolerance)
-        self.outlier_filter = streaming.OutlierFilter(d=100, n=2)
 
     def __call__(self, features):
         wav = features.wav
         pitch = self.pitcher(util.int16_to_float(wav[:settings.hop_size]))
         assert len(pitch) == 1
-        return self.outlier_filter(pitch[0])
+        return pitch[0]
 
 
 class Louder(Signal):
     """Extracts loudness from averaged envelope."""
-    def __init__(self):
-        self.envelop_averager = streaming.EnvelopAverager(
-            buf_size=settings.buf_size, n=10)
+    def __init__(self, n):
+        self.buf = np.zeros(n * settings.hop_size)
+        self.n = n
+        self.i = 0
 
     def __call__(self, features):
-        return self.envelop_averager(features.wav)
+        i0 = settings.hop_size * (self.i % self.n)
+        self.buf[i0: i0 + settings.hop_size] = np.abs(
+            features.wav[:settings.hop_size])
+        self.i += 1
+        return self.buf.mean()
 
 # features.logmel
 ###############################################################################
 
 
 class WeightedAverage(Signal):
-    def __init__(self, n=5):
-        self.moving_average = streaming.MovingAverage(n=n)
-
     def __call__(self, features):
         logmel = features.logmel
         assert list(logmel.shape) == [settings.num_mel_bins]
-        return self.moving_average(
-            ((logmel - logmel.min()) * range(len(logmel))).mean())
+        return ((logmel - logmel.min()) * range(len(logmel))).mean()
 
 
 class ThresholdedFrequencies(Signal):
@@ -81,6 +102,40 @@ class ThresholdedFrequencies(Signal):
         logmel = features.logmel
         assert list(logmel.shape) == [settings.num_mel_bins]
         return 1.0 * ((logmel[self.n0:] > self.threshold).sum() > self.bins)
+
+
+class KerasDetector(Signal):
+    """Transforms logmel to keras model scalar output."""
+
+    PREPROCESSORS = {
+        'none': lambda x: x,
+        'wp_5_5': WithPrevious(n=5, d=5),
+        'wp_10_10': WithPrevious(n=10, d=10),
+        'wp_20_50': WithPrevious(n=20, d=50),
+    }
+
+    CACHE = {}
+
+    def __init__(self, model_name, preprocessor):
+        self.model = tf.keras.models.load_model(
+            settings.get_model_path(model_name + '.h5'))
+        self.preprocessor = self.PREPROCESSORS[preprocessor]
+        self.lastv = self.lastlm = None
+
+    def __call__(self, features):
+        if not (features.logmel == self.lastlm).all():
+            self.lastlm = features.logmel
+            batch = np.array([self.preprocessor(features.logmel)])
+            self.lastv = self.model.predict(batch)[0, 1]
+        return self.lastv
+
+    @classmethod
+    def get(cls, model_name, preprocessor):
+        key = '/'.join([model_name, preprocessor])
+        if key not in cls.CACHE:
+            cls.CACHE[key] = KerasDetector(model_name, preprocessor)
+        return cls.CACHE[key]
+
 
 # wants not set
 ###############################################################################
@@ -109,6 +164,20 @@ class Limiter(Signal):
         return self.lastv
 
 
+class MovingAverage:
+    def __init__(self, n):
+        self.n = n
+        self.buf = np.zeros(n)
+        self.i = 0
+
+    def __call__(self, v):
+        if self.n == 0:
+            return v
+        self.buf[self.i % len(self.buf)] = v
+        self.i += 1
+        return self.buf.mean()
+
+
 class Exponential(Signal):
     """Exponential smoothing (alpha=0 disables)."""
     def __init__(self, alpha):
@@ -118,3 +187,19 @@ class Exponential(Signal):
     def __call__(self, value):
         self.lastv = self.lastv + (value - self.lastv) * (1 - self.alpha)
         return self.lastv
+
+
+class Median(Signal):
+    """To be used with e.g. a ML detector."""
+    def __init__(self, n, threshold=None):
+        self.threshold = threshold
+        self.buf = np.zeros(n, dtype='float32')
+        self.i = 0
+
+    def __call__(self, value):
+        self.buf[self.i % len(self.buf)] = value
+        self.i += 1
+        x = np.median(self.buf)
+        if self.threshold:
+            x = 1. * (x > self.threshold)
+        return x
