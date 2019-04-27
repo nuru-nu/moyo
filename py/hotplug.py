@@ -1,13 +1,20 @@
 """Hot plugs Python code into interactive environment / running scripts."""
 
-import importlib, os, traceback
+import collections, importlib, os, traceback
 
-import signals as S, util  # NOQA
+import signals, hotplug_signals, util
+
+
+# last module is the one with `.get_data()`
+FileModules = collections.namedtuple('FileModules', ['file', 'modules'])
+_MODULES = dict(
+    signals=FileModules('hotplug_signals.py', [signals, hotplug_signals]),
+)
 
 
 class HotPlugModule:
-    def __init__(self, path, logger):
-        self.path = path
+    def __init__(self, file_modules, logger):
+        self.file_modules = file_modules
         self.logger = logger
         self.mtime = 0
         self.reload()
@@ -19,31 +26,34 @@ class HotPlugModule:
         return self.data.items()
 
     def reload(self):
-        mtime = os.path.getmtime(self.path)
+        path = self.path(self.file_modules.file)
+        mtime = os.path.getmtime(path)
         if mtime > self.mtime:
             self.mtime = mtime
-            with open(self.path, 'r') as f:
-                try:
-                    importlib.reload(S)
-                    self.data = eval(f.read())
-                    self.logger.info('Reloaded {}'.format(self.path))
-                except Exception as e:
-                    self.logger.warn(
-                        'Cannot eval {} : {}'.format(self.path, e))
-                    print(traceback.format_exc())
+            try:
+                for module in self.file_modules.modules:
+                    importlib.reload(module)
+                self.data = self.file_modules.modules[-1].get_data()
+                self.logger.info(
+                    'Reloaded {}'.format(self.file_modules.file))
+            except Exception as e:
+                self.logger.warn(
+                    'Cannot eval {} : {}'.format(self.file_modules.file, e))
+                print(traceback.format_exc())
             for k, v in self.data.items():
                 setattr(self, k, v)
-
-
-class HotPlug:
-    def __init__(self, logger=util.NoLogger()):
-        self._signals = HotPlugModule(self.path('hotplug_signals.py'), logger)
 
     def path(self, path):
         return os.path.join(os.path.dirname(__file__), path)
 
+
+class HotPlug:
+    def __init__(self, logger=util.NoLogger()):
+        for name, file_modules in _MODULES.items():
+            setattr(self, '_' + name, HotPlugModule(file_modules, logger))
+
     def __dir__(self):
-        return ['signals']
+        return _MODULES.keys()
 
     def __getattr__(self, key):
         module = getattr(self, '_{}'.format(key))

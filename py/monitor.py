@@ -115,13 +115,6 @@ class Graphs:
         ttk.Checkbutton(self.controls, text=text, variable=var).pack(
             side=tk.LEFT)
 
-    # def ax1ax2(self, key):
-    #     self.lines['ax1'][key].set_ydata(self.zeros)
-    #     del self.lines['ax1'][key]
-    #     self.lines['ax2'][key], = self.axs['ax2'].plot(
-    #         self.data[key], self.cols[key])
-    #     self.updateui()
-
     def update(self, data):
         t = time.time()
         for k, v in data.items():
@@ -133,9 +126,6 @@ class Graphs:
             self.data[k] = np.roll(self.data[k], shift=-1)
             self.data[k][-1] = v
 
-            # # move to 'ax2' if values > 1.0 are observed.
-            # if self.data[k].max() > 1.0 and k in self.lines['ax1']:
-            #     self.ax1ax2(k)
         for mtime in self.mtimes.values():
             if time.time() - mtime > 1:
                 self.clear()
@@ -207,15 +197,17 @@ class Monitor:
         top_labels.pack()
         top.pack()
 
-        self.axs = {}
         self.fig = Figure(figsize=(8, 5), dpi=100)
         ax1 = self.fig.add_subplot(211)
-        ax1.set_xticks([])
-        ax1.set_yticks([])
         self.img = ax1.matshow(self.logmel.T, cmap='jet')
-        self.axs['ax2'] = ax2 = self.fig.add_subplot(212)
+        ax1.set_xticks([])
+        ax1.set_yticklabels([
+            '{:,}'.format(int(f * settings.f2hz))
+            for f in ax1.get_yticks()
+        ])
+        ax2 = self.ax2 = self.fig.add_subplot(212)
         ax2.set_ylim([0, 1.1])
-        self.axs['ax3'] = ax3 = ax2.twinx()
+        ax3 = ax2.twinx()
         ax3.set_ylim([0, 800])
 
         self.frame = ttk.Frame(self.root)
@@ -294,7 +286,7 @@ class Monitor:
 
     def updateui(self):
         if self.stats.ready():
-            self.axs['ax2'].set_title(self.stats.get())
+            self.ax2.set_title(self.stats.get())
         for name, var in self.confvars.items():
             try:
                 value = float(var.get())
