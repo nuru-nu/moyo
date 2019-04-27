@@ -94,16 +94,20 @@ class Graphs:
         self.ignore = ignore
         self.palette = 'krgbm'
         self.lines = dict(ax1={}, ax2={})
+        self.zeros = np.zeros(steps)
+        self.clear()
+
+    def clear(self):
         self.data = {}
         self.cols = {}
         self.vars = {}
         self.mtimes = {}
-        self.zeros = np.zeros(steps)
 
     def create(self, key):
+        ax = 'ax2' if key[0] == '_' else 'ax1'
         self.data[key] = self.zeros.copy()
         self.cols[key] = self.palette[len(self.data) % len(self.palette)]
-        self.lines['ax1'][key], = self.axs['ax1'].plot(
+        self.lines[ax][key], = self.axs['ax1'].plot(
             self.data[key], self.cols[key])
         text = '{} ({})  '.format(key, self.cols[key])
         self.vars[key] = var = tk.IntVar()
@@ -111,12 +115,12 @@ class Graphs:
         ttk.Checkbutton(self.controls, text=text, variable=var).pack(
             side=tk.LEFT)
 
-    def ax1ax2(self, key):
-        self.lines['ax1'][key].set_ydata(self.zeros)
-        del self.lines['ax1'][key]
-        self.lines['ax2'][key], = self.axs['ax2'].plot(
-            self.data[key], self.cols[key])
-        self.updateui()
+    # def ax1ax2(self, key):
+    #     self.lines['ax1'][key].set_ydata(self.zeros)
+    #     del self.lines['ax1'][key]
+    #     self.lines['ax2'][key], = self.axs['ax2'].plot(
+    #         self.data[key], self.cols[key])
+    #     self.updateui()
 
     def update(self, data):
         t = time.time()
@@ -129,9 +133,12 @@ class Graphs:
             self.data[k] = np.roll(self.data[k], shift=-1)
             self.data[k][-1] = v
 
-            # move to 'ax2' if values > 1.0 are observed.
-            if self.data[k].max() > 1.0 and k in self.lines['ax1']:
-                self.ax1ax2(k)
+            # # move to 'ax2' if values > 1.0 are observed.
+            # if self.data[k].max() > 1.0 and k in self.lines['ax1']:
+            #     self.ax1ax2(k)
+        for mtime in self.mtimes.values():
+            if time.time() - mtime > 1:
+                self.clear()
 
     def updateui(self):
         for name, data in self.data.items():

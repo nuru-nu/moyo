@@ -16,6 +16,9 @@ class Signal:
     def __or__(self, other):
         return SignalChain(self, other)
 
+    def __mul__(self, other):
+        return SignalMult(self, other)
+
 
 class SignalChain(Signal):
     def __init__(self, sig1, sig2):
@@ -27,6 +30,18 @@ class SignalChain(Signal):
 
     def __repr__(self):
         return ' | '.join([repr(self.sig1), repr(self.sig2)])
+
+
+class SignalMult(Signal):
+    def __init__(self, sig1, sig2):
+        self.sig1 = sig1
+        self.sig2 = sig2
+
+    def __call__(self, features):
+        return self.sig2(features) * self.sig1(features)
+
+    def __repr__(self):
+        return ' * '.join([repr(self.sig1), repr(self.sig2)])
 
 
 class WithPrevious:
