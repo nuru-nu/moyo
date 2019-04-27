@@ -31,11 +31,11 @@ def init(cont):
 	own['reset_time'] = time.time() % own['max_time']
 
 	# Animation Variables
-	own['speed'] = 60
+	own['speed'] = 1
 	own['anim_durtion'] = 2
-	own['drop_radius'] = np.pi/4
-	own['drop_pos'] = np.array([0.0, 0.0])
-
+	own['drop_radius'] = np.pi/16
+	own['drop_pos'] = np.array([0.0, np.pi/2])
+	own['color'] = [0,0,1]
 
 
 
@@ -55,7 +55,7 @@ def run(cont):
 	scene = bge.logic.getCurrentScene()
 	own = cont.owner
 	
-	###################### Audio ##########################
+	# ##################### Audio ##########################
 	# try:
 	# 	data, address = own['sock'].recvfrom(4096)
 	# except io.BlockingIOError:
@@ -66,20 +66,27 @@ def run(cont):
 	# 	print('Could not decode {!r} : {}'.format(data, e))
 	# 	return False
 
-
-	if (time.time() % own['max_time']) - own['reset_time'] > own['anim_durtion']:
-		own['reset_time'] = time.time() % own['max_time']
-		own['drop_pos'] = np.squeeze([np.random.rand(1)*np.pi, np.random.rand(1)*2*np.pi - np.pi])
-
 	t_global = time.time() % own['max_time']
-	t_anim = (time.time() % own['max_time']) - own['reset_time']
 
-	print(t_anim, own['drop_pos'])
-	sigma = ((np.sin(own['speed']*t_anim*np.pi) + 1)/2)*own['drop_radius']
+	# if t_global - own['reset_time'] > own['anim_durtion']:
+	# 	own['reset_time'] = t_global
+	# 	own['drop_pos'] = np.squeeze([np.random.rand(1)*np.pi, np.random.rand(1)*2*np.pi - np.pi])
+
+	t_anim = t_global - own['reset_time']
+
+	# print(t_anim, own['drop_pos'])
+	# sigma = ((np.sin(own['speed']*2*t_anim*np.pi) + 1)/2)*own['drop_radius']
 	sigma = (t_anim / own['anim_durtion'])*own['drop_radius']
 
-	pixels = pf.gaussian_droplet(own['polar_mapping'], own['drop_pos'], sigma, [0,0,1])
+	if sigma > own['drop_radius']:
+		own['reset_time'] = t_global
+		own['drop_pos'] = np.squeeze([np.random.rand(1)*np.pi, np.random.rand(1)*2*np.pi - np.pi])
+		own['color'] = [np.random.rand(), np.random.rand(), np.random.rand()]
+
+	pixels = pf.gaussian_droplet(own['polar_mapping'], own['drop_pos'], sigma, own['color'])
 	set_pixels(pixels)
+
+	# time.sleep(0.1)
 
 def clear_pixels(cont):
 	scene = bge.logic.getCurrentScene()

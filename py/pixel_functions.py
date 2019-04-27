@@ -38,10 +38,46 @@ def rotate_phi_ring(mapping, width, color, speed):
 def gaussian_droplet(mapping, pos, sigma, color):
 	pixels = np.zeros((len(mapping), 3)) + np.array([color])
 
-	kernel_max = multivariate_normal.pdf(pos, mean=pos, cov=sigma + 1.e-12)
-
-	kernel = multivariate_normal.pdf(mapping, mean=pos, cov=sigma + 1.e-12)[:, np.newaxis]
-	for coord_shift in [[-np.pi, 0], [np.pi, 0]]:
-		kernel += multivariate_normal.pdf(mapping, mean=pos+np.array(coord_shift), cov=sigma + 1.e-12)[:, np.newaxis]
+	dist_mapping = dist_pos(haversine(np.repeat(pos[0], len(mapping)), np.repeat(pos[0], len(mapping)), mapping[:,0], mapping[:,1], 1),
+							 bearing(np.repeat(pos[0], len(mapping)), np.repeat(pos[0], len(mapping)), mapping[:,0], mapping[:,1]))
 	
-	return pixels*(kernel/kernel_max)
+
+	kernel = multivariate_normal.pdf(dist_mapping, mean=[0,0], cov=np.abs(sigma) + 1.e-12)[:, np.newaxis]
+	
+	return pixels*kernel
+
+def subtract(a, b, period):
+    """Calculates (a-b) within periodicity `period`."""
+    if a < b:
+        while a + period/2 < b:
+            a += period
+    else:
+        while a > b + period/2:
+            b += period
+    return a - b
+
+def haversine(phi1, theta1, phi2, theta2, radius):
+    """
+    Calculate the great circle distance between two points in radians
+    """
+    t1 = theta1 - np.pi/2
+    t2 = theta2 - np.pi/2
+
+    # haversine formula 
+    dphi = phi2 - phi1 
+    dtheta = t2 - t1 
+    a = np.sin(dtheta/2)**2 + np.cos(t1) * np.cos(t2) * np.sin(dphi/2)**2
+    c = 2 * np.arcsin(np.sqrt(a)) 
+    return radius * c
+
+def bearing(phi1, theta1, phi2, theta2):
+	t1 = theta1 - np.pi/2
+	t2 = theta2 - np.pi/2
+
+	X = np.cos(t2) * np.sin(np.abs(phi1-phi2))
+	Y = np.cos(t1) * np.sin(t2) - np.sin(t1) * np.cos(t2) * np.cos(np.abs(phi1-phi2))
+	return np.arctan2(X,Y)
+
+def dist_pos(d, theta):
+    theta_rad = np.pi/2 - theta
+    return np.concatenate((np.expand_dims(d*np.cos(theta_rad),axis=1), np.expand_dims(d*np.sin(theta_rad),axis=1)),axis=1)
