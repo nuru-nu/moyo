@@ -106,17 +106,43 @@ class WeightedAverage(Signal):
         return ((logmel - logmel.min()) * range(len(logmel))).mean()
 
 
-class ThresholdedFrequencies(Signal):
-    def __init__(self, hz, threshold, bins):
-        """Checks (logmel[f2bin(hz):] > threshold).sum() > bins"""
-        self.n0 = int(hz / settings.rate * settings.num_mel_bins * np.pi)
+class FreqBreadth(Signal):
+    def __init__(self, threshold):
         self.threshold = threshold
-        self.bins = bins
 
-    def __call__(self, features):
-        logmel = features.logmel
-        assert list(logmel.shape) == [settings.num_mel_bins]
-        return 1.0 * ((logmel[self.n0:] > self.threshold).sum() > self.bins)
+    def __call__(self, feats):
+        breadth = 0
+        start = None
+        for i, v in enumerate(list(feats.logmel > self.threshold) + [0]):
+            if v:
+                if start is None:
+                    start = i
+            else:
+                if start is not None:
+                    breadth = max(breadth, i - start)
+                    start = None
+        return breadth
+
+
+class FreqBand(Signal):
+    """Frequency band with cosine slope. Values not normalized."""
+    def __init__(self, hzmin, hzmax, hzslope=1, n=settings.num_mel_bins):
+        self.n = n
+        fmin, fmax, df = self.hz2f(hzmin), self.hz2f(hzmax), self.hz2f(hzslope)
+        self.kernel = np.array([
+            self.f01((f + df - fmin) / df) * self.f01((fmax + df - f) / df)
+            for f in range(n)
+        ])
+        self.kernel /= self.kernel.sum()
+
+    def __call__(self, feats):
+        return (self.kernel * feats.logmel).sum()
+
+    def hz2f(self, hz):
+        return hz * np.pi * self.n / settings.rate
+
+    def f01(self, x):
+        return (1 + np.cos((np.clip(x, 0, 1) - 1) * np.pi)) / 2
 
 
 class KerasDetector(Signal):
@@ -218,3 +244,24 @@ class Median(Signal):
         if self.threshold:
             x = 1. * (x > self.threshold)
         return x
+
+
+class Hamming(Signal):
+    def __init__(self, n):
+        self.w = np.hamming(n)
+        self.w /= self.w.sum()
+        self.buf = np.zeros(n)
+
+    def __call__(self, value):
+        self.buf[0] = value
+        self.buf = np.roll(self.buf, shift=1)
+        return (self.buf * self.w).sum()
+
+
+class Clip(Signal):
+    def __init__(self, amin=0, amax=1):
+        self.amin = amin
+        self.amax = amax
+
+    def __call__(self, value):
+        return np.clip(value, self.amin, self.amax)

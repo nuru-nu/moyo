@@ -7,7 +7,8 @@ from audioset import vggish_params, mel_features
 import settings
 
 
-Features = collections.namedtuple('Features', ['wav', 'logmel', 'mfccs'])
+Features = collections.namedtuple('Features', [
+    'wav', 'logmel', 'logmel2', 'mfccs'])
 
 
 def log_mel_spectrogram(data,
@@ -29,6 +30,10 @@ def log_mel_spectrogram(data,
     )
 
 
+def log_mel_spectrogram2(data):
+    return log_mel_spectrogram(data, num_mel_bins=settings.num_mel_bins2)
+
+
 def mfccs(data, logmel=None, num_ceps=12, **kwargs):
     if logmel is None:
         logmel = log_mel_spectrogram(data, **kwargs)
@@ -41,5 +46,7 @@ def wav2features(wav):
     return Features(
         wav=wav,
         logmel=logmel[0],
+        # logmel2=log_mel_spectrogram2(wav)[0],
+        logmel2=0,
         mfccs=mfccs(wav, logmel)[0],
     )

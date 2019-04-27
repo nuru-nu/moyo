@@ -3,7 +3,7 @@ import json, logging, sys
 
 import numpy as np
 
-import settings
+import features, settings
 
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
@@ -84,21 +84,23 @@ def float_to_int16(a):
     return a
 
 
-def plot_logmel(logmel, ax=None, rate=settings.rate,
+def plot_logmel(logmel, ax=None, rate=settings.rate, hzmax=None,
                 hop_secs=settings.hop_secs, **matshow_kw):
     from matplotlib import pyplot as plt
     f2hz = rate / logmel.shape[1] / np.pi
     if ax is None:
         plt.figure(figsize=(12, 4))
         ax = plt.subplot(111)
+    if hzmax:
+        logmel = logmel[:, :int(hzmax / f2hz)]
     ax.matshow(logmel.T, cmap='jet', **matshow_kw)
     ax.set_xticklabels([
         '%.1f' % (frame * hop_secs)
-        for frame in plt.gca().get_xticks()
+        for frame in ax.get_xticks()
     ])
     ax.set_yticklabels([
         '{:,}'.format(int(f * f2hz))
-        for f in plt.gca().get_yticks()
+        for f in ax.get_yticks()
     ])
     ax.set_xlabel('t [s]')
     ax.set_ylabel('f [Hz]')
@@ -138,3 +140,13 @@ class Streamer:
         if len(ret) < self.buf_size:
             ret = np.pad(ret, [(0, self.buf_size - len(ret))], mode='constant')
         return ret
+
+
+def get_signals(wav, signals):
+    """Iterates through `wav` and computes values for `signals`."""
+    values = {name: [] for name in signals}
+    for buf in Streamer(wav):
+        feats = features.wav2features(buf)
+        for name, signal in signals.items():
+            values[name].append(signal(feats))
+    return values

@@ -16,10 +16,12 @@ buf_secs = buf_size / rate
 hop_secs = hop_size / rate
 
 num_mel_bins = 64
+f2hz = rate / num_mel_bins / np.pi
 lower_edge_hertz = 125
 upper_edge_hertz = 7500
 
-pitch_tolerance = 0.8
+num_mel_bins2 = 256
+f2hz2 = rate / num_mel_bins2 / np.pi
 
 address = 'localhost'
 monitor_port = 6100
