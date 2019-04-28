@@ -1,6 +1,6 @@
 """Hot plugs Python code into interactive environment / running scripts."""
 
-import collections, importlib, os, traceback
+import collections, importlib, os, time, traceback
 
 import signals, hotplug_signals, util
 import effects, hotplug_effects
@@ -15,10 +15,12 @@ _MODULES = dict(
 
 
 class HotPlugModule:
-    def __init__(self, file_modules, logger):
+    def __init__(self, file_modules, logger, dt_min_s=1):
         self.file_modules = file_modules
         self.logger = logger
         self.mtime = 0
+        self.t0 = 0
+        self.dt_min_s = dt_min_s
         self.reload()
 
     def __dir__(self):
@@ -28,6 +30,9 @@ class HotPlugModule:
         return self.data.items()
 
     def reload(self):
+        if time.time() - self.t0 < self.dt_min_s:
+            return
+        self.t0 = time.time()
         path = self.path(self.file_modules.file)
         mtime = os.path.getmtime(path)
         if mtime > self.mtime:

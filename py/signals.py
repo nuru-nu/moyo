@@ -95,6 +95,21 @@ class Louder(Signal):
         self.i += 1
         return self.buf.mean()
 
+
+class Max(Signal):
+    """Max amplitude."""
+    def __call__(self, features):
+        return np.abs(features.wav).max()
+
+
+class Overdrive(Signal):
+    """Detects overdrive in signal."""
+    def __init__(self, lim=0.9):
+        self.lim = lim
+
+    def __call__(self, features):
+        return np.abs(features.wav > self.lim).sum() / len(features.wav)
+
 # features.logmel
 ###############################################################################
 

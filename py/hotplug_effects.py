@@ -5,6 +5,7 @@ import effects as E
 
 def get_data():
     return dict(
+        microphone_compress=5,
         effector=E.Effector([
             # E.SigAmp('low'),
             # E.SigAmp('high'),

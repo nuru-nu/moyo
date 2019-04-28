@@ -94,8 +94,14 @@ class Graphs:
         """Using `ax1` for values 0..1 and `ax2` for values >1."""
         self.axs = dict(ax1=ax1, ax2=ax2)
         self.controls = controls
+        self.rows = []
+        self.i = 0
         self.ignore = ignore
-        self.palette = 'krgbm'
+        self.palette = [
+            ''.join([c, s])
+            for s in ('-', '--', ':', '-.')
+            for c in 'krgbm'
+        ]
         self.lines = dict(ax1={}, ax2={})
         self.zeros = np.zeros(steps)
         self.clear()
@@ -107,6 +113,11 @@ class Graphs:
         self.mtimes = {}
 
     def create(self, key):
+        if self.i % 6 == 0:
+            row = ttk.Frame(self.controls)
+            row.pack(side=tk.TOP)
+            self.rows.append(row)
+        self.i += 1
         ax = 'ax2' if key[0] == '_' else 'ax1'
         self.data[key] = self.zeros.copy()
         self.cols[key] = self.palette[len(self.data) % len(self.palette)]
@@ -115,7 +126,7 @@ class Graphs:
         text = '{} ({})  '.format(key, self.cols[key])
         self.vars[key] = var = tk.IntVar()
         var.set(1 if key in ('loud', 'pitch') else 0)
-        ttk.Checkbutton(self.controls, text=text, variable=var).pack(
+        ttk.Checkbutton(self.rows[-1], text=text, variable=var).pack(
             side=tk.LEFT)
 
     def update(self, data):
@@ -128,10 +139,6 @@ class Graphs:
                 self.create(k)
             self.data[k] = np.roll(self.data[k], shift=-1)
             self.data[k][-1] = v
-
-        for mtime in self.mtimes.values():
-            if time.time() - mtime > 1:
-                self.clear()
 
     def updateui(self):
         for name, data in self.data.items():

@@ -105,5 +105,10 @@ def tostereo(left, right):
     ]).reshape(-1, order='F')
 
 
+def compress(data, factor):
+    # TODO interpol
+    return np.arctan(data * factor) / np.pi * 2
+
+
 if __name__ == '__main__':
     AudioInterface.list_devices()

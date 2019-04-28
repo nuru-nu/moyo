@@ -135,11 +135,13 @@ class InputStreamer(object):
     def read(self, samples):
         if self.player.playing():
             data = self.player.get(samples)
+            data = util.int16_to_float(data)
         else:
             data = self.audio_interface.input_stream.read(
                 samples, exception_on_overflow=False)
             data = np.frombuffer(data, settings.dtype_np)
-        data = util.int16_to_float(data)
+            data = util.int16_to_float(data)
+            data = audio.compress(data, hp.effects.microphone_compress)
         self.t += float(len(data)) / settings.rate
         return data
 
