@@ -13,7 +13,7 @@ assert os.path.exists(lib_path), 'Make sure "." path is where notebooks are!'
 if not lib_path in sys.path:
 	sys.path.insert(0, lib_path)
 
-import audio, features, settings, streaming, util
+import audio, features, settings, util
 import pixel_functions as pf
 
 def init(cont):
@@ -32,7 +32,7 @@ def init(cont):
 
 	# Animation Variables
 	own['speed'] = 1
-	own['anim_durtion'] = 2
+	own['anim_durtion'] = 1
 	own['drop_radius'] = np.pi/16
 	own['drop_pos'] = np.array([0.0, np.pi/2])
 	own['color'] = [0,0,1]

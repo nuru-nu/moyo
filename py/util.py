@@ -161,3 +161,14 @@ class RollingBuffer:
         if len(self.buf):
             self.buf = np.roll(self.buf, shift=-len(buf))
             self.buf[-(len(buf)):] = buf
+
+
+def phi_theta_samples(n):
+    phi_samples = np.random.uniform(size=n) * 2 * np.pi
+    theta = np.linspace(0, np.pi/2, 200)
+    pdf = np.sin(theta)
+    cdf = pdf.cumsum()
+    cdf /= cdf[-1]
+    u = np.random.uniform(size=n)
+    theta_samples = np.searchsorted(cdf, u) / len(cdf) * (np.pi / 2)
+    return phi_samples, theta_samples

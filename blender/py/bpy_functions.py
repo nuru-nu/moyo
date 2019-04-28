@@ -1,5 +1,6 @@
 import bpy
 import bmesh
+import numpy as np
 
 def create_sphere(name, location, material, diameter=1, u_segments=32, v_segments=16):
 	# Create an empty mesh and the object.
@@ -20,6 +21,20 @@ def create_sphere(name, location, material, diameter=1, u_segments=32, v_segment
 
 	basic_sphere.location = location
 	basic_sphere.data.materials.append(material)
+
+def dist_point_to_line(a, b, p): 	# Line between a and b. Point p
+    return np.linalg.norm(np.cross(b-a, a-p))/np.linalg.norm(b-a)	
+
+def find_closest_vert_idx(obj, phi, theta):
+	p0 = np.array([0,0,0])
+	p1 = np.array([100*np.sin(theta)*np.cos(phi),100*np.sin(theta)*np.sin(phi),100*np.cos(theta)])
+	closest_point = [0, 10000]
+	for vert in obj.data.vertices:
+		dist = dist_point_to_line(p0, p1, vert.co)
+		if dist < closest_point[1]:
+			closest_point = [vert.index, dist]
+	return closest_point[0]
+
 
 
 # obj = bpy.context.active_object
