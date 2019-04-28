@@ -138,7 +138,7 @@ class InputStreamer(object):
         else:
             data = self.audio_interface.input_stream.read(
                 samples, exception_on_overflow=False)
-            data = np.frombuffer(data, np.int16)
+            data = np.frombuffer(data, settings.dtype_np)
         data = util.int16_to_float(data)
         self.t += float(len(data)) / settings.rate
         return data
@@ -198,8 +198,13 @@ if os.path.exists(ALIVE_PATH):
     os.rename(ALIVE_PATH, dst)
 
 logger.info('Start recording.')
-audio_interface = audio.AudioInterface(input=True, output=True)
-input_streamer = InputStreamer(audio_interface)
+ai0 = audio.AudioInterface(input=1, device_index=hp.effects.input_device)
+ai1 = audio.AudioInterface(output=2, device_index=hp.effects.output_device_1)
+ai2 = None
+if hp.effects.output_device_2:
+    ai2 = audio.AudioInterface(
+        output=2, device_index=hp.effects.output_device_2)
+input_streamer = InputStreamer(ai0)
 
 started = False
 think_t0 = None
@@ -224,12 +229,22 @@ while running:
             json.dump(stats, f)
         last_alive = i
 
-    monitor_message = {
+    signals = {
         'mfccs': feats.mfccs,
         'logmel': feats.logmel,
     }
     for name, signal in hp.signals.items():
-        monitor_message[name] = signal(feats)
+        signals[name] = signal(feats)
+
+    bufs = hp.effects.effector(feats.wav[-settings.hop_size:], signals)
+    ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())
+    if ai2:
+        ai2.output_stream.write(audio.tostereo(*bufs[2:4]).tostring())
+
+    if conf['logmel_src'].startswith('output'):
+        channel = int(conf['logmel_src'][-1])
+        signals['logmel'] = features.wav2features(
+            hp.effects.effector.bufs[channel].buf).logmel
 
     lighter_message = {}
     # if overdrive:
@@ -239,7 +254,7 @@ while running:
     #     stats['recorded'] += 1
     #     msg = store(np.concatenate(keeper.bufs.data.as_list()),
     #                 keeper.stats())
-    #     monitor_message['msg'] = msg
+    #     signals['msg'] = msg
     #     lighter_message['state'] = 'search'
     #     started = False
     # elif len(keeper.bufs.data) == 10:
@@ -251,14 +266,17 @@ while running:
     #     lighter_message['state'] = 'wait'
     #     started = False
 
-    monitor_message = util.pythonize(monitor_message)
-    monitor_message = json.dumps(monitor_message).encode('utf8')
-    sock.sendto(monitor_message, monitor_address)
+    signals = util.pythonize(signals)
+    signals = json.dumps(signals).encode('utf8')
+    sock.sendto(signals, monitor_address)
 
-    sock.sendto(monitor_message, fadecandy_address)
+    sock.sendto(signals, fadecandy_address)
 
     lighter_message = json.dumps(lighter_message).encode('utf8')
     sock.sendto(lighter_message, lighter_address)
 
 logger.info('Stop recording.')
-del audio_interface
+del ai0
+del ai1
+if ai2:
+    del ai2

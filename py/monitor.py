@@ -43,6 +43,8 @@ conf = config.Config(logger)
 
 
 class Stats:
+    """Keeps min, max, fps and reports periodically."""
+
     def __init__(self, freq=1):
         self.t0 = time.time()
         self.freq = freq
@@ -69,6 +71,7 @@ class Stats:
         return (time.time() - self.t0) > 1 / self.freq
 
     def get(self):
+        """Returns string representation, also resets `self.t0`."""
         dt = time.time() - self.t0
         self.t0 += dt
         counts = self.counts
@@ -182,6 +185,13 @@ class Monitor:
 
         top = ttk.Frame(self.root)
         top_buttons = ttk.Frame(top)
+        self.logmel_src = tk.StringVar()
+        self.logmel_src.set(conf['logmel_src'])
+        for logmel_src in ['input', 'output0', 'output1']:
+            ttk.Radiobutton(
+                top_buttons, value=logmel_src, text=logmel_src,
+                command=self.update_logmel,
+                variable=self.logmel_src).pack(side=tk.LEFT)
         self.freeze_button = ttk.Button(
             top_buttons, text='(un)freeze', command=self.freeze)
         self.freeze_button.pack(side=tk.LEFT)
@@ -248,6 +258,9 @@ class Monitor:
                 side=tk.LEFT)
             button_row.pack(side=tk.TOP)
         button_rows.pack()
+
+    def update_logmel(self):
+        conf['logmel_src'] = self.logmel_src.get()
 
     def freeze(self):
         conf['frozen'] = 1 - conf['frozen']

@@ -150,3 +150,14 @@ def get_signals(wav, signals):
         for name, signal in signals.items():
             values[name].append(signal(feats))
     return values
+
+
+class RollingBuffer:
+    def __init__(self, buf_size):
+        self.buf = np.zeros(buf_size, dtype=np.float32)
+
+    # TODO only roll() once.
+    def __call__(self, buf):
+        if len(self.buf):
+            self.buf = np.roll(self.buf, shift=-len(buf))
+            self.buf[-(len(buf)):] = buf

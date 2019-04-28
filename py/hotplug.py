@@ -3,12 +3,14 @@
 import collections, importlib, os, traceback
 
 import signals, hotplug_signals, util
+import effects, hotplug_effects
 
 
 # last module is the one with `.get_data()`
 FileModules = collections.namedtuple('FileModules', ['file', 'modules'])
 _MODULES = dict(
     signals=FileModules('hotplug_signals.py', [signals, hotplug_signals]),
+    effects=FileModules('hotplug_effects.py', [effects, hotplug_effects]),
 )
 
 

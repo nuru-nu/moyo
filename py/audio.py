@@ -19,21 +19,24 @@ class AudioInterface:
 
     CHUNK = 1024
 
-    def __init__(self, input=False, output=False,
-                 input_channels=0, output_channels=0):
+    def __init__(self, input=0, output=0, device_index=None):
         self.p = pyaudio.PyAudio()
-        # (or for compatibility)
-        if input or input_channels > 0:
+        # (for compatibility)
+        input = int(input)
+        output = int(output)
+        if input:
             self.input_stream = self.p.open(
+                input_device_index=device_index,
                 format=settings.dtype,
-                channels=max(input_channels, 1),
+                channels=input,
                 rate=settings.rate,
                 input=True,
                 frames_per_buffer=settings.hop_size)
-        if output or output_channels > 0:
+        if output:
             self.output_stream = self.p.open(
+                output_device_index=device_index,
                 format=settings.dtype,
-                channels=max(output_channels, 1),
+                channels=output,
                 rate=settings.rate,
                 output=True,
                 frames_per_buffer=settings.hop_size)
@@ -67,6 +70,15 @@ class AudioInterface:
         return np.concatenate([
             np.fromstring(frame, np.int16) for frame in frames])
 
+    @classmethod
+    def list_devices(cls):
+        p = pyaudio.PyAudio()
+        for i in range(p.get_device_count()):
+            dev = p.get_device_info_by_index(i)
+            print('device_index={} "{}", input={}, output={}'.format(
+                i, dev['name'], dev['maxInputChannels'],
+                dev['maxOutputChannels']))
+
 
 def playback(wav):
     """Plays `wav` (can be float or int16 array) using `settings`."""
@@ -81,3 +93,10 @@ def record(secs, print_startstop=True):
     data = audio_interface.record(secs, print_startstop=print_startstop)
     del audio_interface
     return data
+
+
+def tostereo(left, right):
+    return np.vstack([
+        util.float_to_int16(left),
+        util.float_to_int16(right),
+    ]).reshape(-1, order='F')
