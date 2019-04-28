@@ -78,6 +78,11 @@ class Delay(Effect):
         return ret
 
 
+class Passthrough(Effect):
+    def __call__(self, buf, signals):
+        return buf
+
+
 class Silence(Effect):
     def __init__(self):
         self.buf = np.zeros(settings.hop_size)

@@ -201,7 +201,7 @@ logger.info('Start recording.')
 ai0 = audio.AudioInterface(input=1, device_index=hp.effects.input_device)
 ai1 = audio.AudioInterface(output=2, device_index=hp.effects.output_device_1)
 ai2 = None
-if hp.effects.output_device_2:
+if hp.effects.output_device_2 is None or hp.effects.output_device_2 >= 0:
     ai2 = audio.AudioInterface(
         output=2, device_index=hp.effects.output_device_2)
 input_streamer = InputStreamer(ai0)

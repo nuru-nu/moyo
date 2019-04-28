@@ -56,6 +56,9 @@ class AudioInterface:
 
     def record(self, secs, print_startstop=True):
         """Records `secs` worth of audio and returns int16 array."""
+        # Empty buffer.
+        while self.input_stream.get_read_available():
+            self.input_stream.read(self.input_stream.get_read_available())
         if print_startstop:
             print("* recording")
 
@@ -75,9 +78,9 @@ class AudioInterface:
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             dev = p.get_device_info_by_index(i)
-            print('device_index={} "{}", input={}, output={}'.format(
+            print('device_index={} "{}", input={}, output={} // {}'.format(
                 i, dev['name'], dev['maxInputChannels'],
-                dev['maxOutputChannels']))
+                dev['maxOutputChannels'], None))
 
 
 def playback(wav):
@@ -100,3 +103,7 @@ def tostereo(left, right):
         util.float_to_int16(left),
         util.float_to_int16(right),
     ]).reshape(-1, order='F')
+
+
+if __name__ == '__main__':
+    AudioInterface.list_devices()

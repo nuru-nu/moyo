@@ -7,8 +7,19 @@ import pyaudio
 
 
 rate = 16000
-buf_size = 1024
-hop_size = 512
+# rate = 44100
+
+if rate == 16000:
+    # 32ms
+    hop_size = 512
+elif rate == 44100:
+    # 23ms
+    hop_size = 1024
+    # 46ms
+    hop_size = 2048
+else:
+    raise 'invalid rate={}'.format(rate)
+buf_size = 2 * hop_size
 dtype = pyaudio.paInt16
 dtype_np = np.int16
 
