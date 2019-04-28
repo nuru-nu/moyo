@@ -117,4 +117,4 @@ class SigAmp:
         self.signal_name = signal_name
 
     def __call__(self, buf, signals):
-        return buf * np.clip(0, 1, signals[self.signal_name])
+        return buf * np.clip(signals.get(self.signal_name, 0), 0, 1)
