@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import settings, util
+import perf, settings, util
 
 
 class Effector:
@@ -14,6 +14,7 @@ class Effector:
             if buf_size
         ]
 
+    @perf.measure('effector')
     def __call__(self, input_data, signals):
         assert len(input_data) == settings.hop_size, (
             'Expected input_data={}!={}'.format(

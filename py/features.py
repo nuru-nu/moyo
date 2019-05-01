@@ -4,7 +4,7 @@ import collections
 import scipy.fftpack
 
 from audioset import vggish_params, mel_features
-import settings
+import perf, settings
 
 
 Features = collections.namedtuple('Features', [
@@ -41,6 +41,7 @@ def mfccs(data, logmel=None, num_ceps=12, **kwargs):
     return mfcc[:, 1: (num_ceps + 1)]
 
 
+@perf.measure('wav2features')
 def wav2features(wav):
     logmel = log_mel_spectrogram(wav)
     return Features(

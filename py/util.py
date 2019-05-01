@@ -165,7 +165,7 @@ class RollingBuffer:
 
 def phi_theta_samples(n):
     phi_samples = np.random.uniform(size=n) * 2 * np.pi
-    theta = np.linspace(0, np.pi/2, 200)
+    theta = np.linspace(0, np.pi / 2, 200)
     pdf = np.sin(theta)
     cdf = pdf.cumsum()
     cdf /= cdf[-1]

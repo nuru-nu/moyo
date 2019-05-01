@@ -5,7 +5,7 @@ import argparse, io, json, logging, os, signal as pysig, socket, time, wave
 import numpy as np
 import scipy.io.wavfile
 
-import audio, config, features, hotplug, settings, util
+import audio, config, features, hotplug, perf, settings, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -143,6 +143,7 @@ class InputStreamer(object):
             self.wav.setframerate(settings.rate)
             self.wav.setsampwidth(settings.sampwidth)
 
+    @perf.measure('InputStreamer.read')
     def read(self, samples):
         if self.player.playing():
             data16 = self.player.get(samples)
@@ -164,6 +165,7 @@ class InputStreamer(object):
                 self.audio_interface.input_stream.get_read_available())
             logger.info('Clearing buffers : read n={} bytes.'.format(n))
 
+    @perf.measure('InputStreamer.get')
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
@@ -209,6 +211,17 @@ def store(data, keeper_stats):
 
 def is_over(x):
     return (x > .99) | (x < -.99)
+
+
+@perf.measure('get_signals')
+def get_signals(feats):
+    signals = {
+        'mfccs': feats.mfccs,
+        'logmel': feats.logmel,
+    }
+    for name, signal in hp.signals.items():
+        signals[name] = signal(feats)
+    return signals
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -262,12 +275,7 @@ while running:
             json.dump(stats, f)
         last_alive = i
 
-    signals = {
-        'mfccs': feats.mfccs,
-        'logmel': feats.logmel,
-    }
-    for name, signal in hp.signals.items():
-        signals[name] = signal(feats)
+    signals = get_signals(feats)
 
     bufs = hp.effects.effector(feats.wav[-settings.hop_size:], signals)
     ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())
@@ -314,3 +322,6 @@ del ai0
 del ai1
 if ai2:
     del ai2
+
+print('\nPERF STATS:')
+print(perf.stats())
