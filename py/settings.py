@@ -22,6 +22,7 @@ else:
 buf_size = 2 * hop_size
 dtype = pyaudio.paInt16
 dtype_np = np.int16
+sampwidth = 2
 
 buf_secs = buf_size / rate
 hop_secs = hop_size / rate
@@ -54,6 +55,8 @@ def to_string():
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
+recorder2_dir = os.path.join(recordings_dir, 'recorder2')
+recorder2_index = os.path.join(recorder2_dir, 'index.csv')
 
 
 def get_recordings():

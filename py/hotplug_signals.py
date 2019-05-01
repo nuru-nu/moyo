@@ -8,13 +8,17 @@ def get_data():
             S.Exponential(alpha=0.8)
         ),
         loud=S.Louder(n=10),
-        overdrive=S.Overdrive(),
+        overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=S.KerasDetector.get('tmo_wp_20_50_linear', 'wp_20_50'),
         iso=(
             S.KerasDetector.get('tmo_wp_20_50_linear', 'wp_20_50') |
             S.Median(n=10, threshold=0.7)
         ),
+        iso2=(
+            S.KerasDetector.get('tmo_wp_20_50_linear', 'wp_20_50') |
+            S.Median(n=10, threshold=0.7)
+        ) | S.Exponential(alpha=0.95),
         sig1=(
             S.Louder(n=10) | S.F(mult=20)
         ) * (

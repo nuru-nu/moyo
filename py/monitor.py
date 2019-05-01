@@ -191,6 +191,7 @@ class Monitor:
         self.style.configure('TLabel', background='white')
 
         top = ttk.Frame(self.root)
+
         top_buttons = ttk.Frame(top)
         self.logmel_src = tk.StringVar()
         self.logmel_src.set(conf['logmel_src'])
@@ -207,6 +208,15 @@ class Monitor:
         ttk.Button(top_buttons, text='quit', command=self.shutdown).pack(
             side=tk.LEFT)
         top_buttons.pack()
+
+        recording_frame = ttk.Frame(top)
+        self.recording_entry = tk.StringVar()
+        ttk.Entry(recording_frame, textvariable=self.recording_entry).pack(
+            side=tk.LEFT)
+        ttk.Button(recording_frame, text='record', command=self.recordit).pack(
+            side=tk.LEFT)
+        recording_frame.pack()
+
         top_labels = ttk.Frame(top)
         ttk.Label(top_labels, text=settings.to_string()).pack(side=tk.LEFT)
         self.fpsvar = tk.StringVar()
@@ -265,6 +275,15 @@ class Monitor:
                 side=tk.LEFT)
             button_row.pack(side=tk.TOP)
         button_rows.pack()
+
+    def recordit(self):
+        now = int(time.time())
+        name = self.recording_entry.get()
+        if name:
+            with open(settings.recorder2_index, 'a') as f:
+                f.write('{},{}\n'.format(now, name))
+        logger.info('Recorded {}'.format(name))
+        self.recording_entry.set('')
 
     def update_logmel(self):
         conf['logmel_src'] = self.logmel_src.get()

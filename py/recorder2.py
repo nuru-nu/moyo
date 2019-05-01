@@ -1,6 +1,6 @@
 """Records audio, generates features and sends messages."""
 
-import argparse, io, json, logging, os, signal as pysig, socket, time
+import argparse, io, json, logging, os, signal as pysig, socket, time, wave
 
 import numpy as np
 import scipy.io.wavfile
@@ -9,6 +9,7 @@ import audio, config, features, hotplug, settings, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '../recordings/recorder2')
 
 parser = argparse.ArgumentParser(
     description='Records audio and transforms the signal.')
@@ -24,14 +25,10 @@ parser.add_argument('--listen_address', type=str, default=settings.address,
                     help='Which address to listen on.')
 parser.add_argument('--port', type=int, default=settings.recorder_port,
                     help='Which port to listen on.')
-parser.add_argument('--lighter_port', type=int, default=settings.lighter_port,
-                    help='Which port "lighter" is listening on.')
-parser.add_argument('--monitor_port', type=int, default=settings.monitor_port,
-                    help='Which port "monitor" is listening on.')
 parser.add_argument('--address', type=str, default=settings.address,
                     help='Which address to send to.')
 
-parser.add_argument('--output_dir', type=str, default='',
+parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR,
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
 
@@ -124,29 +121,48 @@ class Player:
 
 class InputStreamer(object):
 
-    def __init__(self, audio_interface):
+    def __init__(self, audio_interface, output_dir=None):
         self.player = Player(audio_interface)
         self.audio_interface = audio_interface
 
         self.t = 0
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
+        self.output_dir = output_dir
+        # will be initialized when .freeze(false) is called the first time
+        self.wav = None
+
+    def freeze(self, frozen):
+        if frozen:
+            self.close()
+        elif self.output_dir:
+            now = int(time.time())
+            self.wav_path = os.path.join(self.output_dir, '{}.wav'.format(now))
+            self.wav = wave.open(self.wav_path, 'wb')
+            self.wav.setnchannels(1)
+            self.wav.setframerate(settings.rate)
+            self.wav.setsampwidth(settings.sampwidth)
 
     def read(self, samples):
         if self.player.playing():
-            data = self.player.get(samples)
-            data = util.int16_to_float(data)
+            data16 = self.player.get(samples)
+            data = util.int16_to_float(data16)
         else:
             data = self.audio_interface.input_stream.read(
                 samples, exception_on_overflow=False)
-            data = np.frombuffer(data, settings.dtype_np)
-            data = util.int16_to_float(data)
-            data = audio.compress(data, hp.effects.microphone_compress)
+            data16 = np.frombuffer(data, settings.dtype_np)
+            data = util.int16_to_float(data16)
+            data = hp.effects.microphone_effect(data, None)
         self.t += float(len(data)) / settings.rate
+        if self.wav_path:
+            self.wav.writeframesraw(data16)
         return data
 
-    def hop_over(self):
-        self.read(settings.hop_size)
+    def clear_buffers(self):
+        while self.audio_interface.input_stream.get_read_available():
+            n = self.audio_interface.input_stream.read(
+                self.audio_interface.input_stream.get_read_available())
+            logger.info('Clearing buffers : read n={} bytes.'.format(n))
 
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
@@ -155,6 +171,16 @@ class InputStreamer(object):
 
     def get_dt(self):
         return time.time() - self.t0 - self.t
+
+    def close(self):
+        if self.wav:
+            logger.info('Recorded {} seconds to {}'.format(
+                int(self.t), self.wav_path))
+            self.wav.close()
+            self.wav = None
+
+    def __del__(self):
+        self.close()
 
 
 def timestamp():
@@ -186,9 +212,9 @@ def is_over(x):
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-monitor_address = (args.address, args.monitor_port)
+monitor_address = (args.address, settings.monitor_port)
 fadecandy_address = (args.address, settings.fadecandy_port)
-lighter_address = (args.address, args.lighter_port)
+lighter_address = (args.address, settings.lighter_port)
 
 i = 0
 i_o = 0
@@ -206,14 +232,19 @@ ai2 = None
 if hp.effects.output_device_2 is None or hp.effects.output_device_2 >= 0:
     ai2 = audio.AudioInterface(
         output=2, device_index=hp.effects.output_device_2)
-input_streamer = InputStreamer(ai0)
+input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 
 started = False
 think_t0 = None
+frozen = None
 while running:
-    if conf['frozen']:
-        input_streamer.hop_over()
+    if frozen != conf['frozen']:
+        frozen = conf['frozen']
+        input_streamer.freeze(frozen)
+    if frozen:
+        time.sleep(settings.hop_secs)
         continue
+
     t0 = time.time()
     feats = input_streamer.get()
 
@@ -278,6 +309,7 @@ while running:
     sock.sendto(lighter_message, lighter_address)
 
 logger.info('Stop recording.')
+del input_streamer
 del ai0
 del ai1
 if ai2:

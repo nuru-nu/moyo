@@ -123,3 +123,21 @@ class SigAmp:
 
     def __call__(self, buf, signals):
         return buf * np.clip(signals.get(self.signal_name, 0), 0, 1)
+
+
+class Compressor(Effect):
+    def __init__(self, factor):
+        self.factor = factor
+
+    def __call__(self, data, signals=None):
+        # TODO interpol
+        return np.arctan(data * self.factor) / np.pi * 2
+
+
+class Linear(Effect):
+    def __init__(self, mult=1, shift=0):
+        self.shift = shift
+        self.mult = mult
+
+    def __call__(self, data, signals=None):
+        return (data + self.shift) * self.mult
