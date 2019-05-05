@@ -1,6 +1,7 @@
 
 
 import numpy as np
+import scipy
 
 import perf, settings, util
 
@@ -142,3 +143,38 @@ class Linear(Effect):
 
     def __call__(self, data, signals=None):
         return (data + self.shift) * self.mult
+
+
+class Iir(Effect):
+    def __init__(self, b, a):
+        self.b = b
+        self.a = a
+        self.zi = scipy.signal.lfiltic(b, a, [])
+
+    def __call__(self, data, signals=None):
+        data, self.zi = scipy.signal.lfilter(self.b, self.a, data, zi=self.zi)
+        return data
+
+
+class Notch(Iir):
+    def __init__(self, hz, Q):
+        super().__init__(*scipy.signal.iirnotch(hz, Q, settings.rate))
+
+
+class LowPass(Iir):
+    def __init__(self, hz, order):
+        b, a = scipy.signal.butter(order, hz, btype='low', fs=settings.rate)
+        super().__init__(b, a)
+
+
+class HighPass(Iir):
+    def __init__(self, hz, order):
+        b, a = scipy.signal.butter(order, hz, btype='high', fs=settings.rate)
+        super().__init__(b, a)
+
+
+class BandPass(Iir):
+    def __init__(self, hz1, hz2, order):
+        b, a = scipy.signal.butter(
+            order, [hz1, hz2], btype='band', fs=settings.rate)
+        super().__init__(b, a)

@@ -86,6 +86,8 @@ def float_to_int16(a):
 
 def plot_logmel(logmel, ax=None, rate=settings.rate, hzmax=None,
                 hop_secs=settings.hop_secs, **matshow_kw):
+    if len(logmel.shape) == 1:
+        logmel = features.log_mel_spectrogram(logmel)
     from matplotlib import pyplot as plt
     f2hz = rate / logmel.shape[1] / np.pi
     if ax is None:
@@ -140,6 +142,17 @@ class Streamer:
         if len(ret) < self.buf_size:
             ret = np.pad(ret, [(0, self.buf_size - len(ret))], mode='constant')
         return ret
+
+
+def apply_effect(wav, effect, hop_size=settings.hop_size):
+    """Applies `effect()` to `wav`, hop by hop."""
+    ret = np.zeros(len(wav), dtype=wav.dtype)
+    i1 = 0
+    for buf in Streamer(wav, hop_size=hop_size, buf_size=hop_size):
+        i2 = i1 + len(buf)
+        ret[i1: i2] = effect(buf)
+        i1 = i2
+    return ret
 
 
 def get_signals(wav, signals):
