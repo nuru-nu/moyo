@@ -7,6 +7,7 @@ import time
 
 nr_pixels = 10*60
 
+
 def rotate_theta_ring(mapping, width, color, speed):
 	pixels = np.zeros((len(mapping), 3))
 
@@ -38,8 +39,8 @@ def rotate_phi_ring(mapping, width, color, speed):
 def gaussian_droplet(mapping, pos, sigma, color):
 	pixels = np.zeros((len(mapping), 3)) + np.array([color])
 
-	dist_mapping = dist_pos(haversine(np.repeat(pos[0], len(mapping)), np.repeat(pos[0], len(mapping)), mapping[:,0], mapping[:,1], 1),
-							 bearing(np.repeat(pos[0], len(mapping)), np.repeat(pos[0], len(mapping)), mapping[:,0], mapping[:,1]))
+	dist_mapping = dist_pos(haversine(np.repeat(pos[0], len(mapping)), np.repeat(pos[1], len(mapping)), mapping[:,0], mapping[:,1], 1),
+							 bearing(np.repeat(pos[0], len(mapping)), np.repeat(pos[1], len(mapping)), mapping[:,0], mapping[:,1]))
 	
 
 	kernel = multivariate_normal.pdf(dist_mapping, mean=[0,0], cov=np.abs(sigma) + 1.e-12)[:, np.newaxis]
@@ -81,3 +82,6 @@ def bearing(phi1, theta1, phi2, theta2):
 def dist_pos(d, theta):
     theta_rad = np.pi/2 - theta
     return np.concatenate((np.expand_dims(d*np.cos(theta_rad),axis=1), np.expand_dims(d*np.sin(theta_rad),axis=1)),axis=1)
+
+def rand_range(rand_range):
+	return rand_range[0] + (rand_range[1] - rand_range[0])*np.random.rand(1)[0]
