@@ -109,7 +109,7 @@ class Player:
             n = min(samples, len(data) - self.bufi)
             buf[:n] = data[self.bufi: self.bufi + n]
             self.bufi += n
-            self.audio_interface.output_stream.write(buf.tostring())
+            # self.audio_interface.output_stream.write(buf.tostring())
             # dt = time.time() - t0
             # if dt < samples / settings.rate:
             #     time.sleep(samples / settings.rate - dt)
@@ -227,7 +227,7 @@ def get_signals(feats):
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 monitor_address = (args.address, settings.monitor_port)
 fadecandy_address = (args.address, settings.fadecandy_port)
-lighter_address = (args.address, settings.lighter_port)
+dmx_address = (args.address, settings.dmx_port)
 
 i = 0
 i_o = 0
@@ -312,9 +312,7 @@ while running:
     sock.sendto(signals, monitor_address)
 
     sock.sendto(signals, fadecandy_address)
-
-    lighter_message = json.dumps(lighter_message).encode('utf8')
-    sock.sendto(lighter_message, lighter_address)
+    sock.sendto(signals, dmx_address)
 
 logger.info('Stop recording.')
 del input_streamer
