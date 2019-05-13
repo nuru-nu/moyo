@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pixel_functions as pf
 import json
 from pathlib import Path
@@ -12,8 +13,11 @@ mapping = np.zeros((nr_pixels,2))
 # for file in Path('git/rizhom/data/blender_polar.json').exists():
 # 	print(file)
 
-if Path('git/rizhom/data/blender_polar.json').exists():
-	with open('git/rizhom/data/blender_polar.json') as json_file: 
+root = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
+json_path = os.path.join(root, 'data', 'blender_polar.json')
+
+if Path(json_path).exists():
+	with open(json_path) as json_file: 
 		data = json.load(json_file)
 		for coord_data in data:
 			idx = int(coord_data['idx'])
@@ -21,7 +25,7 @@ if Path('git/rizhom/data/blender_polar.json').exists():
 			theta = float(coord_data['theta'])
 			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
 else:
-	print("Cant find mapping JSON!")
+	print("Cant find mapping JSON '{}'!".format(json_path))
 
 class Animation:
 	def __init__(self):
