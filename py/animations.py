@@ -24,6 +24,14 @@ if Path(json_path).exists():
 			phi = float(coord_data['phi'])
 			theta = float(coord_data['theta'])
 			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
+elif Path("../data/rec_2_polar.json").exists():
+	with open("../data/rec_2_polar.json") as json_file: 
+		data = json.load(json_file)
+		for coord_data in data:
+			idx = int(coord_data['idx'])
+			phi = float(coord_data['phi'])
+			theta = float(coord_data['theta'])
+			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
 else:
 	print("Cant find mapping JSON '{}'!".format(json_path))
 
