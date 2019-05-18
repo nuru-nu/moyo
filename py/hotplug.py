@@ -2,7 +2,9 @@
 
 import collections, importlib, os, time, traceback
 
-import signals, hotplug_signals, util
+import util
+
+import signals, hotplug_signals
 import effects, hotplug_effects
 
 

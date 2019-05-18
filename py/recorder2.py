@@ -215,12 +215,10 @@ def is_over(x):
 
 @perf.measure('get_signals')
 def get_signals(feats):
-    signals = {
-        'mfccs': feats.mfccs,
-        'logmel': feats.logmel,
-    }
-    for name, signal in hp.signals.items():
-        signals[name] = signal(feats)
+    signals = hp.signals.runner(features=feats, t=time.time())
+    signals['mfccs'] = feats.mfccs
+    signals['logmel'] = feats.logmel
+    del signals['features']
     return signals
 
 
