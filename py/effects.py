@@ -1,4 +1,5 @@
 
+import random
 
 import numpy as np
 import scipy
@@ -178,3 +179,53 @@ class BandPass(Iir):
         b, a = scipy.signal.butter(
             order, [hz1, hz2], btype='band', fs=settings.rate)
         super().__init__(b, a)
+
+
+class RndSub(Effect):
+    """Randomly plays subsamples from provided sample."""
+
+    def __init__(self, wav, sample_minmax, break_minmax,
+                 ramp_minmax=(0.5, 0.5)):
+        self.wav = wav
+        self.sample_minmax = sample_minmax
+        self.break_minmax = break_minmax
+        self.ramp_minmax = ramp_minmax
+        self.zeros = np.zeros(settings.hop_size)
+        self.state = 'on'
+        self.next()
+
+    def next(self):
+        self.state = dict(on='off', off='on')[self.state]
+        self.left = self.rnd_n(dict(
+            on=self.sample_minmax, off=self.break_minmax)[self.state])
+        if self.state == 'on':
+          self.win = scipy.hamming(2 * self.rnd_n(self.ramp_minmax))
+          self.wav_i = self.wav_i0 = self.rnd_n([
+              0, len(self.wav)/settings.rate - self.sample_minmax[1]])
+
+    def rnd_n(self, minmax):
+        secs = minmax[0] + random.random() * (minmax[1] - minmax[0])
+        return int(settings.rate * secs)
+
+    def __call__(self, buf, signals):
+        n = len(buf)
+        if self.state == 'off':
+            buf = self.zeros
+        else:
+            buf = self.wav[self.wav_i: self.wav_i + n]
+            dwav = self.wav_i - self.wav_i0
+            if dwav < len(self.win) // 2:
+                buf = np.array(buf)
+                m = min(n, len(self.win) // 2 - dwav)
+                buf[:m] *= self.win[dwav:][:m]
+            elif self.left < len(self.win) // 2:
+                buf = np.array(buf)
+                m = min(self.left, n)
+                buf[:m] *= self.win[-self.left:][:m]
+                buf[m:] *= 0
+            self.wav_i += n
+        self.left -= len(buf)
+        if self.left < 0:
+            self.next()
+        return buf
+
