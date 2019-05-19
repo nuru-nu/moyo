@@ -7,6 +7,8 @@ import time
 
 nr_pixels = 10*60
 
+def full_on(color):
+	return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
 def rotate_theta_ring(mapping, width, color, speed):
 	pixels = np.zeros((len(mapping), 3))
@@ -85,3 +87,32 @@ def dist_pos(d, theta):
 
 def rand_range(rand_range):
 	return rand_range[0] + (rand_range[1] - rand_range[0])*np.random.rand(1)[0]
+
+
+# def cos_(x):
+#     """Maps 0..1 to 0..1 with cos() non-linearity."""
+#     return (1+np.cos((np.clip(x, 0, 1)-1)*np.pi))/2
+
+def theta_ring(mapping, phi, width, color):
+	"""Lights all pixels at phi+/-width."""
+	pixels = np.zeros((len(mapping), 3))
+
+	for i in range(len(pixels)):
+		coord = mapping[i]
+		dist = np.abs((phi % (2*np.pi) - np.pi) - coord[0])
+		I = 1 - np.clip(dist / width, 0, 1)
+		pixels[i] = I*np.array(color)
+
+	return pixels
+
+def phi_ring(mapping, theta, width, color):
+	"""Lights all pixels at theta+/-width."""
+	pixels = np.zeros((len(mapping), 3))
+
+	for i in range(len(pixels)):
+		coord = mapping[i]
+		dist = np.abs((theta % (2*np.pi) - np.pi) - coord[1])
+		I = 1 - np.clip(dist / width, 0, 1)
+		pixels[i] = I*np.array(color)
+
+	return pixels

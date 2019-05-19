@@ -4,16 +4,26 @@ import collections, importlib, os, time, traceback
 
 import util
 
-import signals, hotplug_signals
+has_signals = False
+try:
+    import signals, hotplug_signals
+    has_signals = True
+except ModuleNotFoundError as e:
+    print('COULD NOT LOAD signals :', e)
 import effects, hotplug_effects
+import pixel_functions, animations, hotplug_animations
 
 
 # last module is the one with `.get_data()`
 FileModules = collections.namedtuple('FileModules', ['file', 'modules'])
 _MODULES = dict(
-    signals=FileModules('hotplug_signals.py', [signals, hotplug_signals]),
     effects=FileModules('hotplug_effects.py', [effects, hotplug_effects]),
+    animations=FileModules('hotplug_animations.py', [pixel_functions, animations, hotplug_animations]),
 )
+
+if has_signals:
+    _MODULES['signals'] = FileModules(
+        'hotplug_signals.py', [signals, hotplug_signals])
 
 
 class HotPlugModule:

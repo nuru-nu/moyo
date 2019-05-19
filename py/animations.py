@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import time
 import util
+import colorsys
 
 nr_pixels = 600
 max_time = 9000000 # 2500 hours
@@ -16,16 +17,16 @@ mapping = np.zeros((nr_pixels,2))
 root = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
 json_path = os.path.join(root, 'data', 'blender_polar.json')
 
-if Path(json_path).exists():
-	with open(json_path) as json_file: 
+if Path("../data/rec_2_polar.json").exists():
+	with open("../data/rec_2_polar.json") as json_file: 
 		data = json.load(json_file)
 		for coord_data in data:
 			idx = int(coord_data['idx'])
 			phi = float(coord_data['phi'])
 			theta = float(coord_data['theta'])
 			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
-elif Path("../data/rec_2_polar.json").exists():
-	with open("../data/rec_2_polar.json") as json_file: 
+elif Path(json_path).exists():
+	with open(json_path) as json_file: 
 		data = json.load(json_file)
 		for coord_data in data:
 			idx = int(coord_data['idx'])
@@ -123,22 +124,82 @@ class GaussianRain(Animation):
 		self.nr_droplets = nr_droplets
 		self.drop_duration = drop_duration
 		self.color = color
-		self.t_0s = [time.time() % max_time + np.random.rand(1)[0] for _ in range(int(self.nr_droplets))]
+		self.t_0s = [time.time() + 5*np.random.rand(1)[0] for _ in range(int(self.nr_droplets))]
 		self.positions = [[pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))] for _ in range(int(self.nr_droplets))]
 		self.colors = [[0, 0, 0] for _ in range(int(self.nr_droplets))]
 
 	def __call__(self, signals):
 		pixels = np.zeros((len(mapping), 3))
 		for drop_nr in range(self.nr_droplets):
-			if (time.time() % max_time - self.t_0s[drop_nr]) / self.drop_duration(signals) > 1:
-				self.t_0s[drop_nr] = time.time() % max_time
+			if (time.time() - self.t_0s[drop_nr]) / self.drop_duration(signals) > 1:
+				self.t_0s[drop_nr] = time.time()
 				phi, theta = util.phi_theta_samples(1)
 				self.positions[drop_nr] = [phi[0] - np.pi, 2*theta[0]]
 				# self.positions[drop_nr] = [pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))]
 				self.colors[drop_nr] = [col(signals) for col in self.color]
 
-			sigma = self.radius(signals) * (time.time() % max_time - self.t_0s[drop_nr]) / self.drop_duration(signals)
+			sigma = self.radius(signals) * (time.time() - self.t_0s[drop_nr]) / self.drop_duration(signals)
 
 			pixels += pf.gaussian_droplet(mapping, self.positions[drop_nr], sigma, self.colors[drop_nr])
 
 		return pixels 
+
+
+class Hue(Animation):
+	def __init__(self, hue=Const(1), saturation=Const(1), value=Const(1)):
+		self.hue = hue
+		self.saturation = saturation
+		self.value = value
+
+	def __call__(self, signals):
+		return colorsys.hsv_to_rgb(
+			self.hue(signals),
+			self.saturation(signals),
+			self.value(signals))
+
+
+class FullOn(Animation):
+	def __init__(self, color):
+		self.color = color
+
+	def __call__(self, signals):
+		return pf.full_on(self.color(signals))
+
+
+class ThetaRing(Animation):
+	def __init__(self, phi, width, color):
+		self.phi = phi
+		self.width = width
+		self.color = color
+
+	def __call__(self, signals):
+		return pf.theta_ring(
+			mapping,
+			phi=self.phi(signals),
+			width=self.width(signals),
+			color=self.color(signals),
+		)
+
+
+class PhiRing(Animation):
+	def __init__(self, theta, width, color):
+		self.theta = theta
+		self.width = width
+		self.color = color
+
+	def __call__(self, signals):
+		return pf.phi_ring(
+			mapping,
+			theta=self.theta(signals),
+			width=self.width(signals),
+			color=self.color(signals),
+		)
+
+class Add(Animation):
+	def __init__(self, *anims):
+		self.anims = anims
+	def __call__(self, signals):
+		pixels = self.anims[0](signals)
+		for anim in self.anims[1:]:
+			pixels += anim(signals)
+		return pixels

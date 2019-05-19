@@ -16,12 +16,17 @@ if not lib_path in sys.path:
 
 import audio, features, settings, util
 import pixel_functions as pf
-import animation_script as anim
+# import animation_script as anim
+import hotplug
+
+logger = util.createLogger('fadecandy')
+hp = hotplug.HotPlug(logger)
 
 def init(cont):
 	own = cont.owner
 	
 	own['sock'] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	own['sock'].setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
 
 	own['sock'].settimeout(0)
 	own['sock'].bind((settings.address, settings.fadecandy_port))
@@ -52,25 +57,24 @@ def init(cont):
 
 	own['prev_t'] = time.time() % 120
 
+
 def run(cont):
+	global signals
 	scene = bge.logic.getCurrentScene()
 	own = cont.owner
 	
 	# ##################### Audio ##########################
-	# try:
-	# 	data, address = own['sock'].recvfrom(4096)
-	# except io.BlockingIOError:
-	# 	return False
-	# try:
-	# 	data = json.loads(data.decode('utf8'))
-	# except json.JSONDecodeError as e:
-	# 	print('Could not decode {!r} : {}'.format(data, e))
-	# 	return False
-
 	t_global = time.time() % own['max_time']
+	signals = {"t" : t_global, "vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0]}
 
-
-
+	try:
+		data, address = own['sock'].recvfrom(4096)
+		try:
+			signals = own['signals'] = json.loads(data.decode('utf8'))
+		except json.JSONDecodeError as e:
+			print('Could not decode {!r} : {}'.format(data, e))
+	except io.BlockingIOError as e:
+		pass
 
 	# t_anim = t_global - own['reset_time']
 	# sigma = (t_anim / own['anim_durtion'])*own['drop_radius']
@@ -83,10 +87,9 @@ def run(cont):
 	# set_pixels(pixels)
 
 
+	# pixels = anim.get_pixels(signals, 'uniform_rain')
+	pixels = hp.animations.animation(signals)
 
-
-	signals = {"t" : t_global, "vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0]}
-	pixels = anim.get_pixels(signals, 'uniform_rain')
 	set_pixels(pixels)
 
 	# for pix in pixels:
