@@ -32,6 +32,12 @@ parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR,
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
 
+parser.add_argument('--reset_secs', type=int, default=0,
+                    help='If this parameter is >0, then the audio interface is '
+                    'HARD RESET every this many seconds. This was observed '
+                    'to avoid delay creep on certain configurations '
+                    '(especially after the system is unfrozen).')
+
 args = parser.parse_args()
 
 assert not args.output_dir or os.path.isdir(args.output_dir), (
@@ -118,19 +124,23 @@ class Player:
                 self.stop()
         return buf
 
+    def reset_audio_interface(self, audio_interface):
+        self.audio_interface = audio_interface
+
 
 class InputStreamer(object):
 
     def __init__(self, audio_interface, output_dir=None):
-        self.player = Player(audio_interface)
         self.audio_interface = audio_interface
 
+        # will be initialized when .freeze(false) is called the first time
+        self.wav = None
         self.t = 0
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
         self.output_dir = output_dir
-        # will be initialized when .freeze(false) is called the first time
-        self.wav = None
+
+        self.player = Player(audio_interface)
 
     def freeze(self, frozen):
         if frozen:
@@ -180,6 +190,10 @@ class InputStreamer(object):
                 int(self.t), self.wav_path))
             self.wav.close()
             self.wav = None
+
+    def reset_audio_interface(self, audio_interface):
+        self.audio_interface = audio_interface
+        self.player.reset_audio_interface(audio_interface)
 
     def __del__(self):
         self.close()
@@ -244,6 +258,7 @@ if hp.effects.output_device_2 is None or hp.effects.output_device_2 >= 0:
     ai2 = audio.AudioInterface(
         output=2, device_index=hp.effects.output_device_2)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
+last_reset_t = time.time()
 
 started = False
 think_t0 = None
@@ -252,10 +267,19 @@ while running:
     if frozen != conf['frozen']:
         frozen = conf['frozen']
         input_streamer.freeze(frozen)
+        if not frozen and args.reset_secs > 0:
+            last_reset_t = 0  # Force reset (if enabled) after unfreeze.
     if frozen:
         time.sleep(settings.hop_secs)
         continue
 
+    if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
+        logger.info('Re-initializing input_streamer after freeze.')
+        del ai0
+        ai0 = audio.AudioInterface(
+                input=1, device_index=hp.effects.input_device)
+        input_streamer.reset_audio_interface(ai0)
+        last_reset_t = time.time()
     t0 = time.time()
     feats = input_streamer.get()
 
