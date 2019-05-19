@@ -237,7 +237,7 @@ class Hamming(L.Signal):
 
 class Clip(L.Signal):
 
-    def __init__(self, amin=0, amax=0):
+    def __init__(self, amin=0, amax=1):
         super().__init__(amin=amin, amax=amax)
 
     def call(self, value):
@@ -283,3 +283,12 @@ class Thr(L.Signal):
 
     def call(self, value, t):
         return 1 * (value >= self.th)
+
+
+class Exp(L.Signal):
+
+    def init(self, alpha):
+        pass
+
+    def call(self, value):
+        return value ** self.alpha

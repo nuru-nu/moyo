@@ -7,11 +7,12 @@ def get_data():
             S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
             S.Exponential(alpha=0.8)
         ),
-        loud=S.Louder(n=10),
+        loud=S.Louder(n=10) | S.Linear(mult=2) | S.Clip(),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=S.KerasDetector(
             model='tmo_wp_20_50_linear', preprocessor='wp_20_50'),
+        tf2=L.Named('tf') | S.MovingAverage(n=5) | S.Exp(alpha=2),
         iso=(
             L.Named('tf') |
             S.Median(n=10, threshold=0.7)
@@ -35,8 +36,8 @@ def get_data():
             S.Linear(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
         ),
         medium=(
-            S.FreqBand(hzmin=800, hzmax=2500, hzslope=500) |
-            S.Linear(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
+            S.FreqBand(hzmin=800, hzmax=2500, hzslope=400) |
+            S.Linear(shift=3, mult=1) | S.Clip() | S.MovingAverage(n=5)
         ),
         high=(
             S.FreqBand(hzmin=2500, hzmax=1e10, hzslope=500) |

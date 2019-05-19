@@ -41,19 +41,19 @@ class Timer:
         self.wasted_ns = 0
 
     def start(self):
-        self.started = time.process_time_ns()
+        self.started = int(time.process_time() * 1e9)
 
     def stop(self):
-        self.times_ns.append(time.process_time_ns() - self.started)
+        self.times_ns.append(int(time.process_time() * 1e9) - self.started)
         t = time.time()
         if t - self.t0 > self.period_s:
-            ns = time.process_time_ns()
+            ns = int(time.process_time() * 1e9)
             measurement = Measurement(self.times_ns)
             self.measurements[self.i % self.keep] = measurement
             self.i += 1
             self.times_ns = []
             self.t0 = t
-            self.wasted_ns += time.process_time_ns() - ns
+            self.wasted_ns += int(time.process_time() * 1e9) - ns
 
     def measurement(self, ago=0):
         i = self.i - 1 - ago

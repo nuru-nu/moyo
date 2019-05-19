@@ -211,11 +211,13 @@ class Monitor:
 
         recording_frame = ttk.Frame(top)
         self.recording_entry = tk.StringVar()
-        ttk.Entry(recording_frame, textvariable=self.recording_entry).pack(
-            side=tk.LEFT)
+        entry = ttk.Entry(recording_frame, textvariable=self.recording_entry)
+        entry.pack(side=tk.LEFT)
         ttk.Button(recording_frame, text='record', command=self.recordit).pack(
             side=tk.LEFT)
         recording_frame.pack()
+        entry.bind('<Return>', self.recordit)
+        top.bind('<Return>', self.recordit)
 
         top_labels = ttk.Frame(top)
         ttk.Label(top_labels, text=settings.to_string()).pack(side=tk.LEFT)
@@ -276,13 +278,13 @@ class Monitor:
             button_row.pack(side=tk.TOP)
         button_rows.pack()
 
-    def recordit(self):
+    def recordit(self, *_):
         now = int(time.time())
         name = self.recording_entry.get()
         if name:
             with open(settings.recorder2_index, 'a') as f:
                 f.write('{},{}\n'.format(now, name))
-        logger.info('Recorded {}'.format(name))
+            logger.info('Recorded {}'.format(name))
         self.recording_entry.set('')
 
     def update_logmel(self):
