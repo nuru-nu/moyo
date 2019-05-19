@@ -73,3 +73,8 @@ https://github.com/vim-syntastic/syntastic/
 let g:syntastic_python_flake8_config_file='.flake8'
 set cc=80
 
+### Jupyter
+
+jupyter nbextension install --user https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.js
+curl -L https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.css > $(jupyter --data-dir)/nbextensions/toc.css
+jupyter nbextension enable toc
