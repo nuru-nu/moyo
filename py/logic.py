@@ -20,7 +20,7 @@ class D:
 
 
 class Signal:
-    """Provides lastin, lastout, |, wants, params."""
+    """Provides |, wants, params."""
 
     def __init__(self, **params):
         self.wants = inspect.getfullargspec(self.call).args[1:]
@@ -39,9 +39,6 @@ class Signal:
 
     def __call__(self, **allkw):
         kw = {k: allkw[k] for k in self.wants}
-        if not hasattr(self, 'lastin'):
-            self.lastin = self.lastout = D(**kw)
-        lastin = D(**kw)
         ret = self.call(**kw)
         if not isinstance(ret, dict):
             ret = dict(value=ret, **{
@@ -49,8 +46,6 @@ class Signal:
                 for k in allkw
                 if k != 'value'
             })
-        self.lastin = lastin
-        self.lastout = D(**ret)
         return ret
 
     def __repr__(self):
@@ -60,6 +55,20 @@ class Signal:
                 '{}={}'.format(p, getattr(self, p))
                 for p in self.params
             ]))
+
+
+class SignalLast(Signal):
+    """Provides lastin, lastout."""
+
+    def __call__(self, **allkw):
+        kw = {k: allkw[k] for k in self.wants}
+        if not hasattr(self, 'lastin'):
+            self.lastin = self.lastout = D(**kw)
+        lastin = D(**kw)
+        ret = super().__call__(**allkw)
+        self.lastin = lastin
+        self.lastout = D(**ret)
+        return ret
 
 
 class SignalChain(Signal):

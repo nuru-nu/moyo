@@ -168,12 +168,11 @@ class Linear(L.Signal):
         return self.mult * (value + self.shift)
 
 
-class Limiter(L.Signal):
+class Limiter(L.SignalLast):
     """Ignores (keeps latest) values outside [minv..maxv]."""
 
     def init(self, minv=0.0, maxv=1.0):
         pass
-        self.lastv = 0
 
     def call(self, value):
         if value > self.maxv or value < self.minv:
@@ -195,7 +194,7 @@ class MovingAverage(L.Signal):
         return self.buf.mean()
 
 
-class Exponential(L.Signal):
+class Exponential(L.SignalLast):
     """Exponential smoothing (alpha=0 disables)."""
 
     def init(self, alpha):
@@ -244,7 +243,7 @@ class Clip(L.Signal):
         return np.clip(value, self.amin, self.amax)
 
 
-class Ramp(L.Signal):
+class Ramp(L.SignalLast):
 
     def init(self, up_s, down_s):
         pass
@@ -258,7 +257,7 @@ class Ramp(L.Signal):
         return value
 
 
-class Hyst(L.Signal):
+class Hyst(L.SignalLast):
 
     def init(self, up_th, down_th):
         pass
