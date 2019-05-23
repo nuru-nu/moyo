@@ -21,20 +21,13 @@ parser.add_argument('--overdrive_threshold', type=float, default=.02,
 parser.add_argument('--alive_secs', type=float, default=10.,
                     help='How often to store "{}".'.format(ALIVE_PATH))
 
-parser.add_argument('--listen_address', type=str, default=settings.address,
-                    help='Which address to listen on.')
-parser.add_argument('--port', type=int, default=settings.recorder_port,
-                    help='Which port to listen on.')
-parser.add_argument('--address', type=str, default=settings.address,
-                    help='Which address to send to.')
-
 parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR,
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
 
 parser.add_argument('--reset_secs', type=int, default=0,
-                    help='If this parameter is >0, then the audio interface is '
-                    'HARD RESET every this many seconds. This was observed '
+                    help='If this parameter is >0, then the audio interface '
+                    'is HARD RESET every this many seconds. This was observed '
                     'to avoid delay creep on certain configurations '
                     '(especially after the system is unfrozen).')
 
@@ -62,70 +55,70 @@ def signal_handler(signal, frame):
 pysig.signal(pysig.SIGINT, signal_handler)
 
 
-class Player:
-
-    def __init__(self, audio_interface):
-        self.data = {}
-        t0 = time.time()
-        for name, path in settings.get_recordings().items():
-            sr, data = scipy.io.wavfile.read(path)
-            if sr != settings.rate:
-                logger.warning('IGNORING {} {}!={}'.format(
-                    name, sr, settings.rate))
-                continue
-            if data.dtype != settings.dtype_np:
-                logger.warning('IGNORING {} {}!={}'.format(
-                    name, data.dtype.name, settings.dtype_np.name))
-                continue
-            self.data[name] = data
-        logger.info('Loaded {} recordings in {:.3f}ms'.format(
-            len(self.data), time.time() - t0))
-
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.settimeout(0)
-        self.sock.bind((args.listen_address, args.port))
-
-        self.audio_interface = audio_interface
-
-        self.stop()
-
-    def stop(self):
-        self.name = self.bufi = self.t0 = None
-
-    def playing(self):
-        try:
-            data, address = self.sock.recvfrom(4096)
-            try:
-                data = json.loads(data.decode('utf8'))
-                if 'play' in data:
-                    self.name = data['play']
-                    self.bufi = 0
-                    self.t0 = time.time()
-                    logger.info('Will play {}'.format(self.name))
-            except json.JSONDecodeError as e:
-                logger.warning('Could not decode {!r} : {}'.format(data, e))
-        except io.BlockingIOError:
-            pass
-        return self.name
-
-    def get(self, samples):
-        buf = np.zeros(shape=samples, dtype=settings.dtype_np)
-        if self.name:
-            data = self.data[self.name]
-            n = min(samples, len(data) - self.bufi)
-            buf[:n] = data[self.bufi: self.bufi + n]
-            self.bufi += n
-            # self.audio_interface.output_stream.write(buf.tostring())
-            # dt = time.time() - t0
-            # if dt < samples / settings.rate:
-            #     time.sleep(samples / settings.rate - dt)
-            self.t0 = time.time()
-            if self.bufi >= len(data):
-                self.stop()
-        return buf
-
-    def reset_audio_interface(self, audio_interface):
-        self.audio_interface = audio_interface
+# class Player:
+#
+#     def __init__(self, audio_interface):
+#         self.data = {}
+#         t0 = time.time()
+#         for name, path in settings.get_recordings().items():
+#             sr, data = scipy.io.wavfile.read(path)
+#             if sr != settings.rate:
+#                 logger.warning('IGNORING {} {}!={}'.format(
+#                     name, sr, settings.rate))
+#                 continue
+#             if data.dtype != settings.dtype_np:
+#                 logger.warning('IGNORING {} {}!={}'.format(
+#                     name, data.dtype.name, settings.dtype_np.name))
+#                 continue
+#             self.data[name] = data
+#         logger.info('Loaded {} recordings in {:.3f}ms'.format(
+#             len(self.data), time.time() - t0))
+#
+#         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#         self.sock.settimeout(0)
+#         self.sock.bind((settings.address, settings.signalin_port))
+#
+#         self.audio_interface = audio_interface
+#
+#         self.stop()
+#
+#     def stop(self):
+#         self.name = self.bufi = self.t0 = None
+#
+#     def playing(self):
+#         try:
+#             data, address = self.sock.recvfrom(4096)
+#             try:
+#                 data = json.loads(data.decode('utf8'))
+#                 if 'play' in data:
+#                     self.name = data['play']
+#                     self.bufi = 0
+#                     self.t0 = time.time()
+#                     logger.info('Will play {}'.format(self.name))
+#             except json.JSONDecodeError as e:
+#                 logger.warning('Could not decode {!r} : {}'.format(data, e))
+#         except io.BlockingIOError:
+#             pass
+#         return self.name
+#
+#     def get(self, samples):
+#         buf = np.zeros(shape=samples, dtype=settings.dtype_np)
+#         if self.name:
+#             data = self.data[self.name]
+#             n = min(samples, len(data) - self.bufi)
+#             buf[:n] = data[self.bufi: self.bufi + n]
+#             self.bufi += n
+#             # self.audio_interface.output_stream.write(buf.tostring())
+#             # dt = time.time() - t0
+#             # if dt < samples / settings.rate:
+#             #     time.sleep(samples / settings.rate - dt)
+#             self.t0 = time.time()
+#             if self.bufi >= len(data):
+#                 self.stop()
+#         return buf
+#
+#     def reset_audio_interface(self, audio_interface):
+#         self.audio_interface = audio_interface
 
 
 class InputStreamer(object):
@@ -140,8 +133,6 @@ class InputStreamer(object):
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
         self.output_dir = output_dir
 
-        self.player = Player(audio_interface)
-
     def freeze(self, frozen):
         if frozen:
             self.close()
@@ -154,16 +145,12 @@ class InputStreamer(object):
             self.wav.setsampwidth(settings.sampwidth)
 
     @perf.measure('InputStreamer.read')
-    def read(self, samples):
-        if self.player.playing():
-            data16 = self.player.get(samples)
-            data = util.int16_to_float(data16)
-        else:
-            data = self.audio_interface.input_stream.read(
-                samples, exception_on_overflow=False)
-            data16 = np.frombuffer(data, settings.dtype_np)
-            data = util.int16_to_float(data16)
-            data = hp.effects.microphone_effect(data, None)
+    def read(self, samples, signals):
+        data = self.audio_interface.input_stream.read(
+            samples, exception_on_overflow=False)
+        data16 = np.frombuffer(data, settings.dtype_np)
+        data = util.int16_to_float(data16)
+        data = hp.effects.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
         if self.wav_path:
             self.wav.writeframesraw(data16)
@@ -176,9 +163,9 @@ class InputStreamer(object):
             logger.info('Clearing buffers : read n={} bytes.'.format(n))
 
     @perf.measure('InputStreamer.get')
-    def get(self):
+    def get(self, signals):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
-        self.data[-settings.hop_size:] = self.read(settings.hop_size)
+        self.data[-settings.hop_size:] = self.read(settings.hop_size, signals)
         return features.wav2features(self.data)
 
     def get_dt(self):
@@ -228,8 +215,9 @@ def is_over(x):
 
 
 @perf.measure('get_signals')
-def get_signals(feats):
-    signals = hp.signals.runner(features=feats, t=time.time())
+def get_signals(feats, signalin):
+    signals = hp.signals.runner(
+        features=feats, t=time.time(), signalin=signalin)
     signals['mfccs'] = feats.mfccs
     signals['logmel'] = feats.logmel
     del signals['features']
@@ -237,9 +225,12 @@ def get_signals(feats):
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-monitor_address = (args.address, settings.monitor_port)
-fadecandy_address = (args.address, settings.fadecandy_port)
-dmx_address = (args.address, settings.dmx_port)
+signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+signalin_sock.bind((settings.address, settings.signalin_port))
+signalin_sock.settimeout(0)
+monitor_address = (settings.address, settings.monitor_port)
+fadecandy_address = (settings.address, settings.fadecandy_port)
+dmx_address = (settings.address, settings.dmx_port)
 
 i = 0
 i_o = 0
@@ -263,7 +254,20 @@ last_reset_t = time.time()
 started = False
 think_t0 = None
 frozen = None
+signals = {}
 while running:
+
+    signalin = {}
+    try:
+        data, address = signalin_sock.recvfrom(4096)
+        try:
+            signalin = json.loads(data.decode('utf8'))
+            logger.info('signalin={}'.format(signalin))
+        except json.JSONDecodeError as e:
+            logger.warning('Could not decode {!r} : {}'.format(data, e))
+    except io.BlockingIOError:
+        pass
+
     if frozen != conf['frozen']:
         frozen = conf['frozen']
         input_streamer.freeze(frozen)
@@ -271,22 +275,19 @@ while running:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
     if frozen:
         time.sleep(settings.hop_secs)
+        signals = {}
         continue
 
     if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
         logger.info('Re-initializing input_streamer after freeze.')
         del ai0
         ai0 = audio.AudioInterface(
-                input=1, device_index=hp.effects.input_device)
+            input=1, device_index=hp.effects.input_device)
         input_streamer.reset_audio_interface(ai0)
         last_reset_t = time.time()
-    t0 = time.time()
-    feats = input_streamer.get()
 
-    # intensity = ceps.max()
+    feats = input_streamer.get(signals)
     i += 1
-    # overdrive = bool(is_over(data).mean() > args.overdrive_threshold)
-    # i_o += overdrive
 
     if args.alive_secs and (
             i - last_alive) * settings.hop_secs > args.alive_secs:
@@ -297,7 +298,7 @@ while running:
             json.dump(stats, f)
         last_alive = i
 
-    signals = get_signals(feats)
+    signals = get_signals(feats, signalin)
 
     bufs = hp.effects.effector(feats.wav[-settings.hop_size:], signals)
     ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())
@@ -309,32 +310,12 @@ while running:
         signals['logmel'] = features.wav2features(
             hp.effects.effector.bufs[channel].buf).logmel
 
-    lighter_message = {}
-    # if overdrive:
-    #     lighter_message['overdrive'] = True
+    msg = util.pythonize(signals)
+    msg = json.dumps(msg).encode('utf8')
+    sock.sendto(msg, monitor_address)
 
-    # if keeper.add(data, ceps, logmel) and args.output_dir:
-    #     stats['recorded'] += 1
-    #     msg = store(np.concatenate(keeper.bufs.data.as_list()),
-    #                 keeper.stats())
-    #     signals['msg'] = msg
-    #     lighter_message['state'] = 'search'
-    #     started = False
-    # elif len(keeper.bufs.data) == 10:
-    #     stats['started'] += 1
-    #     logger.info('len(keeper.data) == 10 - start')
-    #     lighter_message['state'] = 'start'
-    #     started = True
-    # elif started and keeper.state == keeper.BELOW:
-    #     lighter_message['state'] = 'wait'
-    #     started = False
-
-    signals = util.pythonize(signals)
-    signals = json.dumps(signals).encode('utf8')
-    sock.sendto(signals, monitor_address)
-
-    sock.sendto(signals, fadecandy_address)
-    sock.sendto(signals, dmx_address)
+    sock.sendto(msg, fadecandy_address)
+    sock.sendto(msg, dmx_address)
 
 logger.info('Stop recording.')
 del input_streamer

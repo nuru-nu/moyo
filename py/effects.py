@@ -1,10 +1,10 @@
 
-import random
+import random, time
 
 import numpy as np
 import scipy
 
-import perf, settings, util
+import perf, settings, state, util
 
 
 class Effector:
@@ -35,6 +35,47 @@ class Effector:
 class Effect:
     def __or__(self, other):
         return ChainedEffect(self, other)
+
+
+class Recording(Effect):
+    """Plays a recording from signalin[name]."""
+
+    def __init__(self, name):
+        self.name = name
+        self.i = 0
+        self.buf = None
+
+        t0 = time.time()
+        self.data = {}
+        for name, path in settings.get_recordings().items():
+            sr, data = scipy.io.wavfile.read(path)
+            if sr != settings.rate:
+                print('IGNORING {} {}!={}'.format(
+                    name, sr, settings.rate))
+                continue
+            if data.dtype != settings.dtype_np:
+                print('IGNORING {} {}!={}'.format(
+                    name, data.dtype.name, settings.dtype_np.name))
+                continue
+            self.data[name] = util.int16_to_float(data)
+        print('Loaded {} recordings in {:.3f}ms'.format(
+            len(self.data), time.time() - t0))
+
+    def __call__(self, buf, signals):
+        recording = signals.get('signalin', {}).get(self.name)
+        if recording:
+            self.i = 0
+            self.buf = self.data[recording]
+            state.state.play(recording)
+            print('playing {}...'.format(recording))
+        if self.buf is not None:
+            if self.i + len(buf) <= len(self.buf):
+                buf = self.buf[self.i: self.i + len(buf)]
+                self.i += len(buf)
+            else:
+                self.buf = None
+                state.state.play(None)
+        return buf
 
 
 class ChainedEffect(Effect):
@@ -92,6 +133,14 @@ class Silence(Effect):
 
     def __call__(self, buf, signals):
         return self.buf
+
+
+class SilenceOrPlaying(Silence):
+
+    def __call__(self, buf, signals):
+        if state.state.playing:
+            return buf
+        return super().__call__(buf, signals)
 
 
 class Sinusoidal(Effect):
@@ -199,9 +248,9 @@ class RndSub(Effect):
         self.left = self.rnd_n(dict(
             on=self.sample_minmax, off=self.break_minmax)[self.state])
         if self.state == 'on':
-          self.win = scipy.hamming(2 * self.rnd_n(self.ramp_minmax))
-          self.wav_i = self.wav_i0 = self.rnd_n([
-              0, len(self.wav)/settings.rate - self.sample_minmax[1]])
+            self.win = scipy.hamming(2 * self.rnd_n(self.ramp_minmax))
+            self.wav_i = self.wav_i0 = self.rnd_n([
+                0, len(self.wav) / settings.rate - self.sample_minmax[1]])
 
     def rnd_n(self, minmax):
         secs = minmax[0] + random.random() * (minmax[1] - minmax[0])
@@ -228,4 +277,3 @@ class RndSub(Effect):
         if self.left < 0:
             self.next()
         return buf
-

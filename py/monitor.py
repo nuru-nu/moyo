@@ -24,11 +24,6 @@ parser.add_argument('--listen_address', type=str, default=settings.address,
                     help='Which address to listen on.')
 parser.add_argument('--port', type=int, default=settings.monitor_port,
                     help='Which port to listen on.')
-parser.add_argument('--recorder_port', type=int,
-                    default=settings.recorder_port,
-                    help='Which port "recorder" is listening on.')
-parser.add_argument('--address', type=str, default=settings.address,
-                    help='Which address to send to.')
 
 parser.add_argument('--monitor_freq', type=float, default=10.,
                     help='Monitor update frequency.')
@@ -134,6 +129,8 @@ class Graphs:
         for k, v in data.items():
             if k in self.ignore:
                 continue
+            if not isinstance(v, float):
+                continue
             self.mtimes[k] = t
             if k not in self.data:
                 self.create(k)
@@ -165,8 +162,8 @@ class Monitor:
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((args.listen_address, args.port))
 
-        self.recorder_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.recorder_address = (args.address, args.recorder_port)
+        self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.signalin_address = (settings.address, settings.signalin_port)
 
         self.steps = 200
         self.logmel = np.zeros((self.steps, settings.num_mel_bins))
@@ -209,6 +206,16 @@ class Monitor:
             side=tk.LEFT)
         top_buttons.pack()
 
+        state_buttons = ttk.Frame(top)
+        ttk.Label(state_buttons, text='state').pack(side=tk.LEFT)
+        for i, state in enumerate(('std', 'ooo', 'flash', 'drone')):
+            text = '<{}> {}'.format(i + 1, state)
+            command = functools.partial(self.send, dict(state=state))
+            button = ttk.Button(state_buttons, text=text, command=command)
+            self.root.bind(str(i + 1), lambda _: command)
+            button.pack(side=tk.LEFT)
+        state_buttons.pack()
+
         recording_frame = ttk.Frame(top)
         self.recording_entry = tk.StringVar()
         entry = ttk.Entry(recording_frame, textvariable=self.recording_entry)
@@ -218,6 +225,14 @@ class Monitor:
         recording_frame.pack()
         entry.bind('<Return>', self.recordit)
         top.bind('<Return>', self.recordit)
+
+        self.play = tk.StringVar()
+        values = sorted(list(settings.get_recordings().keys()))
+        ttk.Combobox(recording_frame, values=values,
+                     textvariable=self.play).pack(side=tk.LEFT)
+        ttk.Button(recording_frame, text='play',
+                   command=lambda: self.send(dict(play=self.play.get()))
+                   ).pack(side=tk.LEFT)
 
         top_labels = ttk.Frame(top)
         ttk.Label(top_labels, text=settings.to_string()).pack(side=tk.LEFT)
@@ -266,18 +281,6 @@ class Monitor:
         controls_row2.pack()
         controls.pack()
 
-        button_rows = ttk.Frame(self.root)
-        first_letters = None
-        for name in sorted(settings.get_recordings()):
-            if first_letters != name[:3]:
-                first_letters = name[:3]
-                button_row = ttk.Frame(button_rows)
-            command = functools.partial(self.play, name)
-            ttk.Button(button_row, text=name, command=command).pack(
-                side=tk.LEFT)
-            button_row.pack(side=tk.TOP)
-        button_rows.pack()
-
     def recordit(self, *_):
         now = int(time.time())
         name = self.recording_entry.get()
@@ -285,7 +288,10 @@ class Monitor:
             with open(settings.recorder2_index, 'a') as f:
                 f.write('{},{}\n'.format(now, name))
             logger.info('Recorded {}'.format(name))
-        self.recording_entry.set('')
+            if name.endswith('_stop'):
+                self.recording_entry.set('')
+            else:
+                self.recording_entry.set('{}_stop'.format(name))
 
     def update_logmel(self):
         conf['logmel_src'] = self.logmel_src.get()
@@ -313,12 +319,10 @@ class Monitor:
             pickle.dump(self.logmel, f)
         logger.info('stored logmel to "{}"'.format(path))
 
-    def play(self, name):
-        logger.info('Playing {}'.format(name))
-        msg = json.dumps({
-            'play': name,
-        }).encode('utf8')
-        self.recorder_sock.sendto(msg, self.recorder_address)
+    def send(self, d):
+        logger.info('sending {}'.format(d))
+        msg = json.dumps(d).encode('utf8')
+        self.signalin_sock.sendto(msg, self.signalin_address)
 
     def anim(self, *args):
         while self.recv():

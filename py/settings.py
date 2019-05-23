@@ -37,7 +37,7 @@ f2hz2 = rate / num_mel_bins2 / np.pi
 
 address = 'localhost'
 monitor_port = 6100
-recorder_port = 6101
+signalin_port = 6101
 lighter_port = 6102
 fadecandy_port = 6103
 dmx_port = 6104
