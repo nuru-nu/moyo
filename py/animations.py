@@ -36,6 +36,28 @@ elif Path(json_path).exists():
 else:
 	print("Cant find mapping JSON '{}'!".format(json_path))
 
+
+class Mixer:
+
+	def __init__(self, d):
+		self.d = d
+		self.t0 = 0
+		self.dt = 1
+		self.current = self.last = 'std'
+
+	def __call__(self, signals):
+		state = signals['state'].state
+		t = signals['t']
+		if state != self.current:
+			self.last = self.current
+			self.current = state
+			self.t0 = t
+		if t - self.t0 < self.dt:
+			v = (t - self.t0) / self.dt
+			return (1 - v) * self.d[self.last](signals) + v * self.d[state](signals)
+		return self.d[state](signals)
+
+
 class Animation:
 	def __init__(self):
 		self.pixels = np.zeros((len(mapping), 3))
@@ -86,6 +108,12 @@ class Sin(Animation):
 
 	def __call__(self, x):
 		return np.sin(x * 2 * np.pi * self.hz)
+
+
+class OooHue:
+	def __call__(self, signals):
+		return 0.5 + 0.5 * np.sin(signals['t'] * 2 * np.pi * (
+			0.4 + signals['ooo_intensity']))
 
 
 class Lin(Animation):

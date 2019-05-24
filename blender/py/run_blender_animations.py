@@ -14,13 +14,15 @@ assert os.path.exists(lib_path), 'Make sure "." path is where notebooks are!'
 if not lib_path in sys.path:
 	sys.path.insert(0, lib_path)
 
-import audio, features, settings, util
+import audio, features, settings, state, util
 import pixel_functions as pf
 # import animation_script as anim
 import hotplug
 
 logger = util.createLogger('fadecandy')
 hp = hotplug.HotPlug(logger)
+
+signals0 = {"vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0], "state": state.State()}
 
 def init(cont):
 	own = cont.owner
@@ -56,6 +58,7 @@ def init(cont):
 		print("Loaded pixels with shape:", own['polar_mapping'].shape)
 
 	own['prev_t'] = time.time() % 120
+	own['signals'] = signals0
 
 
 def run(cont):
@@ -64,13 +67,13 @@ def run(cont):
 	own = cont.owner
 	
 	# ##################### Audio ##########################
-	t_global = time.time() % own['max_time']
-	signals = {"t" : t_global, "vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0]}
 
+	signals = own.get('signals', signals0)
 	try:
 		data, address = own['sock'].recvfrom(4096)
 		try:
 			signals = own['signals'] = json.loads(data.decode('utf8'))
+			signals['state'] = state.State(signals['state'])
 		except json.JSONDecodeError as e:
 			print('Could not decode {!r} : {}'.format(data, e))
 	except io.BlockingIOError as e:

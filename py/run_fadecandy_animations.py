@@ -7,7 +7,7 @@ import json
 
 import colorsys
 
-import audio, features, settings, util
+import audio, features, settings, state, util
 import pixel_functions as pf
 # import animation_script as anim
 import hotplug
@@ -36,6 +36,7 @@ while True:
 		data, address = sock.recvfrom(4096)
 		try:
 			signals = json.loads(data.decode('utf8'))
+                        signals['state'] = state.Stage(signals['state'])
 		except json.JSONDecodeError as e:
 			print('Could not decode {!r} : {}'.format(data, e))
 	except io.BlockingIOError as e:

@@ -7,7 +7,7 @@ def get_data():
             S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
             S.Exponential(alpha=0.8)
         ),
-        loud=S.Louder(n=10) | S.Linear(mult=2) | S.Clip(),
+        loud=S.Louder(n=10) | S.Linear(mult=5) | S.Clip(),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=S.KerasDetector(
@@ -47,9 +47,22 @@ def get_data():
             L.Named('iso') |
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
+        ) * (
+            L.Named('left_drone') | S.Linear(shift=-1, mult=-10) | S.Clip()
+        ) * (
+            L.Named('right_drone') | S.Linear(shift=-1, mult=-10) | S.Clip()
         ),
+
         state=S.State(),
+
+        left_drone=S.RndRamp([1, 20], [5, 10], [2, 4]),
+        right_drone=S.RndRamp([5, 10], [5, 10], [2, 4]),
+
+        bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
+        ooo_intensity=(
+            L.Named('ooo') | S.Ramp(up_s=0.05, down_s=0.5) | S.Clip()),
     )
+
     return dict(
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

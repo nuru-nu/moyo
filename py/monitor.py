@@ -202,6 +202,8 @@ class Monitor:
         self.freeze_button.pack(side=tk.LEFT)
         ttk.Button(top_buttons, text='store', command=self.store).pack(
             side=tk.LEFT)
+        ttk.Button(top_buttons, text='dump', command=self.dump).pack(
+            side=tk.LEFT)
         ttk.Button(top_buttons, text='quit', command=self.shutdown).pack(
             side=tk.LEFT)
         top_buttons.pack()
@@ -347,6 +349,13 @@ class Monitor:
         self.img.set_data(self.logmel.T)
         self.graphs.updateui()
 
+    def dump(self):
+        logger.info({
+            k: v
+            for k, v in self.last_data
+            if k not in ('logmel', 'mfccs')
+        })
+
     def shutdown(self):
         logger.info('shutting down...')
         # del self.ani
@@ -359,7 +368,7 @@ class Monitor:
         except io.BlockingIOError:
             return False
         try:
-            data = json.loads(data.decode('utf8'))
+            self.last_data = data = json.loads(data.decode('utf8'))
             self.state.set(data.get('state', '?'))
         except json.JSONDecodeError as e:
             logger.warning('Could not decode {!r} : {}'.format(data, e))

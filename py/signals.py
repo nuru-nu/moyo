@@ -1,5 +1,7 @@
 """Signals transform sound to scalars."""
 
+import random
+
 import aubio
 import numpy as np
 import PIL
@@ -33,11 +35,76 @@ class WithPrevious:
 class State(L.Signal):
     """Updates the state."""
 
-    def call(self, state, signalin):
+    def call(self, state, signalin, ooo, ooo_intensity):
         newstate = signalin.get('state')
         if newstate:
             state.goto(newstate)
+        elif state.state == 'std' and ooo == 1.0:
+            state.goto('ooo')
+        elif state.state == 'ooo' and ooo < 0.1:
+            state.state = 'std'
+        elif state.state == 'ooo' and ooo_intensity == 1.0:
+            state.state = 'flash'
         return state
+
+
+class InState(L.Signal):
+
+    def init(self, state):
+        self.state = state
+
+    def call(self, value, state):
+        return value * (state.state == self.state)
+
+
+def _rnd(minmax):
+    return minmax[0] + random.random() * (
+        minmax[1] - minmax[0])
+
+
+class RndPulse(L.Signal):
+
+    def init(self, break_minmax):
+        self.break_minmax = break_minmax
+        self.t0 = None
+        self.wait_s = _rnd(self.break_minmax)
+
+    def call(self, t):
+        if self.t0 is None:
+            self.t0 = t
+        if t - self.t0 >= self.wait_s:
+            self.t0 = t
+            self.wait_s = _rnd(self.break_minmax)
+            return 1.
+        return 0.
+
+
+class RndRamp(L.Signal):
+
+    def init(self, break_minmax, duration_minmax, ramp_minmax=[0.5, 0.5],
+             state='std'):
+        self.break_minmax = break_minmax
+        self.duration_minmax = duration_minmax
+        self.ramp_minmax = ramp_minmax
+        self.t3 = -1
+
+    def call(self, t, state):
+        if state.state != 'std':
+            self.t3 = -1
+            return 0.0
+        if t > self.t3:
+            self.t0 = t + _rnd(self.break_minmax)
+            self.t1 = self.t0 + _rnd(self.ramp_minmax)
+            self.t2 = self.t1 + _rnd(self.duration_minmax)
+            self.t3 = self.t2 + _rnd(self.ramp_minmax)
+        if t < self.t0:
+            return 0.
+        if t < self.t1:
+            return (t - self.t0) / (self.t1 - self.t0)
+        if t < self.t2:
+            return 1.
+        return 1 - (t - self.t2) / (self.t3 - self.t2)
+
 
 # features.wav
 ###############################################################################
@@ -259,6 +326,7 @@ class Clip(L.Signal):
 class Ramp(L.SignalLast):
 
     def init(self, up_s, down_s):
+        """`up_s` is dvalue/ds when going up (the larger the faster)."""
         pass
 
     def call(self, t, value):

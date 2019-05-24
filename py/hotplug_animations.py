@@ -32,7 +32,31 @@ def get_data():
         #     # color=A.Const((1, 0, 0))
         # ),
 
-        animation=A.Add(
+        animation=A.Mixer(dict(
+            std=A.Add(
+                A.GaussianDroplet(
+                    sigma=A.Signals("t") | A.Sin(hz=1.1) | A.Lin(shift=np.pi/12, mult=-np.pi/24),
+                    color=[A.Signals('left_drone'), A.Const(0), A.Signals('left_drone')], 
+                    pos=[A.Const(-np.pi/2), A.Const(np.pi/2)],
+                ),
+                A.GaussianDroplet(
+                    sigma=A.Signals("t") | A.Sin(hz=1) | A.Lin(shift=np.pi/12, mult=-np.pi/24),
+                    color=[A.Signals('right_drone'), A.Const(0), A.Signals('right_drone')], 
+                    pos=[A.Const(np.pi/2), A.Const(np.pi/2)],
+                ),
+            ),
+            ooo=A.FullOn(color=A.Hue(
+                    # hue=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=0.5, mult=0.5),
+                    hue=A.OooHue(),
+                    value=A.Signals("loud"),
+                )),
+            flash=A.FullOn(color=A.Hue(
+                value=A.Signals('t') | A.Sin(hz=4) | A.Lin(shift=0.5, mult=0.5),
+                saturation=A.Const(0),
+            )),
+        )),
+
+        animation2=A.Add(
             A.PhiRing(
                 theta=A.Signals("t") | A.Sin(hz=0.4) | A.Lin(shift=-2, mult=np.pi/4),
                 width=A.Const(0.3),
