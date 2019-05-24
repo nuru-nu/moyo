@@ -2,7 +2,7 @@
 import random, time
 
 import numpy as np
-import scipy
+import scipy, scipy.io.wavfile
 
 import perf, settings, util
 

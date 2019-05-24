@@ -11,6 +11,8 @@ has_signals = False
 try:
     import signals, hotplug_signals
     has_signals = True
+except ImportError as e:
+    print('COULD NOT LOAD signals :', e)
 except ModuleNotFoundError as e:
     print('COULD NOT LOAD signals :', e)
 
