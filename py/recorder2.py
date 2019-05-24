@@ -5,7 +5,7 @@ import argparse, io, json, logging, os, signal as pysig, socket, time, wave
 import numpy as np
 import scipy.io.wavfile
 
-import audio, config, features, hotplug, perf, settings, util
+import audio, config, features, hotplug, perf, settings, state, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -53,72 +53,6 @@ def signal_handler(signal, frame):
 
 
 pysig.signal(pysig.SIGINT, signal_handler)
-
-
-# class Player:
-#
-#     def __init__(self, audio_interface):
-#         self.data = {}
-#         t0 = time.time()
-#         for name, path in settings.get_recordings().items():
-#             sr, data = scipy.io.wavfile.read(path)
-#             if sr != settings.rate:
-#                 logger.warning('IGNORING {} {}!={}'.format(
-#                     name, sr, settings.rate))
-#                 continue
-#             if data.dtype != settings.dtype_np:
-#                 logger.warning('IGNORING {} {}!={}'.format(
-#                     name, data.dtype.name, settings.dtype_np.name))
-#                 continue
-#             self.data[name] = data
-#         logger.info('Loaded {} recordings in {:.3f}ms'.format(
-#             len(self.data), time.time() - t0))
-#
-#         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#         self.sock.settimeout(0)
-#         self.sock.bind((settings.address, settings.signalin_port))
-#
-#         self.audio_interface = audio_interface
-#
-#         self.stop()
-#
-#     def stop(self):
-#         self.name = self.bufi = self.t0 = None
-#
-#     def playing(self):
-#         try:
-#             data, address = self.sock.recvfrom(4096)
-#             try:
-#                 data = json.loads(data.decode('utf8'))
-#                 if 'play' in data:
-#                     self.name = data['play']
-#                     self.bufi = 0
-#                     self.t0 = time.time()
-#                     logger.info('Will play {}'.format(self.name))
-#             except json.JSONDecodeError as e:
-#                 logger.warning('Could not decode {!r} : {}'.format(data, e))
-#         except io.BlockingIOError:
-#             pass
-#         return self.name
-#
-#     def get(self, samples):
-#         buf = np.zeros(shape=samples, dtype=settings.dtype_np)
-#         if self.name:
-#             data = self.data[self.name]
-#             n = min(samples, len(data) - self.bufi)
-#             buf[:n] = data[self.bufi: self.bufi + n]
-#             self.bufi += n
-#             # self.audio_interface.output_stream.write(buf.tostring())
-#             # dt = time.time() - t0
-#             # if dt < samples / settings.rate:
-#             #     time.sleep(samples / settings.rate - dt)
-#             self.t0 = time.time()
-#             if self.bufi >= len(data):
-#                 self.stop()
-#         return buf
-#
-#     def reset_audio_interface(self, audio_interface):
-#         self.audio_interface = audio_interface
 
 
 class InputStreamer(object):
@@ -215,9 +149,9 @@ def is_over(x):
 
 
 @perf.measure('get_signals')
-def get_signals(feats, signalin):
+def get_signals(feats, signalin, state):
     signals = hp.signals.runner(
-        features=feats, t=time.time(), signalin=signalin)
+        features=feats, t=time.time(), signalin=signalin, state=state)
     signals['mfccs'] = feats.mfccs
     signals['logmel'] = feats.logmel
     del signals['features']
@@ -254,7 +188,7 @@ last_reset_t = time.time()
 started = False
 think_t0 = None
 frozen = None
-signals = {}
+signals = dict(state=state.State())
 while running:
 
     signalin = {}
@@ -275,7 +209,6 @@ while running:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
     if frozen:
         time.sleep(settings.hop_secs)
-        signals = {}
         continue
 
     if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
@@ -298,7 +231,7 @@ while running:
             json.dump(stats, f)
         last_alive = i
 
-    signals = get_signals(feats, signalin)
+    signals = get_signals(feats, signalin, state=signals['state'])
 
     bufs = hp.effects.effector(feats.wav[-settings.hop_size:], signals)
     ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())

@@ -149,7 +149,7 @@ def make_order(signals, provided):
                 done.add(name)
         assert done, 'could not satisfy ANY of {}'.format(
             ', '.join([
-                '{}{}'.format(signals[name], signals[name].wants)
+                '{}->{}'.format(signals[name], signals[name].wants)
                 for name in names
             ])
         )

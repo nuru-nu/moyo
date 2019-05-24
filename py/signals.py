@@ -26,6 +26,19 @@ class WithPrevious:
         self.i += 1
         return np.concatenate([logmel, self.buf.mean(axis=0)])
 
+# state
+###############################################################################
+
+
+class State(L.Signal):
+    """Updates the state."""
+
+    def call(self, state, signalin):
+        newstate = signalin.get('state')
+        if newstate:
+            state.goto(newstate)
+        return state
+
 # features.wav
 ###############################################################################
 

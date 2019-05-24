@@ -48,7 +48,8 @@ def get_data():
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
         ),
+        state=S.State(),
     )
     return dict(
-        runner=L.SignalRunner(signals, ('features', 't'))
+        runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

@@ -3,7 +3,7 @@ import json, logging, sys
 
 import numpy as np
 
-import features, settings
+import features, settings, state
 
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
@@ -118,6 +118,8 @@ def pythonize(d):
         return float(d)
     if isinstance(d, np.int64):
         return int(d)
+    if isinstance(d, state.State):
+        return str(d)
     return d
 
 

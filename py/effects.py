@@ -4,7 +4,7 @@ import random, time
 import numpy as np
 import scipy
 
-import perf, settings, state, util
+import perf, settings, util
 
 
 class Effector:
@@ -66,7 +66,7 @@ class Recording(Effect):
         if recording:
             self.i = 0
             self.buf = self.data[recording]
-            state.state.play(recording)
+            signals['state'].play(recording)
             print('playing {}...'.format(recording))
         if self.buf is not None:
             if self.i + len(buf) <= len(self.buf):
@@ -74,7 +74,7 @@ class Recording(Effect):
                 self.i += len(buf)
             else:
                 self.buf = None
-                state.state.play(None)
+                signals['state'].play(None)
         return buf
 
 
@@ -138,7 +138,7 @@ class Silence(Effect):
 class SilenceOrPlaying(Silence):
 
     def __call__(self, buf, signals):
-        if state.state.playing:
+        if signals['state'].playing:
             return buf
         return super().__call__(buf, signals)
 

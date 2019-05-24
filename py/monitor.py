@@ -207,7 +207,9 @@ class Monitor:
         top_buttons.pack()
 
         state_buttons = ttk.Frame(top)
-        ttk.Label(state_buttons, text='state').pack(side=tk.LEFT)
+        self.state = tk.StringVar()
+        self.state.set('...')
+        ttk.Label(state_buttons, textvariable=self.state).pack(side=tk.LEFT)
         for i, state in enumerate(('std', 'ooo', 'flash', 'drone')):
             text = '<{}> {}'.format(i + 1, state)
             command = functools.partial(self.send, dict(state=state))
@@ -358,6 +360,7 @@ class Monitor:
             return False
         try:
             data = json.loads(data.decode('utf8'))
+            self.state.set(data.get('state', '?'))
         except json.JSONDecodeError as e:
             logger.warning('Could not decode {!r} : {}'.format(data, e))
             return False
