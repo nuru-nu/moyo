@@ -1,3 +1,6 @@
+# vim: set noet:ts=8:sw=8
+# flake8: noqa
+
 import numpy as np
 import animations as A
 

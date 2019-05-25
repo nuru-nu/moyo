@@ -1,3 +1,24 @@
+"""Building blocs for signals etc.
+
+Synoposis:
+
+  import signals as S
+
+  class A(S.Signal):
+    def init(mult):
+        pass
+    def call(self, value):
+        return value * self.mult
+
+  class B(S.Signal):
+    def call(self, in1, in2):
+        return dict(value=in1 + in2)
+
+  runner = S.SignalRunner(dict(a=A(mult=3, b=B())), ['in1', 'in2'])
+  values = runner(in1=1, in2=2)
+  print(values['a'])
+"""
+
 import inspect
 
 # Base classes
@@ -173,6 +194,5 @@ class SignalRunner:
     def __call__(self, **kw):
         values = dict(**kw)
         for name in self.ordered:
-            # print('XXX', name, values.keys())
             values[name] = self.signals[name](**values)['value']
         return values
