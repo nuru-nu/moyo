@@ -39,6 +39,8 @@ class State(L.Signal):
         newstate = signalin.get('state')
         if newstate:
             state.goto(newstate)
+        elif state.state == 'test':
+            return state
         elif state.state == 'std' and ooo == 1.0:
             state.goto('ooo')
         elif state.state == 'ooo' and ooo < 0.1:
@@ -55,6 +57,15 @@ class InState(L.Signal):
 
     def call(self, value, state):
         return value * (state.state == self.state)
+
+
+class NotInState(L.Signal):
+
+    def init(self, state):
+        self.state = state
+
+    def call(self, value, state):
+        return value * (state.state != self.state)
 
 
 def _rnd(minmax):
@@ -321,6 +332,26 @@ class Clip(L.Signal):
 
     def call(self, value):
         return np.clip(value, self.amin, self.amax)
+
+
+class ClipToMaxOfMin(L.Signal):
+    """Clips a signal relative to the max of the min."""
+
+    def init(self, min_s=1, amin=0, amax=1):
+        self.buf = np.zeros(int(min_s * settings.rate / settings.hop_size))
+        self.i = 0
+        self.max = 1e-6
+        self.amin = amin
+        self.amax = amax
+
+    def call(self, value):
+        self.buf[self.i] = value
+        self.i = (self.i + 1) % len(self.buf)
+        self.max = max(self.max, self.buf.min())
+        return np.clip(value / self.max * self.amax, self.amin, self.amax)
+
+    def __repr__(self):
+        return super().__repr__(self) + '={:.2f}'.format(self.max)
 
 
 class Ramp(L.SignalLast):

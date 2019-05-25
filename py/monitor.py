@@ -10,7 +10,7 @@ from tkinter import ttk
 from matplotlib import animation
 import numpy as np
 
-import config, settings, util
+import settings, util
 
 
 matplotlib.use("TkAgg")
@@ -33,8 +33,6 @@ logger = util.createLogger('monitor')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 logger.info('starting monitor')
-
-conf = config.Config(logger)
 
 
 class Stats:
@@ -126,7 +124,8 @@ class Graphs:
 
     def update(self, data):
         t = time.time()
-        for k, v in data.items():
+        for k in sorted(data):
+            v = data[k]
             if k in self.ignore:
                 continue
             if not isinstance(v, float):
@@ -152,6 +151,8 @@ class Graphs:
 
 class Monitor:
 
+    _INITIAL_SIGNALS = ('loud', 'tf2', 'drone_left', 'drone_right')
+
     def __init__(self):
         self.t0 = time.time()
         self.stats = Stats()
@@ -169,6 +170,8 @@ class Monitor:
         self.logmel = np.zeros((self.steps, settings.num_mel_bins))
         self.logmel[0, 0] = -6
         self.logmel[0, 1] = 5
+
+        self.frozen = 0
 
         self.initui()
         self.update_freeze()
@@ -191,7 +194,7 @@ class Monitor:
 
         top_buttons = ttk.Frame(top)
         self.logmel_src = tk.StringVar()
-        self.logmel_src.set(conf['logmel_src'])
+        self.logmel_src.set('input')
         for logmel_src in ['input', 'output0', 'output1']:
             ttk.Radiobutton(
                 top_buttons, value=logmel_src, text=logmel_src,
@@ -212,11 +215,11 @@ class Monitor:
         self.state = tk.StringVar()
         self.state.set('...')
         ttk.Label(state_buttons, textvariable=self.state).pack(side=tk.LEFT)
-        for i, state in enumerate(('std', 'ooo', 'flash', 'drone')):
-            text = '<{}> {}'.format(i + 1, state)
+        for i, state in enumerate(('test', 'std', 'ooo', 'flash', 'dark')):
+            text = '<{}> {}'.format(i, state)
             command = functools.partial(self.send, dict(state=state))
             button = ttk.Button(state_buttons, text=text, command=command)
-            self.root.bind(str(i + 1), lambda _: command)
+            self.root.bind(str(i), lambda _: command)
             button.pack(side=tk.LEFT)
         state_buttons.pack()
 
@@ -277,7 +280,7 @@ class Monitor:
         # for name in ('loud_scale', 'pitcher_tolerance'):
         for name in ():
             self.confvars[name] = var = tk.StringVar()
-            var.set(conf[name])
+            var.set(name in self._INITIAL_SIGNALS)
             ttk.Label(controls_row2, text=' {}='.format(name)).pack(
                 side=tk.LEFT)
             ttk.Entry(controls_row2, textvariable=var, width=4).pack(
@@ -298,14 +301,15 @@ class Monitor:
                 self.recording_entry.set('{}_stop'.format(name))
 
     def update_logmel(self):
-        conf['logmel_src'] = self.logmel_src.get()
+        self.send(dict(logmel_src=self.logmel_src.get()))
 
     def freeze(self):
-        conf['frozen'] = 1 - conf['frozen']
+        self.frozen = 1 - self.frozen
+        self.send(dict(frozen=self.frozen))
         self.update_freeze()
 
     def update_freeze(self):
-        if conf['frozen']:
+        if self.frozen:
             self.ani.event_source.stop()
             self.freeze_button.configure(text='unfreeze')
         else:
@@ -342,8 +346,6 @@ class Monitor:
             except ValueError:
                 value = 0
                 var.set(value)
-            # don't bother to read from conf
-            conf[name] = value
 
         self.stats.inc('anim')
         self.img.set_data(self.logmel.T)

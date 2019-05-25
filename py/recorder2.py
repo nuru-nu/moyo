@@ -5,7 +5,7 @@ import argparse, io, json, logging, os, signal as pysig, socket, time, wave
 import numpy as np
 import scipy.io.wavfile
 
-import audio, config, features, hotplug, perf, settings, state, util
+import audio, features, hotplug, perf, settings, state, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -40,7 +40,6 @@ logger = util.createLogger('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-conf = config.Config(logger)
 hp = hotplug.HotPlug(logger)
 
 running = True
@@ -66,6 +65,7 @@ class InputStreamer(object):
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
         self.output_dir = output_dir
+        self.wav_path = None
 
     def freeze(self, frozen):
         if frozen:
@@ -187,7 +187,8 @@ last_reset_t = time.time()
 
 started = False
 think_t0 = None
-frozen = None
+frozen = 0
+logmel_src = 'input'
 signals = dict(state=state.State())
 while running:
 
@@ -202,8 +203,9 @@ while running:
     except io.BlockingIOError:
         pass
 
-    if frozen != conf['frozen']:
-        frozen = conf['frozen']
+    new_frozen = signalin.get('frozen', frozen)
+    if frozen != new_frozen:
+        frozen = new_frozen
         input_streamer.freeze(frozen)
         if not frozen and args.reset_secs > 0:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
@@ -238,8 +240,9 @@ while running:
     if ai2:
         ai2.output_stream.write(audio.tostereo(*bufs[2:4]).tostring())
 
-    if conf['logmel_src'].startswith('output'):
-        channel = int(conf['logmel_src'][-1])
+    logmel_src = signalin.get('logmel_src', logmel_src)
+    if logmel_src.startswith('output'):
+        channel = int(logmel_src[-1])
         signals['logmel'] = features.wav2features(
             hp.effects.effector.bufs[channel].buf).logmel
 

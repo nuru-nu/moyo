@@ -12,6 +12,8 @@ rate = 16000
 if rate == 16000:
     # 32ms
     hop_size = 512
+    # hop_size = 1024
+    # hop_size = 4096
 elif rate == 44100:
     # 23ms
     hop_size = 1024

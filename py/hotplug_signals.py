@@ -7,7 +7,7 @@ def get_data():
             S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
             S.Exponential(alpha=0.8)
         ),
-        loud=S.Louder(n=10) | S.Linear(mult=5) | S.Clip(),
+        loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=S.KerasDetector(
@@ -55,8 +55,8 @@ def get_data():
 
         state=S.State(),
 
-        left_drone=S.RndRamp([1, 20], [5, 10], [2, 4]),
-        right_drone=S.RndRamp([5, 10], [5, 10], [2, 4]),
+        left_drone=S.RndRamp([1, 20], [5, 10], [2, 4]) | S.NotInState('test'),
+        right_drone=S.RndRamp([5, 10], [5, 10], [2, 4]) | S.NotInState('test'),
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(

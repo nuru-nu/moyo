@@ -35,12 +35,12 @@ def get_data():
         animation=A.Mixer(dict(
             std=A.Add(
                 A.GaussianDroplet(
-                    sigma=A.Signals("t") | A.Sin(hz=1.1) | A.Lin(shift=np.pi/12, mult=-np.pi/24),
+                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/100),
                     color=[A.Signals('left_drone'), A.Const(0), A.Signals('left_drone')], 
                     pos=[A.Const(-np.pi/2), A.Const(np.pi/2)],
                 ),
                 A.GaussianDroplet(
-                    sigma=A.Signals("t") | A.Sin(hz=1) | A.Lin(shift=np.pi/12, mult=-np.pi/24),
+                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/100),
                     color=[A.Signals('right_drone'), A.Const(0), A.Signals('right_drone')], 
                     pos=[A.Const(np.pi/2), A.Const(np.pi/2)],
                 ),
@@ -48,6 +48,10 @@ def get_data():
             ooo=A.FullOn(color=A.Hue(
                     # hue=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=0.5, mult=0.5),
                     hue=A.OooHue(),
+                    value=A.Signals("loud"),
+                )),
+            test=A.FullOn(color=A.Hue(
+                    hue=A.Signals("t") | A.Sin(hz=0.01) | A.Lin(shift=0.5, mult=0.5),
                     value=A.Signals("loud"),
                 )),
             flash=A.FullOn(color=A.Hue(
@@ -58,7 +62,7 @@ def get_data():
 
         animation2=A.Add(
             A.PhiRing(
-                theta=A.Signals("t") | A.Sin(hz=0.4) | A.Lin(shift=-2, mult=np.pi/4),
+                theta=A.Signals("t") | A.Sin(hz=0.1) | A.Lin(shift=-2, mult=np.pi/4),
                 width=A.Const(0.3),
                 color=A.Const((1, 0, 0)),
             ),

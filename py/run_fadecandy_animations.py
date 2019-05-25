@@ -12,6 +12,8 @@ import pixel_functions as pf
 # import animation_script as anim
 import hotplug
 
+fc_channels = {'rizhole' : 1, 'vine_1' : 2}
+
 logger = util.createLogger('fadecandy')
 hp = hotplug.HotPlug(logger)
 
@@ -36,7 +38,7 @@ while True:
 		data, address = sock.recvfrom(4096)
 		try:
 			signals = json.loads(data.decode('utf8'))
-                        signals['state'] = state.Stage(signals['state'])
+			signals['state'] = state.State(signals['state'])
 		except json.JSONDecodeError as e:
 			print('Could not decode {!r} : {}'.format(data, e))
 	except io.BlockingIOError as e:
@@ -53,4 +55,4 @@ while True:
 	pixels = hp.animations.animation(signals)
 	# pixels = anim.get_pixels(signals, 'uniform_rain')
 	# print(pixels)
-	client.put_pixels(pixels*255)
+	client.put_pixels(pixels*255, channel=fc_channels['rizhole'])
