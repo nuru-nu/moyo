@@ -43,6 +43,7 @@ signalin_port = 6101
 lighter_port = 6102
 fadecandy_port = 6103
 dmx_port = 6104
+player_port = 6105
 
 
 def to_string():

@@ -38,12 +38,12 @@ def get_data():
         animation=A.Mixer(dict(
             std=A.Add(
                 A.GaussianDroplet(
-                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/100),
+                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/50),
                     color=[A.Signals('left_drone'), A.Const(0), A.Signals('left_drone')], 
                     pos=[A.Const(-np.pi/2), A.Const(np.pi/2)],
                 ),
                 A.GaussianDroplet(
-                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/100),
+                    sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/40),
                     color=[A.Signals('right_drone'), A.Const(0), A.Signals('right_drone')], 
                     pos=[A.Const(np.pi/2), A.Const(np.pi/2)],
                 ),

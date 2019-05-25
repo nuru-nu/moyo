@@ -1,11 +1,11 @@
 """Records audio, generates features and sends messages."""
 
-import argparse, io, json, logging, os, signal as pysig, socket, time, wave
+import argparse, json, logging, os, signal as pysig, socket, time, wave
 
 import numpy as np
 import scipy.io.wavfile
 
-import audio, features, hotplug, perf, settings, state, util
+import audio, features, hotplug, network, perf, settings, state, util
 
 
 ALIVE_PATH = 'alive/ongoing.json'
@@ -158,13 +158,18 @@ def get_signals(feats, signalin, state):
     return signals
 
 
+@perf.measure('send_signals')
+def send_signals(data):
+    msg = util.pythonize(data)
+    msg = json.dumps(msg).encode('utf8')
+    sock.sendto(msg, (settings.address, settings.monitor_port))
+    sock.sendto(msg, (settings.address, settings.player_port))
+    sock.sendto(msg, (settings.address, settings.fadecandy_port))
+    sock.sendto(msg, (settings.address, settings.dmx_port))
+
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-signalin_sock.bind((settings.address, settings.signalin_port))
-signalin_sock.settimeout(0)
-monitor_address = (settings.address, settings.monitor_port)
-fadecandy_address = (settings.address, settings.fadecandy_port)
-dmx_address = (settings.address, settings.dmx_port)
+signalin_sock = network.create_udp_socket(settings.signalin_port)
 
 i = 0
 i_o = 0
@@ -177,11 +182,6 @@ if os.path.exists(ALIVE_PATH):
 
 logger.info('Start recording.')
 ai0 = audio.AudioInterface(input=1, device_index=hp.effects.input_device)
-ai1 = audio.AudioInterface(output=2, device_index=hp.effects.output_device_1)
-ai2 = None
-if hp.effects.output_device_2 is None or hp.effects.output_device_2 >= 0:
-    ai2 = audio.AudioInterface(
-        output=2, device_index=hp.effects.output_device_2)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 
@@ -192,16 +192,7 @@ logmel_src = 'input'
 signals = dict(state=state.State())
 while running:
 
-    signalin = {}
-    try:
-        data, address = signalin_sock.recvfrom(4096)
-        try:
-            signalin = json.loads(data.decode('utf8'))
-            logger.info('signalin={}'.format(signalin))
-        except json.JSONDecodeError as e:
-            logger.warning('Could not decode {!r} : {}'.format(data, e))
-    except io.BlockingIOError:
-        pass
+    signalin = network.get_json(signalin_sock, {})
 
     new_frozen = signalin.get('frozen', frozen)
     if frozen != new_frozen:
@@ -234,31 +225,18 @@ while running:
         last_alive = i
 
     signals = get_signals(feats, signalin, state=signals['state'])
-
-    bufs = hp.effects.effector(feats.wav[-settings.hop_size:], signals)
-    ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())
-    if ai2:
-        ai2.output_stream.write(audio.tostereo(*bufs[2:4]).tostring())
-
     logmel_src = signalin.get('logmel_src', logmel_src)
     if logmel_src.startswith('output'):
         channel = int(logmel_src[-1])
         signals['logmel'] = features.wav2features(
             hp.effects.effector.bufs[channel].buf).logmel
 
-    msg = util.pythonize(signals)
-    msg = json.dumps(msg).encode('utf8')
-    sock.sendto(msg, monitor_address)
+    send_signals(signals)
 
-    sock.sendto(msg, fadecandy_address)
-    sock.sendto(msg, dmx_address)
 
 logger.info('Stop recording.')
 del input_streamer
 del ai0
-del ai1
-if ai2:
-    del ai2
 
 print('\nPERF STATS:')
 print(perf.stats())

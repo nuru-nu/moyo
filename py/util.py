@@ -8,7 +8,13 @@ import features, settings, state
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
 
+# Fail if not initialized ...
+logger = None
+
+
 def createLogger(name, stderr=True, logfile=True):
+    """Also updates module `logger` to newly initialized logger."""
+    global logger
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter(FORMAT)

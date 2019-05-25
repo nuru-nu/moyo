@@ -289,7 +289,7 @@ class RndPlay(Effect):
         self.zeros = np.zeros(settings.hop_size)
 
     def __call__(self, buf, signals):
-        value = signals[self.signal]
+        value = signals.get(self.signal, 0)
         if value == 0:
             self.i = None
             return self.zeros
