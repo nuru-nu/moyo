@@ -8,6 +8,7 @@ class State:
             parts = dict([
                 part.split('=')
                 for part in serialized[6:-1].split(',')
+                if part
             ])
         self.playing = parts.get('playing')
         self.state = parts.get('state', 'std')
