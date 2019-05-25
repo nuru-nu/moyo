@@ -4,28 +4,24 @@ Shared doc : https://docs.google.com/document/d/1DKIEItOe5IRh6JfeMJ1ERkpSYmWZ7JR
 
 ## Installation
 
+check out the git repository : `git clone rizhom@figur.li:rizhom.git`
+
+Note that you also need to check out submodules:
+- `git submodule init && git submodule update`
+- `git pull --recurse-submodules=yes`
+
 ### Python packages
 
 virtualenv env
 . env/bin/activate
 pip install -r requirements.txt
-./env/bin/ipython kernel install --user --name=rizhom
 ./env/bin/jupyter notebook
 
 OS X
 brew install portaudio
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
 
-### 360 images
-
-view with w.g. Google Cardboard:
-
-- https://play.google.com/store/apps/details?id=com.xojot.vrplayer
-
-## Use
-
-Note that you might also want to check out submodules:
-`git submodule init && git submodule update`
+## Running
 
 analysis:
 
@@ -38,21 +34,31 @@ modules:
 - `py/settings.py` : shared constants
 - `py/streaming.py` : continuously calculate & keep state
 - `py/util.py` : logging & more
+- `py/logic.py` : computes signals in DAG
+- `py/hotplug_signals.py` : defines how to compute signals from audio features
+- `py/hotplug_effects.py` : defines how to compute sound effects from audio input & signals
+- `py/hotplug_animatinos.py` : defines how to compute visual effects from audio input & signals
 
-programs:
+programs - start these separately, they communicate on localhost over UDP:
 
-- `py/dmx.py` : listens + controls DMX devices
-- `py/monitor.py` : listens UDP, plots + sends commands
 - `py/recorder2.py` : records, plays audio + sends UDP
+- `py/monitor.py` : listens UDP, plots + sends commands
+- (not used currently) `py/dmx.py` : listens + controls DMX devices - needs
+- (needs a running fadecandy server) `py/run_fadecandy_animations.py` : runs the fadecandy animations
+- (to simulate neopixels in Blender) `blender/sphere_animation_interface.blend` :
+  use Blender to start this (see below for how to set up Blender)
+  -> run `blender/py/run_blender_animations.py` INSIDE Blender
 
+
+## Development
 
 ### Open ligthning architecture
 
 See instructions in `notebooks/dmx.ipynb` and `py/dmx.py`.
 
-## Development
-
 ### Blender
+
+We use Blender to simulate the Neopixel
 
 tested with Blender 2.79b
 cd /Applications/Blender/blender.app/Contents/Resources/2.79/python/bin
@@ -78,3 +84,10 @@ set cc=80
 jupyter nbextension install --user https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.js
 curl -L https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.css > $(jupyter --data-dir)/nbextensions/toc.css
 jupyter nbextension enable toc
+
+### 360 images
+
+view with w.g. Google Cardboard:
+
+- https://play.google.com/store/apps/details?id=com.xojot.vrplayer
+
