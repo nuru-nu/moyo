@@ -179,7 +179,7 @@ class RollingBuffer:
 
     # TODO only roll() once.
     def __call__(self, buf):
-        if len(self.buf):
+        if len(self.buf) and len(buf):
             self.buf = np.roll(self.buf, shift=-len(buf))
             self.buf[-(len(buf)):] = buf
 
