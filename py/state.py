@@ -5,11 +5,15 @@ class State:
     def __init__(self, serialized=''):
         parts = {}
         if serialized.startswith('State(') and serialized.endswith(')'):
-            parts = dict([
-                part.split('=')
-                for part in serialized[6:-1].split(',')
-                if part
-            ])
+            # TODO debug this
+            try:
+                parts = dict([
+                    part.split('=')
+                    for part in serialized[6:-1].split(',')
+                    if part
+                ])
+            except Exception:
+                pass
         self.playing = parts.get('playing')
         self.state = parts.get('state', 'std')
 
