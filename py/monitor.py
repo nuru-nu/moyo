@@ -83,6 +83,10 @@ class Stats:
 class Graphs:
     """Updates two axes with incoming data."""
 
+    _PRESETS = dict(
+        initial=('loud', 'tf2', 'left_drone', 'right_drone'),
+    )
+
     def __init__(self, steps, controls, ax1, ax2, ignore=('logmel', 'mfccs')):
         """Using `ax1` for values 0..1 and `ax2` for values >1."""
         self.axs = dict(ax1=ax1, ax2=ax2)
@@ -98,6 +102,19 @@ class Graphs:
         self.lines = dict(ax1={}, ax2={})
         self.zeros = np.zeros(steps)
         self.clear()
+
+        self.preset = tk.StringVar()
+        self.preset.set('initial')
+        values = sorted(list(self._PRESETS.keys()))
+        presets_combo = ttk.Combobox(controls, values=values,
+                                     textvariable=self.preset)
+        presets_combo.pack()
+        presets_combo.bind("<<ComboboxSelected>>", self.update_presets)
+
+    def update_presets(self, e):
+        for name, var in self.vars.items():
+            var.set(1 if name in self._PRESETS.get(self.preset.get(), ())
+                    else 0)
 
     def clear(self):
         self.data = {}
@@ -118,7 +135,7 @@ class Graphs:
             self.data[key], self.cols[key])
         text = '{} ({})  '.format(key, self.cols[key])
         self.vars[key] = var = tk.IntVar()
-        var.set(1 if key in ('loud', 'pitch') else 0)
+        var.set(1 if key in self._PRESETS.get(self.preset.get(), ()) else 0)
         ttk.Checkbutton(self.rows[-1], text=text, variable=var).pack(
             side=tk.LEFT)
 
@@ -150,8 +167,6 @@ class Graphs:
 
 
 class Monitor:
-
-    _INITIAL_SIGNALS = ('loud', 'tf2', 'drone_left', 'drone_right')
 
     def __init__(self):
         self.t0 = time.time()
@@ -276,15 +291,6 @@ class Monitor:
             steps=self.steps, controls=controls_row1, ax1=ax2, ax2=ax3)
         controls_row1.pack()
         controls_row2 = ttk.Frame(controls)
-        self.confvars = {}
-        # for name in ('loud_scale', 'pitcher_tolerance'):
-        for name in ():
-            self.confvars[name] = var = tk.StringVar()
-            var.set(name in self._INITIAL_SIGNALS)
-            ttk.Label(controls_row2, text=' {}='.format(name)).pack(
-                side=tk.LEFT)
-            ttk.Entry(controls_row2, textvariable=var, width=4).pack(
-                side=tk.LEFT)
         controls_row2.pack()
         controls.pack()
 
@@ -340,12 +346,6 @@ class Monitor:
     def updateui(self):
         if self.stats.ready():
             self.ax2.set_title(self.stats.get())
-        for name, var in self.confvars.items():
-            try:
-                value = float(var.get())
-            except ValueError:
-                value = 0
-                var.set(value)
 
         self.stats.inc('anim')
         self.img.set_data(self.logmel.T)
