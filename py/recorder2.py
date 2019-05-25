@@ -40,7 +40,7 @@ logger = util.createLogger('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-hp = hotplug.HotPlug(logger)
+hp = hotplug.HotPlug(logger, modules=('signals', 'effects'))
 
 running = True
 

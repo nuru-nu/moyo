@@ -5,7 +5,7 @@ import numpy as np
 import audio, hotplug, network, perf, settings, util
 
 logger = util.createLogger('player')
-hp = hotplug.HotPlug(logger)
+hp = hotplug.HotPlug(logger, modules=('effects',))
 
 ai1 = audio.AudioInterface(output=2, device_index=hp.effects.output_device_1)
 ai2 = None

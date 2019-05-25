@@ -1,33 +1,23 @@
 """Hot plugs Python code into interactive environment / running scripts."""
 
-import collections, importlib, os, time, traceback
+import collections, os, time, traceback
+import importlib  # noqa: F401
 
 import util
 
-import effects, hotplug_effects
-import pixel_functions, animations, hotplug_animations
 
-has_signals = False
-try:
-    import signals, hotplug_signals
-    has_signals = True
-except ImportError as e:
-    print('COULD NOT LOAD signals :', e)
-except ModuleNotFoundError as e:
-    print('COULD NOT LOAD signals :', e)
-
-
+# files to watch and modules to (re)load
 # last module is the one with `.get_data()`
-FileModules = collections.namedtuple('FileModules', ['file', 'modules'])
+FileModules = collections.namedtuple('FileModules', ['files', 'modules'])
 _MODULES = dict(
-    effects=FileModules('hotplug_effects.py', [effects, hotplug_effects]),
-    animations=FileModules('hotplug_animations.py', [
-        pixel_functions, animations, hotplug_animations]),
+    effects=FileModules(['hotplug_effects.py', 'effects.py'],
+                        ['effects', 'hotplug_effects']),
+    animations=FileModules(['hotplug_animations.py', 'animations.py'],
+                           ['pixel_functions', 'animations',
+                            'hotplug_animations']),
+    signals=FileModules(['hotplug_signals.py', 'signals.py'],
+                        ['signals', 'hotplug_signals']),
 )
-
-if has_signals:
-    _MODULES['signals'] = FileModules(
-        'hotplug_signals.py', [signals, hotplug_signals])
 
 
 class HotPlugModule:
@@ -49,36 +39,50 @@ class HotPlugModule:
         if time.time() - self.t0 < self.dt_min_s:
             return
         self.t0 = time.time()
-        path = self.path(self.file_modules.file)
-        mtime = os.path.getmtime(path)
+        mtime = max([
+            os.path.getmtime(self.path(filename))
+            for filename in self.file_modules.files
+        ])
         if mtime > self.mtime:
-            self.mtime = mtime
             try:
                 for module in self.file_modules.modules:
-                    importlib.reload(module)
-                self.data = self.file_modules.modules[-1].get_data()
+                    if self.mtime == 0:
+                        exec('import {}'.format(module))
+                    exec('importlib.reload({})'.format(module))
+                self.data = eval(self.file_modules.modules[-1]).get_data()
                 self.logger.info(
-                    'Reloaded {}'.format(self.file_modules.file))
+                    'Reloaded {}'.format(self.file_modules.files))
             except Exception as e:
                 self.logger.warn(
-                    'Cannot eval {} : {}'.format(self.file_modules.file, e))
+                    'Cannot eval {} : {}'.format(self.file_modules.files, e))
                 print(traceback.format_exc())
             for k, v in self.data.items():
                 setattr(self, k, v)
+            self.mtime = mtime
 
     def path(self, path):
         return os.path.join(os.path.dirname(__file__), path)
 
 
 class HotPlug:
-    def __init__(self, logger=util.NoLogger()):
+    def __init__(self, logger=util.NoLogger(), modules=()):
+        _modules = []
         for name, file_modules in _MODULES.items():
-            setattr(self, '_' + name, HotPlugModule(file_modules, logger))
+            if modules and name not in modules:
+                continue
+            module = HotPlugModule(file_modules, logger)
+            module.reload()
+            _modules.append(name)
+            setattr(self, '_' + name, module)
+        setattr(self, '_modules', _modules)
 
     def __dir__(self):
-        return _MODULES.keys()
+        return getattr(self, '_modules')
 
     def __getattr__(self, key):
-        module = getattr(self, '_{}'.format(key))
+        if key not in getattr(self, '_modules'):
+            return AttributeError('HotPlug "{}" not set'.format(key))
+        key = '_{}'.format(key)
+        module = getattr(self, key)
         module.reload()
         return module

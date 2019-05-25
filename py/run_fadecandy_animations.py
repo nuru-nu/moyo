@@ -18,7 +18,7 @@ import hotplug
 fc_channels = {'rizhole' : 1, 'vine_1' : 2}
 
 logger = util.createLogger('fadecandy')
-hp = hotplug.HotPlug(logger)
+hp = hotplug.HotPlug(logger, modules=('animations',))
 
 numLEDs = 512
 client = opc.Client('localhost:7890')

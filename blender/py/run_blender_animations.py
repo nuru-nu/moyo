@@ -23,7 +23,7 @@ import pixel_functions as pf
 import hotplug
 
 logger = util.createLogger('fadecandy')
-hp = hotplug.HotPlug(logger)
+hp = hotplug.HotPlug(logger, modules=('animations',))
 
 signals0 = {"vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0], "state": state.State()}
 
