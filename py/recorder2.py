@@ -60,12 +60,11 @@ class InputStreamer(object):
         self.audio_interface = audio_interface
 
         # will be initialized when .freeze(false) is called the first time
-        self.wav = None
+        self.wav = self.wav_path = None
         self.t = 0
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
         self.output_dir = output_dir
-        self.wav_path = None
 
     def freeze(self, frozen):
         if frozen:
@@ -86,7 +85,7 @@ class InputStreamer(object):
         data = util.int16_to_float(data16)
         data = hp.effects.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
-        if self.wav_path:
+        if self.wav_path and self.wav:
             self.wav.writeframesraw(data16)
         return data
 
@@ -96,7 +95,6 @@ class InputStreamer(object):
                 self.audio_interface.input_stream.get_read_available())
             logger.info('Clearing buffers : read n={} bytes.'.format(n))
 
-    @perf.measure('InputStreamer.get')
     def get(self, signals):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size, signals)
@@ -194,13 +192,13 @@ while running:
 
     signalin = network.get_json(signalin_sock, {})
 
-    new_frozen = signalin.get('frozen', frozen)
+    new_frozen = signals['state'].state == 'frozen'
     if frozen != new_frozen:
         frozen = new_frozen
         input_streamer.freeze(frozen)
         if not frozen and args.reset_secs > 0:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
-    if frozen:
+    if frozen and 'state' not in signalin:
         time.sleep(settings.hop_secs)
         continue
 

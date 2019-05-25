@@ -311,7 +311,7 @@ class Monitor:
 
     def freeze(self):
         self.frozen = 1 - self.frozen
-        self.send(dict(frozen=self.frozen))
+        self.send(dict(state='frozen' if self.frozen else 'std'))
         self.update_freeze()
 
     def update_freeze(self):

@@ -1,4 +1,4 @@
-import signal
+import signal, time
 
 import numpy as np
 
@@ -28,6 +28,11 @@ running = True
 while running:
 
     signals = network.get_json(sock, signals)
+
+    if 'state' in signals and signals['state'].state == 'frozen':
+        time.sleep(settings.hop_secs)
+        continue
+
     bufs = hp.effects.effector(zerohop, signals)
     ai1.output_stream.write(audio.tostereo(*bufs[:2]).tostring())
     if ai2:

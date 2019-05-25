@@ -1,6 +1,6 @@
 import io, json, socket
 
-import perf, settings, util
+import perf, settings, state, util
 
 
 logger = util.NoLogger()
@@ -21,7 +21,10 @@ def get_json_and_address(sock, max_size=4096):
     except io.BlockingIOError:
         return None, None
     try:
-        return json.loads(data.decode('utf8')), address
+        data = json.loads(data.decode('utf8'))
+        if 'state' in data:
+            data['state'] = state.State(data['state'])
+        return data, address
     except json.JSONDecodeError as e:
         logger.warning('Could not decode {!r} : {}'.format(data, e))
         return None, None
