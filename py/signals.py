@@ -36,7 +36,7 @@ class State(L.Signal):
     """Updates the state."""
 
     def call(self, state, signalin, ooo, ooo_intensity):
-        newstate = signalin.get('state')
+        newstate = signalin.get('newstate')
         if newstate:
             state.goto(newstate)
         elif state.state == 'test':
