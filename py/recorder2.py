@@ -198,7 +198,7 @@ while running:
         input_streamer.freeze(frozen)
         if not frozen and args.reset_secs > 0:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
-    if frozen and 'state' not in signalin:
+    if frozen and 'newstate' not in signalin:
         time.sleep(settings.hop_secs)
         continue
 
