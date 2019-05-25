@@ -1,3 +1,6 @@
+# vim: set noet:ts=8:sw=8
+# flake8: noqa
+
 import bge
 import socket
 import os, sys
