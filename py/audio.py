@@ -99,12 +99,6 @@ def record(secs, print_startstop=True):
 
 
 def tostereo(left, right):
-    if len(left) != len(right):
-        print('*** tostereo : {}!={}'.format(len(left), len(right)))
-        n = min(len(left), len(right))
-        left = left[:n]
-        right = right[:n]
-
     return np.vstack([
         util.float_to_int16(left),
         util.float_to_int16(right),

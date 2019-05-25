@@ -281,23 +281,28 @@ class RndSub(Effect):
 
 class RndPlay(Effect):
 
-    def __init__(self, wav, signal, maxlen_s=10):
+    def __init__(self, wav, signal):
         self.wav = wav
         self.signal = signal
-        self.maxlen_s = maxlen_s
         self.i = None
         self.zeros = np.zeros(settings.hop_size)
 
     def __call__(self, buf, signals):
+        n = settings.hop_size
         value = signals.get(self.signal, 0)
         if value == 0:
             self.i = None
             return self.zeros
         if self.i is None:
             self.i = int(settings.rate * random.random() * (
-                len(self.wav) / settings.rate - self.maxlen_s))
-        buf = self.wav[self.i: self.i + len(buf)]
+                len(self.wav) / settings.rate))
+        if self.i + n > len(self.wav):
+            left = n - (len(self.wav) - self.i)
+            buf = np.concatenate([self.wav[self.i:], self.wav[:left]])
+            self.i = left
+        else:
+            buf = self.wav[self.i: self.i + n]
+            self.i += n
         if value < 1:
             buf = buf * value
-        self.i += len(buf)
         return buf
