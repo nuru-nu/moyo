@@ -35,7 +35,7 @@ def get_data():
         #     # color=A.Const((1, 0, 0))
         # ),
 
-        animation=A.Mixer(dict(
+        sphere=A.Mixer(dict(
             std=A.Add(
                 A.GaussianDroplet(
                     sigma=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=np.pi/100, mult=np.pi/50),
@@ -62,6 +62,11 @@ def get_data():
                 saturation=A.Const(0),
             )),
         )),
+
+        arms=[
+            ArmFullOn(settings.arm_configs[0], color=[1, 0, 0]),
+            ArmFullOn(settings.arm_configs[1], color=[0, 0, 1]),
+        ],
 
         animation2=A.Add(
             A.PhiRing(

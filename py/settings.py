@@ -1,10 +1,12 @@
 # some constants shared between files
 
-import glob, os
+import collections, glob, os
 
 import numpy as np
 import pyaudio
 
+# audio
+###############################################################################
 
 # Recording sample rate
 rate = 16000
@@ -49,14 +51,6 @@ upper_edge_hertz = 7500
 num_mel_bins2 = 256
 f2hz2 = rate / num_mel_bins2 / np.pi
 
-address = 'localhost'
-monitor_port = 6100
-signalin_port = 6101
-lighter_port = 6102
-fadecandy_port = 6103
-dmx_port = 6104
-player_port = 6105
-
 
 def to_string():
     return (
@@ -67,6 +61,20 @@ def to_string():
              buf_secs=buf_secs, buf_size=buf_size,
              hop_secs=hop_secs, hop_size=hop_size)
 
+# network
+###############################################################################
+
+
+address = 'localhost'
+monitor_port = 6100
+signalin_port = 6101
+lighter_port = 6102
+fadecandy_port = 6103
+dmx_port = 6104
+player_port = 6105
+
+# files
+###############################################################################
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 recordings_dir = os.path.join(root_dir, 'recordings')
@@ -85,3 +93,23 @@ def get_recordings():
 def get_model_path(model_name):
     return os.path.join(
         os.path.dirname(__file__), '../data/models', model_name)
+
+# animation
+###############################################################################
+
+
+sphere_channel = 1
+sphere_pixels = 600
+ArmConfig = collections.namedtuple('ArmConfig', [
+    # the fade candy channel
+    'channel',
+    # list of lists : e.g. [[128, 192], [256, 320]] means that the first meter
+    # is connected 129..191, 192..255 (in parallel) and the second meter is
+    # connected 256..319, 320..385 (in parallel)
+    'offsets',
+    # matches phi of sphere
+    'phi'])
+arm_configs = [
+    ArmConfig(2, [[0, 64]], np.pi + np.pi * 3 / 4),
+    ArmConfig(2, [[128, 192], [256, 320]], 0),
+]

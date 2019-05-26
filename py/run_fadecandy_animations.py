@@ -12,7 +12,6 @@ import colorsys
 
 import audio, features, settings, state, util
 import pixel_functions as pf
-# import animation_script as anim
 import hotplug
 
 fc_channels = {'rizhole' : 1, 'vine_1' : 2}
@@ -20,7 +19,6 @@ fc_channels = {'rizhole' : 1, 'vine_1' : 2}
 logger = util.createLogger('fadecandy')
 hp = hotplug.HotPlug(logger, modules=('animations',))
 
-numLEDs = 512
 client = opc.Client('localhost:7890')
 client.set_interpolation(False)
 
@@ -33,6 +31,12 @@ sock.settimeout(None)
 sock.bind((settings.address, settings.fadecandy_port))
 
 signals = {"t" : time.time(), "loud" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "ooo": 0}
+
+arm_channels = set(arm_config.channel for arm_config in settings.arm_configs)
+arm_pixels = {
+    channel: np.zeros([8*64, 3])
+    for channel in arm_channels
+}
 
 last_t = 0
 while True:
@@ -55,7 +59,17 @@ while True:
 	# signals["vol"] = signals['tf']
 	# pixels = hp.animations.animation(signals)
 
-	pixels = hp.animations.animation(signals)
-	# pixels = anim.get_pixels(signals, 'uniform_rain')
-	# print(pixels)
-	client.put_pixels(pixels*255, channel=fc_channels['rizhole'])
+	sphere_pixels = hp.animations.sphere(signals)
+	client.put_pixels(pixels*255, channel=settings.sphere_channel)
+
+	for arm_config, arm in zip(hp.arms, settings.arm_configs):
+		arm_pixels = arm(signals)
+		i = 0
+		for offsets in arm_config.offsets:
+			for offset in offsets:
+				arm_pixels[arm_config.channel][offset: offset+64] = (
+					arm_pixels[i * 64: (i + 1) * 64])
+				i += 1
+	for channel, pixels in arm_pixels.items():
+		client.put_pixels(pixels*255, channel=channel)
+

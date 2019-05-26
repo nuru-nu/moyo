@@ -1,3 +1,6 @@
+# vim: set noet:ts=8:sw=8
+# flake8: noqa
+
 import os, sys
 import json
 import numpy as np
@@ -5,10 +8,6 @@ import colorsys
 from scipy.stats import multivariate_normal
 import time
 
-nr_pixels = 10*60
-
-def full_on(color):
-	return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
 def rotate_theta_ring(mapping, width, color, speed):
 	pixels = np.zeros((len(mapping), 3))

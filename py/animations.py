@@ -3,16 +3,15 @@
 
 import numpy as np
 import os
-import pixel_functions as pf
 import json
 from pathlib import Path
 import time
-import util
 import colorsys
 
-nr_pixels = 600
+import settings, util
+
 max_time = 9000000 # 2500 hours
-mapping = np.zeros((nr_pixels,2))
+mapping = np.zeros((settings.sphere_pixels,2))
 
 # for file in Path('git/rizhom/data/blender_polar.json').exists():
 # 	print(file)
@@ -38,6 +37,10 @@ elif Path(json_path).exists():
 			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
 else:
 	print("Cant find mapping JSON '{}'!".format(json_path))
+
+
+def full_on(color, nr_pixels):
+	return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
 
 class Mixer:
@@ -194,7 +197,7 @@ class FullOn(Animation):
 		self.color = color
 
 	def __call__(self, signals):
-		return pf.full_on(self.color(signals))
+		return pf.full_on(self.color(signals), self.sphere_pixels)
 
 
 class ThetaRing(Animation):
@@ -234,3 +237,46 @@ class Add(Animation):
 		for anim in self.anims[1:]:
 			pixels += anim(signals)
 		return pixels
+
+# arms
+###############################################################################
+
+
+def or_const(x):
+	def wrapper(signals):
+		return x
+	return x if isinstance(x, Animation) else wrapper
+
+
+class ArmFullOn(Animation):
+	def __init__(self, arm_config, color):
+		self.arm_config = arm_config
+		self.color = or_const(color)
+	def __call__(self, signals):
+		color = self.color(signals)
+		return np.concatenate([
+			full_on(color, 64)
+			for offsets in self.arm_config.offsets
+			for offset in offsets
+		])
+
+
+class ArmGradient(ArmFullOn):
+	def __init__(self, arm_config, color, func):
+		"""Func is a scalar function mapping 0..1 to a value."""
+		super().__init__(arm_config, color)
+		self.func = func
+	def __call__(self, signals):
+		pixels = super().__call__(signals)
+		dist = np.concatenate([
+			np.tile(np.concatenate([
+				np.linspace(meter, meter + 1, 60),
+				[0.0] * 4
+			]), len(offsets))
+			for meter, offsets in enumerate(
+				self.arm_config.offsets)
+		])
+		return np.array([
+			pixel * self.func(d)
+			for d, pixel in zip(dist, pixels)
+		])
