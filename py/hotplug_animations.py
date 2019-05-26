@@ -3,6 +3,7 @@
 
 import numpy as np
 import animations as A
+import settings
 
 def get_data():
     return dict(
@@ -64,8 +65,27 @@ def get_data():
         )),
 
         arms=[
-            ArmFullOn(settings.arm_configs[0], color=[1, 0, 0]),
-            ArmFullOn(settings.arm_configs[1], color=[0, 0, 1]),
+            A.Mixer(dict(
+                std=A.ArmGradient(settings.arm_configs[i], color=[1, 0, 1], func=lambda x: (1-x)**4,
+                    mult=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=0.5, mult=0.5)),
+                ooo=A.ArmFullOn(settings.arm_configs[i], color=A.Hue(
+                        # hue=A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=0.5, mult=0.5),
+                        hue=A.OooHue(),
+                        value=A.Signals("loud"),
+                    )),
+                test=A.ArmFullOn(settings.arm_configs[i], color=A.Hue(
+                        hue=A.Signals("t") | A.Sin(hz=0.01) | A.Lin(shift=0.5, mult=0.5),
+                        value=A.Signals("loud"),
+                    )),
+                flash=A.ArmFullOn(settings.arm_configs[i], color=A.Hue(
+                    value=A.Signals('t') | A.Sin(hz=4) | A.Lin(shift=0.5, mult=0.5),
+                    saturation=A.Const(0),
+                )),
+            ))
+            for i in range(len(settings.arm_configs))
+            # A.ArmGradient(settings.arm_configs[0], color=[1, 0, 0], func=lambda x: x**3),
+            # A.ArmFullOn(settings.arm_configs[0], color=[1, 0, 0]),
+            # A.ArmGradient(settings.arm_configs[1], color=[0, 0, 1], func=lambda x: x**4),
         ],
 
         animation2=A.Add(

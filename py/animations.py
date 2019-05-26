@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 import colorsys
 
-import settings, util
+import pixel_functions as pf, settings, util
 
 max_time = 9000000 # 2500 hours
 mapping = np.zeros((settings.sphere_pixels,2))
@@ -197,7 +197,7 @@ class FullOn(Animation):
 		self.color = color
 
 	def __call__(self, signals):
-		return pf.full_on(self.color(signals), self.sphere_pixels)
+		return full_on(self.color(signals), settings.sphere_pixels)
 
 
 class ThetaRing(Animation):
@@ -249,29 +249,30 @@ def or_const(x):
 
 
 class ArmFullOn(Animation):
-	def __init__(self, arm_config, color):
+	def __init__(self, arm_config, color, mult=1):
 		self.arm_config = arm_config
 		self.color = or_const(color)
+		self.mult = or_const(mult)
 	def __call__(self, signals):
 		color = self.color(signals)
 		return np.concatenate([
 			full_on(color, 64)
 			for offsets in self.arm_config.offsets
 			for offset in offsets
-		])
+		]) * self.mult(signals)
 
 
 class ArmGradient(ArmFullOn):
-	def __init__(self, arm_config, color, func):
+	def __init__(self, arm_config, color, func, mult=1):
 		"""Func is a scalar function mapping 0..1 to a value."""
-		super().__init__(arm_config, color)
+		super().__init__(arm_config, color, mult)
 		self.func = func
 	def __call__(self, signals):
 		pixels = super().__call__(signals)
 		dist = np.concatenate([
 			np.tile(np.concatenate([
-				np.linspace(meter, meter + 1, 60),
-				[0.0] * 4
+				np.linspace(meter, meter + 1, 60) / len(self.arm_config.offsets),
+				[0.0] * 4,
 			]), len(offsets))
 			for meter, offsets in enumerate(
 				self.arm_config.offsets)
