@@ -18,9 +18,10 @@ class Effector:
 
     @perf.measure('effector')
     def __call__(self, input_data, signals):
-        assert len(input_data) == settings.hop_size, (
-            'Expected input_data={}!={}'.format(
-                settings.hop_size, len(input_data)))
+        # (not checking this anymore with streaming interface)
+        # assert len(input_data) == settings.hop_size, (
+        #     'Expected input_data={}!={}'.format(
+        #         settings.hop_size, len(input_data)))
         input_data = util.int16_to_float(input_data)
 
         output_datas = [
