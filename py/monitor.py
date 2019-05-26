@@ -5,6 +5,7 @@ import time
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from matplotlib.gridspec import GridSpec
 import tkinter as tk
 from tkinter import ttk
 from matplotlib import animation
@@ -87,9 +88,13 @@ class Graphs:
         initial=('loud', 'tf2', 'left_drone', 'right_drone'),
     )
 
-    def __init__(self, steps, controls, ax1, ax2, ignore=('logmel', 'mfccs')):
-        """Using `ax1` for values 0..1 and `ax2` for values >1."""
+    def __init__(self, steps, controls, ax1, ax2, ax1sel=(),
+                 ignore=('logmel', 'mfccs')):
+        """Showing in ax1 if ax1sel."""
         self.axs = dict(ax1=ax1, ax2=ax2)
+        self.ax1sel = ax1sel
+        if not isinstance(ax1sel, type(lambda: None)):
+            self.ax1sel = lambda name: name in ax1sel  # NOQA
         self.controls = controls
         self.rows = []
         self.i = 0
@@ -128,10 +133,10 @@ class Graphs:
             row.pack(side=tk.TOP)
             self.rows.append(row)
         self.i += 1
-        ax = 'ax2' if key[0] == '_' else 'ax1'
+        ax = 'ax1' if self.ax1sel(key) else 'ax2'
         self.data[key] = self.zeros.copy()
         self.cols[key] = self.palette[len(self.data) % len(self.palette)]
-        self.lines[ax][key], = self.axs['ax1'].plot(
+        self.lines[ax][key], = self.axs[ax].plot(
             self.data[key], self.cols[key])
         text = '{} ({})  '.format(key, self.cols[key])
         self.vars[key] = var = tk.IntVar()
@@ -167,6 +172,8 @@ class Graphs:
 
 
 class Monitor:
+
+    _AX1_SELECTION = ('loud', 'low', 'medium', 'high', 'tf')
 
     def __init__(self):
         self.t0 = time.time()
@@ -264,17 +271,19 @@ class Monitor:
         top.pack()
 
         self.fig = Figure(figsize=(8, 5), dpi=100)
-        ax1 = self.fig.add_subplot(211)
+        self.grid = GridSpec(4, 1, hspace=0.2)
+        ax1 = self.ax1 = self.fig.add_subplot(self.grid[:2])
         self.img = ax1.matshow(self.logmel.T, cmap='jet')
         ax1.set_xticks([])
         ax1.set_yticklabels([
             '{:,}'.format(int(f * settings.f2hz))
             for f in ax1.get_yticks()
         ])
-        ax2 = self.ax2 = self.fig.add_subplot(212)
+        ax2 = self.ax2 = self.fig.add_subplot(self.grid[2])
         ax2.set_ylim([0, 1.1])
-        ax3 = ax2.twinx()
-        ax3.set_ylim([0, 800])
+        ax2.set_xticks([])
+        ax3 = self.ax3 = self.fig.add_subplot(self.grid[3])
+        ax3.set_ylim([0, 1.1])
 
         self.frame = ttk.Frame(self.root)
         self.canvas = FigureCanvasTkAgg(self.fig, self.frame)
@@ -288,7 +297,9 @@ class Monitor:
         controls = ttk.Frame(self.root)
         controls_row1 = ttk.Frame(controls)
         self.graphs = Graphs(
-            steps=self.steps, controls=controls_row1, ax1=ax2, ax2=ax3)
+            steps=self.steps, controls=controls_row1, ax1=ax2, ax2=ax3,
+            ax1sel=self._AX1_SELECTION
+        )
         controls_row1.pack()
         controls_row2 = ttk.Frame(controls)
         controls_row2.pack()
@@ -311,10 +322,10 @@ class Monitor:
 
     def freeze(self):
         self.frozen = 1 - self.frozen
-        self.send(dict(newstate='frozen' if self.frozen else 'std'))
         self.update_freeze()
 
     def update_freeze(self):
+        self.send(dict(newstate='frozen' if self.frozen else 'std'))
         if self.frozen:
             self.ani.event_source.stop()
             self.freeze_button.configure(text='unfreeze')
@@ -345,7 +356,7 @@ class Monitor:
 
     def updateui(self):
         if self.stats.ready():
-            self.ax2.set_title(self.stats.get())
+            self.ax1.set_title(self.stats.get())
 
         self.stats.inc('anim')
         self.img.set_data(self.logmel.T)
