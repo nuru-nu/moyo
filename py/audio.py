@@ -19,7 +19,8 @@ class AudioInterface:
 
     CHUNK = 1024
 
-    def __init__(self, input=0, output=0, device_index=None):
+    def __init__(self, input=0, output=0, device_index=None,
+                 stream_callback=None):
         self.p = pyaudio.PyAudio()
         # (for compatibility)
         input = int(input)
@@ -31,7 +32,8 @@ class AudioInterface:
                 channels=input,
                 rate=settings.rate,
                 input=True,
-                frames_per_buffer=settings.hop_size)
+                frames_per_buffer=settings.hop_size,
+                stream_callback=stream_callback)
         if output:
             self.output_stream = self.p.open(
                 output_device_index=device_index,
@@ -39,7 +41,8 @@ class AudioInterface:
                 channels=output,
                 rate=settings.rate,
                 output=True,
-                frames_per_buffer=settings.hop_size)
+                frames_per_buffer=settings.hop_size,
+                stream_callback=stream_callback)
 
     def __del__(self):
         if hasattr(self, 'input_stream'):
@@ -121,12 +124,12 @@ def tostereo(left, right):
     ]).reshape(-1, order='F')
 
 
-def make_ai(names):
+def make_ai(names, **kw):
     """Returns first device from names, or None."""
     for name in names:
         device_index = AudioInterface.get_index(name)
         if device_index is not None:
-            return AudioInterface(output=2, device_index=device_index)
+            return AudioInterface(output=2, device_index=device_index, **kw)
 
 
 if __name__ == '__main__':

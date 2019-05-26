@@ -50,6 +50,7 @@ class Recording(Effect):
         for name, path in settings.get_recordings().items():
             sr, data = scipy.io.wavfile.read(path)
             if sr != settings.rate:
+                # We only support input rate.
                 print('IGNORING {} {}!={}'.format(
                     name, sr, settings.rate))
                 continue
@@ -144,8 +145,8 @@ class SilenceOrPlaying(Silence):
 
 
 class Sinusoidal(Effect):
-    def __init__(self, hz, A=0.2):
-        T = int(settings.rate / hz)
+    def __init__(self, hz, A=0.2, rate=settings.out1_rate):
+        T = int(rate / hz)
         n = np.ceil(settings.hop_size / T)
         self.buf = A * np.sin(np.linspace(0, n * 2 * np.pi, n * T))
 
@@ -155,8 +156,8 @@ class Sinusoidal(Effect):
 
 
 class Square(Effect):
-    def __init__(self, hz, A=0.2):
-        T = int(settings.rate / hz)
+    def __init__(self, hz, A=0.2, rate=settings.out1_rate):
+        T = int(rate / hz)
         n = np.ceil(settings.hop_size / T)
         self.buf = A * np.sin(np.linspace(0, n * 2 * np.pi, n * T))
         self.buf = np.repeat(np.concatenate([
@@ -207,26 +208,26 @@ class Iir(Effect):
 
 
 class Notch(Iir):
-    def __init__(self, hz, Q):
-        super().__init__(*scipy.signal.iirnotch(hz, Q, settings.rate))
+    def __init__(self, hz, Q, rate=settings.out1_rate):
+        super().__init__(*scipy.signal.iirnotch(hz, Q, rate))
 
 
 class LowPass(Iir):
-    def __init__(self, hz, order):
-        b, a = scipy.signal.butter(order, hz, btype='low', fs=settings.rate)
+    def __init__(self, hz, order, rate=settings.out1_rate):
+        b, a = scipy.signal.butter(order, hz, btype='low', fs=rate)
         super().__init__(b, a)
 
 
 class HighPass(Iir):
-    def __init__(self, hz, order):
-        b, a = scipy.signal.butter(order, hz, btype='high', fs=settings.rate)
+    def __init__(self, hz, order, rate=settings.out1_rate):
+        b, a = scipy.signal.butter(order, hz, btype='high', fs=rate)
         super().__init__(b, a)
 
 
 class BandPass(Iir):
-    def __init__(self, hz1, hz2, order):
+    def __init__(self, hz1, hz2, order, rate=settings.out1_rate):
         b, a = scipy.signal.butter(
-            order, [hz1, hz2], btype='band', fs=settings.rate)
+            order, [hz1, hz2], btype='band', fs=rate)
         super().__init__(b, a)
 
 
@@ -234,7 +235,8 @@ class RndSub(Effect):
     """Randomly plays subsamples from provided sample."""
 
     def __init__(self, wav, sample_minmax, break_minmax,
-                 ramp_minmax=(0.5, 0.5)):
+                 ramp_minmax=(0.5, 0.5), rate=settings.out1_rate):
+        self.rate = rate
         self.wav = wav
         self.sample_minmax = sample_minmax
         self.break_minmax = break_minmax
@@ -250,11 +252,11 @@ class RndSub(Effect):
         if self.state == 'on':
             self.win = scipy.hamming(2 * self.rnd_n(self.ramp_minmax))
             self.wav_i = self.wav_i0 = self.rnd_n([
-                0, len(self.wav) / settings.rate - self.sample_minmax[1]])
+                0, len(self.wav) / self.rate - self.sample_minmax[1]])
 
     def rnd_n(self, minmax):
         secs = minmax[0] + random.random() * (minmax[1] - minmax[0])
-        return int(settings.rate * secs)
+        return int(self.rate * secs)
 
     def __call__(self, buf, signals):
         n = len(buf)
@@ -281,7 +283,8 @@ class RndSub(Effect):
 
 class RndPlay(Effect):
 
-    def __init__(self, wav, signal):
+    def __init__(self, wav, signal, rate=settings.out1_rate):
+        self.rate = rate
         self.wav = wav
         self.signal = signal
         self.i = None
@@ -294,8 +297,8 @@ class RndPlay(Effect):
             self.i = None
             return self.zeros
         if self.i is None:
-            self.i = int(settings.rate * random.random() * (
-                len(self.wav) / settings.rate))
+            self.i = int(self.rate * random.random() * (
+                len(self.wav) / self.rate))
         if self.i + n > len(self.wav):
             left = n - (len(self.wav) - self.i)
             buf = np.concatenate([self.wav[self.i:], self.wav[:left]])
