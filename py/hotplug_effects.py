@@ -40,7 +40,9 @@ def get_data():
             #     ramp_minmax=[2, 4]),
         ]),
         effector2=E.Effector([
-            E.RndPlay(haunted2_wav, 'bass_ooo', rate=settings.out2_rate),
-            E.Silence(),
+            E.RndPlay(haunted1_wav, 'left_drone'),
+            E.RndPlay(haunted1_wav, 'left_drone'),
+            # E.RndPlay(haunted2_wav, 'bass_ooo', rate=settings.out2_rate),
+            # E.Silence(),
         ]),
     )

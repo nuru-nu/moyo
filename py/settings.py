@@ -20,7 +20,7 @@ out1_names = (
 # Sample rate output 2
 out2_rate = 44100
 out2_names = (
-    'io|2',  # Ubuntu
+    'C-Media USB',  # Ubuntu
 )
 
 if rate == 16000:

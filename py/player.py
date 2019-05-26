@@ -7,6 +7,7 @@ import audio, hotplug, network, perf, settings, util
 
 logger = util.createLogger('player')
 hp = hotplug.HotPlug(logger, modules=('effects',))
+signals = {}
 
 
 def stream_callback1(in_data, frame_count, time_info, status_flags):
@@ -27,13 +28,14 @@ def stream_callback2(in_data, frame_count, time_info, status_flags):
 
 
 ai1 = audio.make_ai(settings.out1_names, stream_callback=stream_callback1,
+                    rate=settings.out1_rate,
                     frames_per_buffer=int(
                         settings.hop_secs * settings.out1_rate))
 assert ai1 is not None, 'Could not find any of: {}'.format(settings.out1_names)
 ai2 = audio.make_ai(settings.out2_names, stream_callback=stream_callback2,
+                    rate=settings.out2_rate,
                     frames_per_buffer=int(
                         settings.hop_secs * settings.out2_rate))
-ai2 = None  # currently not supported
 logger.info('ai2={}'.format(ai2))
 
 
@@ -46,7 +48,6 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 zerohop = np.zeros(settings.hop_size)
 sock = network.create_udp_socket(settings.player_port, timeout=None)
-signals = {}
 running = True
 while running:
     signals = network.get_json(sock, signals)

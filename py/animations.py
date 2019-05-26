@@ -119,7 +119,8 @@ class Sin(Animation):
 class OooHue:
 	def __call__(self, signals):
 		return 0.5 + 0.5 * np.sin(signals['t'] * 2 * np.pi * (
-			0.4 + signals['ooo_intensity']))
+			0.02  # + 0.01 * np.clip(signals['ooo_intensity'], 0, 1)
+			))
 
 
 class Lin(Animation):
