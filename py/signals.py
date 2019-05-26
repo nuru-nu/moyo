@@ -1,6 +1,6 @@
 """Signals transform sound to scalars."""
 
-import random
+import json, random
 
 import aubio
 import numpy as np
@@ -232,7 +232,9 @@ class KerasDetector(L.Signal):
         'wp_20_50': WithPrevious(n=20, d=50),
     }
 
-    def init(self, model, preprocessor):
+    def init(self, model):
+        preprocessor = json.load(open(settings.get_model_path(
+            model + '_conf.json')))['preprocessor']
         self._model = tf.keras.models.load_model(
             settings.get_model_path(model + '.h5'))
         self._preprocessor = self.PREPROCESSORS[preprocessor]

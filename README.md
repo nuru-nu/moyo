@@ -91,3 +91,14 @@ view with w.g. Google Cardboard:
 
 - https://play.google.com/store/apps/details?id=com.xojot.vrplayer
 
+### train new networks
+
+1. (monitor.py create more recordings
+2. (recordings.ipynb) extract recordings to ABase format
+3. (recordings.ipynb) update transformed features
+4. (tf.ipynb) create new `classes` configuration if needed
+5. (tf.ipynb) maybe add more hyperparameters
+6. (tf.ipynb) run experiments
+7. (tf.ipynb) store new model
+8. (hotplug_signals.ipynb) load & use new model
+

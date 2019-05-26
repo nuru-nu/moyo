@@ -46,14 +46,14 @@ class Signal:
     def __init__(self, *args, **params):
         self.wants = inspect.getfullargspec(self.call).args[1:]
         self.params = params.keys()
-        for k, v in params.items():
-            assert not hasattr(self, k)
-            setattr(self, k, v)
         if hasattr(self, 'init'):
             if args:
                 names = inspect.getfullargspec(self.init).args[1:]
                 params.update(zip(names, args))
             self.init(**params)
+        for k, v in params.items():
+            assert not hasattr(self, k)
+            setattr(self, k, v)
 
     def __or__(self, other):
         return SignalChain(self, other)

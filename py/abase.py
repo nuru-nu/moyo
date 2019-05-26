@@ -87,11 +87,16 @@ class ABase:
             ('dirname', []),
             ('name', []),
             # o : semi sung a/o (POS)
+            # ohoch, otief (POS)
             # t : spoken words (NEG)
             # m : music (NEG)
+            # i : i rather than o
             ('what', []),
+            ('w', []),
             ('who', []),
             ('series_i', []),
+            # 1..5 : 1st session
+            # s2 : 2nd session
             ('inseries', []),
             ('rand', []),
             ('rand_stable', []),
@@ -112,13 +117,10 @@ class ABase:
 
             inseries = None
             if len(parts) > 2:
-                try:
-                    inseries = int(parts[-1])
-                    if nowseries != tuple(parts[:-1]):
-                        nowseries = tuple(parts[:-1])
-                        series_i += 1
-                except ValueError:
-                    inseries = None
+                inseries = parts[-1]
+                if nowseries != tuple(parts[:-1]):
+                    nowseries = tuple(parts[:-1])
+                    series_i += 1
             kws = []
             for kw in kws:
                 if not kw:
@@ -133,6 +135,7 @@ class ABase:
             df['dirname'].append(dirname)
             df['name'].append(name)
             df['what'].append(what)
+            df['w'].append(what[:1])
             df['who'].append(who)
             df['series_i'].append(series_i)
             df['inseries'].append(inseries)

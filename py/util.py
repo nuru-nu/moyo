@@ -1,9 +1,9 @@
 
-import json, logging, sys
+import collections, json, logging, sys
 
 import numpy as np
 
-import features, settings, state
+import features, logic as L, settings, state
 
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 
@@ -165,12 +165,17 @@ def apply_effect(wav, effect, hop_size=settings.hop_size):
 
 def get_signals(wav, signals):
     """Iterates through `wav` and computes values for `signals`."""
-    values = {name: [] for name in signals}
+    runner = L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
+    values = collections.defaultdict(lambda: [])
+    t = 0
+    st = state.State()
     for buf in Streamer(wav):
         feats = features.wav2features(buf)
-        for name, signal in signals.items():
-            values[name].append(signal(feats))
-    return values
+        sigs = runner(features=feats, t=t, signalin={}, state=st)
+        for name, value in sigs.items():
+            values[name].append(value)
+        t += settings.hop_secs
+    return dict(**values)
 
 
 class RollingBuffer:

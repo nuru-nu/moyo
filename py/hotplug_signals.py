@@ -11,7 +11,7 @@ def get_data():
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=S.KerasDetector(
-            model='tmo_wp_20_50_linear', preprocessor='wp_20_50'),
+            model='tmo_wp_20_50_linear'),
         tf2=L.Named('tf') | S.MovingAverage(n=5) | S.Exp(alpha=2),
         iso=(
             L.Named('tf') |
