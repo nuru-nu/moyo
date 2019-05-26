@@ -55,7 +55,9 @@ class HotPlugModule:
             except Exception as e:
                 self.logger.warn(
                     'Cannot eval {} : {}'.format(self.file_modules.files, e))
+                print('-' * 72)
                 print(traceback.format_exc())
+                print('-' * 72)
             for k, v in self.data.items():
                 setattr(self, k, v)
             self.mtime = mtime

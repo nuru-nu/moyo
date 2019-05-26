@@ -52,7 +52,7 @@ class Signal:
                 params.update(zip(names, args))
             self.init(**params)
         for k, v in params.items():
-            assert not hasattr(self, k)
+            assert not hasattr(self, k), 'hasattr({}, {})'.format(self, k)
             setattr(self, k, v)
 
     def __or__(self, other):

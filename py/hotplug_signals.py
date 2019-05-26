@@ -3,10 +3,10 @@ import logic as L, signals as S
 
 def get_data():
     signals = dict(
-        _pitch=(
-            S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
-            S.Exponential(alpha=0.8)
-        ),
+        # _pitch=(
+        #     S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
+        #     S.Exponential(alpha=0.8)
+        # ),
         loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),

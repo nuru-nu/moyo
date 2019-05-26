@@ -2,12 +2,12 @@
 
 import json, random
 
-import aubio
+# import aubio
 import numpy as np
 import PIL
 import tensorflow as tf
 
-import logic as L, settings, util
+import logic as L, settings
 
 
 class WithPrevious:
@@ -62,7 +62,7 @@ class InState(L.Signal):
 class NotInState(L.Signal):
 
     def init(self, state):
-        self.state = state
+        pass
 
     def call(self, value, state):
         return value * (state.state != self.state)
@@ -94,9 +94,6 @@ class RndRamp(L.Signal):
 
     def init(self, break_minmax, duration_minmax, ramp_minmax=[0.5, 0.5],
              state='std'):
-        self.break_minmax = break_minmax
-        self.duration_minmax = duration_minmax
-        self.ramp_minmax = ramp_minmax
         self.t3 = -1
 
     def call(self, t, state):
@@ -121,21 +118,21 @@ class RndRamp(L.Signal):
 ###############################################################################
 
 
-class Pitcher(L.Signal):
-    """Extracts pitch signal in Hz using `aubio`."""
-
-    def init(self, tolerance):
-        self.pitcher = aubio.pitch(
-            method='yinfft', buf_size=settings.buf_size,
-            hop_size=settings.hop_size, samplerate=settings.rate)
-        self.pitcher.set_unit('Hz')
-        self.pitcher.set_tolerance(tolerance)
-
-    def call(self, features):
-        wav = features.wav
-        pitch = self.pitcher(util.int16_to_float(wav[:settings.hop_size]))
-        assert len(pitch) == 1
-        return pitch[0]
+# class Pitcher(L.Signal):
+#     """Extracts pitch signal in Hz using `aubio`."""
+#
+#     def init(self, tolerance):
+#         self.pitcher = aubio.pitch(
+#             method='yinfft', buf_size=settings.buf_size,
+#             hop_size=settings.hop_size, samplerate=settings.rate)
+#         self.pitcher.set_unit('Hz')
+#         self.pitcher.set_tolerance(tolerance)
+#
+#     def call(self, features):
+#         wav = features.wav
+#         pitch = self.pitcher(util.int16_to_float(wav[:settings.hop_size]))
+#         assert len(pitch) == 1
+#         return pitch[0]
 
 
 class Louder(L.Signal):
@@ -291,7 +288,7 @@ class Exponential(L.SignalLast):
     """Exponential smoothing (alpha=0 disables)."""
 
     def init(self, alpha):
-        self.alpha = alpha
+        pass
 
     def call(self, value):
         return self.lastout.value + (
