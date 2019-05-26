@@ -40,7 +40,7 @@ logger = util.createLogger('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-hp = hotplug.HotPlug(logger, modules=('signals', 'effects'))
+hp = hotplug.HotPlug(logger, modules=('signals',))
 
 running = True
 
@@ -68,14 +68,18 @@ class InputStreamer(object):
 
     def freeze(self, frozen):
         if frozen:
+            self.audio_interface.input_stream.stop_stream()
             self.close()
-        elif self.output_dir:
-            now = int(time.time())
-            self.wav_path = os.path.join(self.output_dir, '{}.wav'.format(now))
-            self.wav = wave.open(self.wav_path, 'wb')
-            self.wav.setnchannels(1)
-            self.wav.setframerate(settings.rate)
-            self.wav.setsampwidth(settings.sampwidth)
+            if self.output_dir:
+                now = int(time.time())
+                self.wav_path = os.path.join(
+                    self.output_dir, '{}.wav'.format(now))
+                self.wav = wave.open(self.wav_path, 'wb')
+                self.wav.setnchannels(1)
+                self.wav.setframerate(settings.rate)
+                self.wav.setsampwidth(settings.sampwidth)
+        else:
+            self.audio_interface.input_stream.start_stream()
 
     @perf.measure('InputStreamer.read')
     def read(self, samples, signals):
@@ -83,7 +87,7 @@ class InputStreamer(object):
             samples, exception_on_overflow=False)
         data16 = np.frombuffer(data, settings.dtype_np)
         data = util.int16_to_float(data16)
-        data = hp.effects.microphone_effect(data, signals)
+        data = hp.signals.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
         if self.wav_path and self.wav:
             self.wav.writeframesraw(data16)
@@ -179,7 +183,7 @@ if os.path.exists(ALIVE_PATH):
     os.rename(ALIVE_PATH, dst)
 
 logger.info('Start recording.')
-ai0 = audio.AudioInterface(input=1, device_index=hp.effects.input_device)
+ai0 = audio.AudioInterface(input=1)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 
@@ -193,6 +197,9 @@ while running:
     signalin = network.get_json(signalin_sock, {})
 
     new_frozen = signals['state'].state == 'frozen'
+    if new_frozen and signalin.get('newstate', 'frozen') != 'frozen':
+        # Must do this so when state changes the input_stream will be started.
+        new_frozen = False
     if frozen != new_frozen:
         frozen = new_frozen
         input_streamer.freeze(frozen)
@@ -205,8 +212,7 @@ while running:
     if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
         logger.info('Re-initializing input_streamer after freeze.')
         del ai0
-        ai0 = audio.AudioInterface(
-            input=1, device_index=hp.effects.input_device)
+        ai0 = audio.AudioInterface(input=1)
         input_streamer.reset_audio_interface(ai0)
         last_reset_t = time.time()
 

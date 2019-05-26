@@ -7,11 +7,11 @@ import audio, hotplug, network, perf, settings, util
 logger = util.createLogger('player')
 hp = hotplug.HotPlug(logger, modules=('effects',))
 
-ai1 = audio.AudioInterface(output=2, device_index=hp.effects.output_device_1)
-ai2 = None
-if hp.effects.output_device_2 is None or hp.effects.output_device_2 >= 0:
-    ai2 = audio.AudioInterface(
-        output=2, device_index=hp.effects.output_device_2)
+ai1 = audio.make_ai(settings.out1_names)
+assert ai1 is not None, 'Could not find any of: {}'.format(settings.out1_names)
+# ai2 = audio.make_ai(settings.out2_names)
+ai2 = None  # currently not supported
+logger.info('ai2={}'.format(ai2))
 
 
 def signal_handler(signal, frame):

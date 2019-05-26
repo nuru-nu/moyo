@@ -6,8 +6,20 @@ import numpy as np
 import pyaudio
 
 
+# Recording sample rate
 rate = 16000
-# rate = 44100
+
+# Sample rate output 1
+out1_rate = 16000
+out1_names = (
+    'Built-in Output',  # OS X
+    'default',  # Ubuntu
+)
+# Sample rate output 2
+out2_rate = 44100
+out2_names = (
+    'io|2',  # Ubuntu
+)
 
 if rate == 16000:
     # 32ms

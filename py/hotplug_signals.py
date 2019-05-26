@@ -1,4 +1,4 @@
-import logic as L, signals as S
+import effects as E, logic as L, signals as S
 
 
 def get_data():
@@ -64,5 +64,6 @@ def get_data():
     )
 
     return dict(
+        microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

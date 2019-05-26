@@ -74,13 +74,29 @@ class AudioInterface:
             np.fromstring(frame, np.int16) for frame in frames])
 
     @classmethod
-    def list_devices(cls):
+    def devices(cls):
         p = pyaudio.PyAudio()
-        for i in range(p.get_device_count()):
-            dev = p.get_device_info_by_index(i)
-            print('device_index={} "{}", input={}, output={} // {}'.format(
+        return [p.get_device_info_by_index(i)
+                for i in range(p.get_device_count())]
+
+    @classmethod
+    def list_devices(cls):
+        for i, dev in enumerate(cls.devices()):
+            print('device_index={} "{}", input={}, output={}'.format(
                 i, dev['name'], dev['maxInputChannels'],
-                dev['maxOutputChannels'], None))
+                dev['maxOutputChannels']))
+
+    @classmethod
+    def get_index(cls, name):
+        for i, dev in enumerate(cls.devices()):
+            if dev['name'].startswith(name):
+                return i
+
+    @classmethod
+    def get_info(cls, device):
+        p = pyaudio.PyAudio()
+        index = cls.get_index(device) if isinstance(device, str) else device
+        return p.get_device_info_by_index(index)
 
 
 def playback(wav):
@@ -103,6 +119,14 @@ def tostereo(left, right):
         util.float_to_int16(left),
         util.float_to_int16(right),
     ]).reshape(-1, order='F')
+
+
+def make_ai(names):
+    """Returns first device from names, or None."""
+    for name in names:
+        device_index = AudioInterface.get_index(name)
+        if device_index is not None:
+            return AudioInterface(output=2, device_index=device_index)
 
 
 if __name__ == '__main__':
