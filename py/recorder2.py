@@ -68,17 +68,19 @@ class InputStreamer(object):
 
     def freeze(self, frozen):
         if frozen:
+            logger.info('...stop recording {}'.format(self.wav_path))
             self.audio_interface.input_stream.stop_stream()
             self.close()
+        else:
             if self.output_dir:
                 now = int(time.time())
                 self.wav_path = os.path.join(
                     self.output_dir, '{}.wav'.format(now))
+                logger.info('start recording {}...'.format(self.wav_path))
                 self.wav = wave.open(self.wav_path, 'wb')
                 self.wav.setnchannels(1)
                 self.wav.setframerate(settings.rate)
                 self.wav.setsampwidth(settings.sampwidth)
-        else:
             self.audio_interface.input_stream.start_stream()
 
     @perf.measure('InputStreamer.read')
