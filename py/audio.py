@@ -25,6 +25,10 @@ class AudioInterface:
         # (for compatibility)
         input = int(input)
         output = int(output)
+        # self.device_index = device_index
+        # self.rate = rate
+        # self.stream_callback = stream_callback
+        # self.frames_per_buffer = frames_per_buffer
         if input:
             self.input_stream = self.p.open(
                 input_device_index=device_index,
@@ -124,12 +128,17 @@ def tostereo(left, right):
     ]).reshape(-1, order='F')
 
 
-def make_ai(names, **kw):
+def fromstereo(buf):
+    return buf.reshape([2, -1], order='F')
+
+
+def make_ai(names, output=2, **kw):
     """Returns first device from names, or None."""
     for name in names:
         device_index = AudioInterface.get_index(name)
         if device_index is not None:
-            return AudioInterface(output=2, device_index=device_index, **kw)
+            print('XXX', name)
+            return AudioInterface(output=output, device_index=device_index, **kw)
 
 
 if __name__ == '__main__':

@@ -12,15 +12,17 @@ import pyaudio
 rate = 16000
 
 # Sample rate output 1
-out1_rate = 16000
+out1_rate = 44100
 out1_names = (
-    'Built-in Output',  # OS X
+    'HDA Intel PCH: ALC3232 Analog',  # Ubuntu
     'default',  # Ubuntu
+    'Built-in Output',  # OS X
 )
 # Sample rate output 2
 out2_rate = 44100
 out2_names = (
-    'C-Media USB',  # Ubuntu
+    'default',  # Ubuntu - select "... - Audio Adapter"
+    'C-Media USB Audio Device',  # Ubuntu
 )
 
 if rate == 16000:
@@ -72,6 +74,7 @@ lighter_port = 6102
 fadecandy_port = 6103
 dmx_port = 6104
 player_port = 6105
+player2_port = 6106
 
 # files
 ###############################################################################
