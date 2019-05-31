@@ -38,6 +38,7 @@ buffer_factor = 10
 out_names = settings.out1_names if sys.argv[1] == 'out1' else settings.out2_names
 out_rate = settings.out1_rate if sys.argv[1] == 'out1' else settings.out2_rate
 port = settings.player_port if sys.argv[1] == 'out1' else settings.player2_port
+effector = 'effector1' if sys.argv[1] == 'out1' else 'effector2'
 ai1 = audio.make_ai(out_names, #stream_callback=stream_callback1,
                     rate=settings.out1_rate,
                     frames_per_buffer=int(
@@ -64,7 +65,7 @@ zeros = np.zeros(int(settings.out2_rate * settings.hop_secs))
 def play_audio():
     global running
     while running:
-        bufs = hp.effects.effector1(zeros, signals)
+        bufs = getattr(hp.effects, effector)(zeros, signals)
         ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
 
 
