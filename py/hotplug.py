@@ -46,8 +46,7 @@ class HotPlugModule:
         if mtime > self.mtime:
             try:
                 for module in self.file_modules.modules:
-                    if self.mtime == 0:
-                        exec('import {}'.format(module))
+                    exec('import {}'.format(module))
                     exec('importlib.reload({})'.format(module))
                 self.data = eval(self.file_modules.modules[-1]).get_data()
                 self.logger.info(

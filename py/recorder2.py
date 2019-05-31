@@ -168,6 +168,7 @@ def send_signals(data):
     msg = json.dumps(msg).encode('utf8')
     sock.sendto(msg, (settings.address, settings.monitor_port))
     sock.sendto(msg, (settings.address, settings.player_port))
+    sock.sendto(msg, (settings.address, settings.player2_port))
     sock.sendto(msg, (settings.address, settings.fadecandy_port))
     sock.sendto(msg, (settings.address, settings.dmx_port))
 

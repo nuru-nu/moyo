@@ -33,7 +33,7 @@ sock.bind((settings.address, settings.fadecandy_port))
 signals = {"t" : time.time(), "loud" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "ooo": 0}
 
 arm_channels = set(arm_config.channel for arm_config in settings.arm_configs)
-arm_pixels = {
+all_arm_pixels = {
     channel: np.zeros([8*64, 3])
     for channel in arm_channels
 }
@@ -60,16 +60,16 @@ while True:
 	# pixels = hp.animations.animation(signals)
 
 	sphere_pixels = hp.animations.sphere(signals)
-	client.put_pixels(pixels*255, channel=settings.sphere_channel)
+	client.put_pixels(sphere_pixels*255, channel=settings.sphere_channel)
 
-	for arm_config, arm in zip(hp.arms, settings.arm_configs):
+	for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
 		arm_pixels = arm(signals)
 		i = 0
 		for offsets in arm_config.offsets:
 			for offset in offsets:
-				arm_pixels[arm_config.channel][offset: offset+64] = (
+				all_arm_pixels[arm_config.channel][offset: offset+64, :] = (
 					arm_pixels[i * 64: (i + 1) * 64])
 				i += 1
-	for channel, pixels in arm_pixels.items():
+	for channel, pixels in all_arm_pixels.items():
 		client.put_pixels(pixels*255, channel=channel)
 
