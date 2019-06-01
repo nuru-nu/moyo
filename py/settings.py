@@ -1,15 +1,19 @@
 # some constants shared between files
 
-import collections, glob, os
+import collections, glob, os, subprocess
 
 import numpy as np
 import pyaudio
+
+
+is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
 
 # audio
 ###############################################################################
 
 # Recording sample rate
 rate = 16000
+in_channels = 2
 
 # Sample rate output 1
 out1_rate = 44100

@@ -86,6 +86,9 @@ class InputStreamer(object):
         data = self.audio_interface.input_stream.read(
             samples, exception_on_overflow=False)
         data16 = np.frombuffer(data, settings.dtype_np)
+        if settings.in_channels == 2:
+            data16l, data16r = audio.fromstereo(data16)
+            data16 = data16l - data16r
         data = util.int16_to_float(data16)
         data = hp.signals.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
@@ -184,7 +187,8 @@ if os.path.exists(ALIVE_PATH):
     os.rename(ALIVE_PATH, dst)
 
 logger.info('Start recording.')
-ai0 = audio.AudioInterface(input=1)
+logger.info('Using in_channels={}'.format(settings.in_channels))
+ai0 = audio.AudioInterface(input=settings.in_channels)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 
