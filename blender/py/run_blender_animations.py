@@ -1,5 +1,6 @@
 # vim: set noet:ts=8:sw=8
 # flake8: noqa
+import sys
 
 import bge
 import socket
@@ -25,7 +26,8 @@ import hotplug
 logger = util.createLogger('fadecandy')
 hp = hotplug.HotPlug(logger, modules=('animations',))
 
-signals0 = {"vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0], "state": state.State()}
+# signals0 = {"vol" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "rand" : np.random.rand(1)[0], "state": state.State()}
+signals0 = {"t" : time.time(), "loud" : np.random.rand(1)[0], "pitch" : np.random.rand(1)[0], "ooo": 0}
 
 def init(cont):
 	own = cont.owner
@@ -36,8 +38,8 @@ def init(cont):
 	own['sock'].settimeout(0)
 	own['sock'].bind((settings.address, settings.fadecandy_port))
 
-	own['pixels'] = np.zeros((pf.nr_pixels, 3))
-	own['polar_mapping'] = np.zeros((pf.nr_pixels, 2))
+	own['pixels'] = np.zeros((settings.sphere_pixels, 3))
+	own['polar_mapping'] = np.zeros((settings.sphere_pixels, 2))
 
 	own['max_time'] = 9000000 # 2500 hours
 	own['reset_time'] = time.time() % own['max_time']
@@ -63,6 +65,12 @@ def init(cont):
 	own['prev_t'] = time.time() % 120
 	own['signals'] = signals0
 
+	arm_channels = set(arm_config.channel for arm_config in settings.blender_arm_configs)
+	own['all_arm_pixels'] = {
+	    channel: np.zeros([120, 3])
+	    for channel in arm_channels
+	}
+
 
 def run(cont):
 	global signals
@@ -82,34 +90,19 @@ def run(cont):
 	except io.BlockingIOError as e:
 		pass
 
-	# t_anim = t_global - own['reset_time']
-	# sigma = (t_anim / own['anim_durtion'])*own['drop_radius']
+	sphere_pixels = hp.animations.sphere(signals)
 
-	# if sigma > own['drop_radius']:
-	# 	own['reset_time'] = t_global
-	# 	own['drop_pos'] = np.squeeze([np.random.rand(1)*np.pi, np.random.rand(1)*2*np.pi - np.pi])
-	# 	own['color'] = [np.random.rand(), np.random.rand(), np.random.rand()]
-	# pixels = pf.gaussian_droplet(own['polar_mapping'], own['drop_pos'], sigma, own['color'])
-	# set_pixels(pixels)
+	set_pixels(sphere_pixels, 'pixel_')
 
+	for arm_config, arm in zip(settings.blender_arm_configs, hp.animations.arms):
+		arm_pixels = arm(signals)
+		i = 0
+		for offsets in arm_config.offsets:
+			for offset in offsets:
+				set_pixels(arm_pixels[i * 64: (i + 1) * 64][:60], arm_config.channel)
+				i += 1
 
-	# pixels = anim.get_pixels(signals, 'uniform_rain')
-	pixels = hp.animations.animation(signals)
-
-	set_pixels(pixels)
-
-	# for pix in pixels:
-	# 	print(pix)
-	# time.sleep(0.1)
-
-def clear_pixels(cont):
-	scene = bge.logic.getCurrentScene()
-	own = cont.owner
-
-	for i in range(pf.nr_pixels):
-		scene.objects['pixel_' + str(i+1).zfill(3)].color = [0,0,0,1]
-
-def set_pixels(pixels):
+def set_pixels(pixels, prefix):
 	scene = bge.logic.getCurrentScene()
 	for idx, pix in enumerate(pixels):
-		scene.objects['pixel_' + str(idx+1).zfill(3)].color = list(pix) + [1]
+		scene.objects[prefix + str(idx+1).zfill(3)].color = list(pix) + [1]
