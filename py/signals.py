@@ -197,12 +197,15 @@ class FreqBreadth(L.Signal):
         return breadth
 
 
+def hz2f(hz, n, rate=settings.rate):
+    return hz * np.pi * n / settings.rate
+
+
 class FreqBand(L.Signal):
     """Frequency band with cosine slope. Values not normalized."""
 
     def init(self, hzmin, hzmax, hzslope=1, n=settings.num_mel_bins):
-        self.n = n
-        fmin, fmax, df = self.hz2f(hzmin), self.hz2f(hzmax), self.hz2f(hzslope)
+        fmin, fmax, df = hz2f(hzmin, n), hz2f(hzmax, n), hz2f(hzslope, n)
         self.kernel = np.array([
             self.f01((f + df - fmin) / df) * self.f01((fmax + df - f) / df)
             for f in range(n)
@@ -211,9 +214,6 @@ class FreqBand(L.Signal):
 
     def call(self, features):
         return (self.kernel * features.logmel).sum()
-
-    def hz2f(self, hz):
-        return hz * np.pi * self.n / settings.rate
 
     def f01(self, x):
         return (1 + np.cos((np.clip(x, 0, 1) - 1) * np.pi)) / 2
@@ -340,8 +340,6 @@ class ClipToMaxOfMin(L.Signal):
         self.buf = np.zeros(int(min_s * settings.rate / settings.hop_size))
         self.i = 0
         self.max = 1e-6
-        self.amin = amin
-        self.amax = amax
 
     def call(self, value):
         self.buf[self.i] = value
@@ -350,7 +348,7 @@ class ClipToMaxOfMin(L.Signal):
         return np.clip(value / self.max * self.amax, self.amin, self.amax)
 
     def __repr__(self):
-        return super().__repr__(self) + '={:.2f}'.format(self.max)
+        return super().__repr__() + '={:.2f}'.format(self.max)
 
 
 class Ramp(L.SignalLast):

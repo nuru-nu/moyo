@@ -69,7 +69,8 @@ class Signal:
         self.params = params.keys()
         if hasattr(self, 'init'):
             names = inspect.getfullargspec(self.init).args[1:]
-            defaults = inspect.getfullargspec(self.init).defaults[1:]
+            defaults = inspect.getfullargspec(self.init).defaults
+            defaults = defaults if defaults else []
             d = dict(zip(names[::-1], defaults[::-1]))
             d.update(**params)
             params = d
@@ -78,7 +79,8 @@ class Signal:
             self.init(**params)
         self.signalparams = {}
         for k, v in params.items():
-            assert not hasattr(self, k), 'hasattr({}, {})'.format(self, k)
+            assert not hasattr(self, k), 'hasattr({}, {})'.format(
+                self.__class__.__name__, k)
             setattr(self, k, v)
             if isinstance(v, Signal):
                 self.signalparams[k] = v
