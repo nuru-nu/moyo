@@ -125,10 +125,10 @@ arm_configs = [
 ]
 
 blender_arm_configs = [
-    ArmConfig('pixel_arm_01.', [[-1]], -1.4178),
-    ArmConfig('pixel_arm_02.', [[-1]], -0.4700),
-    ArmConfig('pixel_arm_03.', [[-1]], 2.8928),
-    ArmConfig('pixel_arm_04.', [[-1]], 0.59689),
-    ArmConfig('pixel_arm_05.', [[-1], [59]], -2.3322),
-    ArmConfig('pixel_arm_06.', [[-1], [59]], 1.70411),
+    ArmConfig('pixel_arm_06.', [[0], [60]], 1.70411),
+    ArmConfig('pixel_arm_02.', [[0]], -0.4700),
+    ArmConfig('pixel_arm_03.', [[0]], 2.8928),
+    ArmConfig('pixel_arm_04.', [[0]], 0.59689),
+    ArmConfig('pixel_arm_05.', [[0], [60]], -2.3322),
+    ArmConfig('pixel_arm_01.', [[0]], -1.4178),
 ]

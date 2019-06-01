@@ -4,8 +4,17 @@
 import numpy as np
 import animations as A
 import settings
+import sys
 
 def get_data():
+
+    if sys.argv[0] == '/usr/bin/blenderplayer':
+        print("Using blender config", sys.argv[0])
+        arm_configs = settings.blender_arm_configs
+    else:
+        print("Using fade candy config", sys.argv[0])
+        arm_configs = settings.arm_configs
+
     ooo_hue = A.SinT(hz=A.Signals('ooo_intensity')
                      | A.Lin(shift=0.1, mult=1)) | A.Lin(shift=0.5, mult=0.5)
     return dict(
@@ -79,14 +88,14 @@ def get_data():
         arms=[
             A.Mixer(dict(
                 std=A.ArmGradient(
-                    settings.arm_configs[i],
+                    arm_configs[i],
                     color=[1, 0, 1],
                     func=lambda x, signals=None: (1-x)**4,
                     # func=lambda x, signals=None: 1*(x < (
                     #     signals.get('right_drone' if i else 'left_drone', 0))),
                     mult=A.Signals('right_drone' if i else 'left_drone')#A.Signals("t") | A.Sin(hz=0.2) | A.Lin(shift=0.5, mult=0.5)
                     ),
-                ooo=A.ArmGradient(settings.arm_configs[i], color=A.Hue(
+                ooo=A.ArmGradient(arm_configs[i], color=A.Hue(
                         # hue=A.SinT(hz=0.2) | A.Lin(shift=0.5, mult=0.5),
                         # hue=A.OooHue(),
                         hue=ooo_hue,
@@ -96,31 +105,31 @@ def get_data():
                     ),
                 test=A.Add(
                     A.ArmRing(
-                        settings.arm_configs[i],
+                        arm_configs[i],
                         color=[0.8, 0, 1],
                         value=A.Signals('ring1') | A.Lin(shift=-1, mult=2),
                         width=0.1,
                         func=lambda d, signals: np.clip(d, 0, 1)**1.5 - 0.1,
                     ),
                     A.ArmRing(
-                        settings.arm_configs[i],
+                        arm_configs[i],
                         color=[0.1, 0, 0.8],
                         value=A.Signals('ring2') | A.Lin(shift=-1, mult=2),
                         width=0.1,
                         func=lambda d, signals: np.clip(d, 0, 1)**1.5 - 0.1,
                     ),
                 ),
-                flash=A.ArmGradient(settings.arm_configs[i], color=A.Hue(
+                flash=A.ArmGradient(arm_configs[i], color=A.Hue(
                     value=A.Signals('t') | A.Sin(hz=4) | A.Lin(shift=0.5, mult=0.5),
                     saturation=A.Const(0),
                     ),
                     # func=lambda x, signals=None: (1-x)**1,
                 ),
             ))
-            for i in range(len(settings.arm_configs))
-            # A.ArmGradient(settings.arm_configs[0], color=[1, 0, 0], func=lambda x: x**3),
-            # A.ArmFullOn(settings.arm_configs[0], color=[1, 0, 0]),
-            # A.ArmGradient(settings.arm_configs[1], color=[0, 0, 1], func=lambda x: x**4),
+            for i in range(len(arm_configs))
+            # A.ArmGradient(arm_configs[0], color=[1, 0, 0], func=lambda x: x**3),
+            # A.ArmFullOn(arm_configs[0], color=[1, 0, 0]),
+            # A.ArmGradient(arm_configs[1], color=[0, 0, 1], func=lambda x: x**4),
         ],
         animation2=A.Add(
             A.PhiRing(

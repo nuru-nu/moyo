@@ -92,17 +92,17 @@ def run(cont):
 
 	sphere_pixels = hp.animations.sphere(signals)
 
-	set_pixels(sphere_pixels, 'pixel_')
+	set_pixels(sphere_pixels, 'pixel_', 1)
 
 	for arm_config, arm in zip(settings.blender_arm_configs, hp.animations.arms):
 		arm_pixels = arm(signals)
 		i = 0
 		for offsets in arm_config.offsets:
 			for offset in offsets:
-				set_pixels(arm_pixels[i * 64: (i + 1) * 64][:60], arm_config.channel)
+				set_pixels(arm_pixels[i * 64: (i + 1) * 64][:60], arm_config.channel, 1 + offset)
 				i += 1
 
-def set_pixels(pixels, prefix):
+def set_pixels(pixels, prefix, sdx):
 	scene = bge.logic.getCurrentScene()
 	for idx, pix in enumerate(pixels):
-		scene.objects[prefix + str(idx+1).zfill(3)].color = list(pix) + [1]
+		scene.objects[prefix + str(idx+sdx).zfill(3)].color = list(pix) + [1]
