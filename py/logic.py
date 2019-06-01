@@ -41,7 +41,28 @@ class D:
 
 
 class Signal:
-    """Provides |, wants, params."""
+    """Provides |, wants, params.
+
+    A Signal subclass provides
+    - `init(self, param1, param2=0, ...)` that can provide additional
+      initialization logic
+    - `call(self, signal1, signal2, ...)` that returns either a dictionary,
+      or a single value that will be converted to `dict(value=value)`.
+
+    Every signal is called with `**signals` as arguments and the calculated
+    signals will be added to the signal dictionary that is forwarded to any
+    chained classes (see `SignalChain`).
+
+    Every parameter can be a `Signal` itself in which case it will be compouted
+    before the function `call()` is executed and the result will be made
+    available as an attribute like a non-`Signal` parameter.
+
+
+    Note the following special attributes
+    - `wants` : signals needed for computation - used by `SignalRunner`
+    - `params` : names of parameters (for `repr()` display)
+    - `signalparams` : dictionary of signals from which to compute params
+    """
 
     def __init__(self, *args, **params):
         self.wants = inspect.getfullargspec(self.call).args[1:]
@@ -49,13 +70,18 @@ class Signal:
         if hasattr(self, 'init'):
             names = inspect.getfullargspec(self.init).args[1:]
             defaults = inspect.getfullargspec(self.init).defaults[1:]
-            params.update(zip(names[::-1], defaults[::-1]))
+            d = dict(zip(names[::-1], defaults[::-1]))
+            d.update(**params)
+            params = d
             if args:
                 params.update(zip(names, args))
             self.init(**params)
+        self.signalparams = {}
         for k, v in params.items():
             assert not hasattr(self, k), 'hasattr({}, {})'.format(self, k)
             setattr(self, k, v)
+            if isinstance(v, Signal):
+                self.signalparams[k] = v
 
     def __or__(self, other):
         return SignalChain(self, other)
@@ -64,6 +90,8 @@ class Signal:
         return SignalMult(self, other)
 
     def __call__(self, **allkw):
+        for k, v in self.signalparams.items():
+            setattr(self, k, v(**allkw)['value'])
         kw = {k: allkw[k] for k in self.wants}
         ret = self.call(**kw)
         if not isinstance(ret, dict):
@@ -78,7 +106,7 @@ class Signal:
         return '{}({})'.format(
             self.__class__.__name__,
             ','.join([
-                '{}={}'.format(p, getattr(self, p))
+                '{}={}'.format(p, self.signalparams.get(p, getattr(self, p)))
                 for p in self.params
             ]))
 
