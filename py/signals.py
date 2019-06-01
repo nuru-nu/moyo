@@ -35,8 +35,12 @@ class WithPrevious:
 class State(L.Signal):
     """Updates the state."""
 
-    def call(self, state, signalin, ooo, ooo_intensity):
+    def init(self):
+        self.last_change = 0
+
+    def call(self, t, state, signalin, ooo, ooo_intensity):
         newstate = signalin.get('newstate')
+        oldstate = state.state
         if newstate:
             state.goto(newstate)
         elif state.state == 'test':
@@ -47,6 +51,11 @@ class State(L.Signal):
             state.state = 'std'
         elif state.state == 'ooo' and ooo_intensity == 1.0:
             state.state = 'flash'
+        elif state.state == 'flash' and t - self.last_change > 10:
+            state.state = 'std'
+
+        if oldstate != state.state:
+            self.last_change = t
         return state
 
 
@@ -246,6 +255,16 @@ class KerasDetector(L.Signal):
 
 # value -> value
 ###############################################################################
+
+
+class Saw(L.Signal):
+    """Sawtooth wave."""
+
+    def init(self, hz, dt):
+        pass
+
+    def call(self, t):
+        return ((t + self.dt) * self.hz) % 1
 
 
 class Linear(L.Signal):

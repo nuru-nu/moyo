@@ -107,10 +107,12 @@ def theta_ring(mapping, phi, width, color):
 def phi_ring(mapping, theta, width, color):
 	"""Lights all pixels at theta+/-width."""
 	pixels = np.zeros((len(mapping), 3))
+	# theta = np.pi - theta
 
 	for i in range(len(pixels)):
 		coord = mapping[i]
-		dist = np.abs((theta % (2*np.pi) - np.pi) - coord[1])
+		# coord == [phi, theta]
+		dist = np.abs(((theta * 1.2) % (2*np.pi)) - coord[1])
 		I = 1 - np.clip(dist / width, 0, 1)
 		pixels[i] = I*np.array(color)
 

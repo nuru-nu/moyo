@@ -55,12 +55,15 @@ def get_data():
 
         state=S.State(),
 
-        left_drone=S.RndRamp([1, 20], [5, 10], [2, 4]) | S.NotInState('test'),
-        right_drone=S.RndRamp([5, 10], [5, 10], [2, 4]) | S.NotInState('test'),
+        left_drone=S.RndRamp([1, 5], [5, 10], [8, 8]) | S.NotInState('test'),
+        right_drone=S.RndRamp([1, 5], [5, 10], [2, 2]) | S.NotInState('test'),
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
-            L.Named('ooo') | S.Ramp(up_s=0.05, down_s=0.5) | S.Clip()),
+            L.Named('ooo') | S.Ramp(up_s=0.1, down_s=0.5) | S.Clip()),
+
+        ring1=S.Saw(hz=1, dt=0),
+        ring2=S.Saw(hz=1, dt=0.5),
     )
 
     return dict(

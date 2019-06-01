@@ -85,10 +85,13 @@ class ChainedAnimation(Animation):
 
 
 class Signals(Animation):
-	def __init__(self, name):
+	def __init__(self, name, dt=0):
 		self.name = name
+		self.logger = util.PrintEvery(dt)
 
 	def __call__(self, signals):
+		self.logger('signals[{}]={}'.format(
+			self.name, signals[self.name]))
 		return signals[self.name]
 
 
@@ -116,6 +119,28 @@ class Sin(Animation):
 		return np.sin(x * 2 * np.pi * self.hz)
 
 
+class Noop(Animation):
+	def __init__(self, dt=0):
+		self.logger = util.PrintEvery(dt)
+
+	def __call__(self, x):
+		self.logger('Noop: x={}'.format(x))
+		return x
+
+
+class SinT(Animation):
+	def __init__(self, hz):
+		self.hz = or_const(hz)
+		self.last_t = 0
+		self.last_wt = 0
+
+	def __call__(self, signals):
+		dt = signals['t'] - self.last_t
+		self.last_t += dt
+		self.last_wt += 2 * np.pi * self.hz(signals) * dt
+		return np.sin(self.last_wt)
+
+
 class OooHue:
 	def __call__(self, signals):
 		return 0.5 + 0.5 * np.sin(signals['t'] * 2 * np.pi * (
@@ -132,15 +157,15 @@ class Lin(Animation):
 		return self.shift + x*self.mult
 
 
-class ThetaRing(Animation):
-	def __init__(self, width, color, pos):
-		self.width = width
-		self.color = color
-		self.pos = pos
+# class ThetaRing(Animation):
+# 	def __init__(self, width, color, pos):
+# 		self.width = or_const(width)
+# 		self.color = or_const(color)
+# 		self.pos = or_const(pos)
 
-	def __call__(self, signals):
-		I = np.clip((0.5*np.pi - self.width(signals)*np.abs(mapping[:,1] + (self.pos(signals) - np.pi))), 0, 0.5*np.pi) / (0.5*np.pi)
-		return np.repeat(np.expand_dims([col(signals) for col in self.color], axis=0), len(mapping), axis=0)*np.expand_dims(I, axis=1)
+# 	def __call__(self, signals):
+# 		I = np.clip((0.5*np.pi - self.width(signals)*np.abs(mapping[:,1] + (self.pos(signals) - np.pi))), 0, 0.5*np.pi) / (0.5*np.pi)
+# 		return np.repeat(np.expand_dims([col(signals) for col in self.color], axis=0), len(mapping), axis=0)*np.expand_dims(I, axis=1)
 
 
 class GaussianDroplet(Animation):
@@ -203,9 +228,9 @@ class FullOn(Animation):
 
 class ThetaRing(Animation):
 	def __init__(self, phi, width, color):
-		self.phi = phi
-		self.width = width
-		self.color = color
+		self.phi = or_const(phi)
+		self.width = or_const(width)
+		self.color = or_const(color)
 
 	def __call__(self, signals):
 		return pf.theta_ring(
@@ -218,9 +243,9 @@ class ThetaRing(Animation):
 
 class PhiRing(Animation):
 	def __init__(self, theta, width, color):
-		self.theta = theta
-		self.width = width
-		self.color = color
+		self.theta = or_const(theta)
+		self.width = or_const(width)
+		self.color = or_const(color)
 
 	def __call__(self, signals):
 		return pf.phi_ring(
@@ -263,8 +288,12 @@ class ArmFullOn(Animation):
 		]) * self.mult(signals)
 
 
+def linear(dist, signals=None):
+	return dist
+
+
 class ArmGradient(ArmFullOn):
-	def __init__(self, arm_config, color, func, mult=1):
+	def __init__(self, arm_config, color, func=linear, mult=1):
 		"""Func is a scalar function mapping 0..1 to a value."""
 		super().__init__(arm_config, color, mult)
 		self.func = func
@@ -279,6 +308,36 @@ class ArmGradient(ArmFullOn):
 				self.arm_config.offsets)
 		])
 		return np.array([
-			pixel * self.func(d)
+			pixel * self.func(d, signals=signals)
+			for d, pixel in zip(dist, pixels)
+		])
+
+
+class ArmRing(Animation):
+	def __init__(self, arm_config, value, color, width, func=linear):
+		"""value : where the ring is (0..1)"""
+		self.arm_config = arm_config
+		self.value = value
+		self.color = or_const(color)
+		self.width = or_const(width)
+		self.func = func
+
+	def __call__(self, signals):
+		pixels = np.concatenate([
+			full_on(self.color(signals), 64)
+			for offsets in self.arm_config.offsets
+			for offset in offsets
+		])
+		dist = np.concatenate([
+			np.tile(np.concatenate([
+				np.linspace(meter, meter + 1, 60) / len(self.arm_config.offsets),
+				[0.0] * 4,
+			]), len(offsets))
+			for meter, offsets in enumerate(
+				self.arm_config.offsets)
+		])
+		value = self.value(signals)
+		return np.array([
+			pixel * (np.abs(self.func(value, signals=signals) - d) < self.width(signals)/2)
 			for d, pixel in zip(dist, pixels)
 		])

@@ -1,5 +1,5 @@
 
-import collections, json, logging, sys
+import collections, json, logging, sys, time
 
 import numpy as np
 
@@ -198,3 +198,13 @@ def phi_theta_samples(n):
     u = np.random.uniform(size=n)
     theta_samples = np.searchsorted(cdf, u) / len(cdf) * (np.pi / 2)
     return phi_samples, theta_samples
+
+
+class PrintEvery:
+    def __init__(self, dt):
+        self.dt = dt
+        self.t0 = 0
+    def __call__(self, msg):
+        if self.dt > 0 and time.time() - self.t0 > self.dt:
+            self.t0 = time.time()
+            print(msg)
