@@ -59,11 +59,11 @@ while True:
 	# signals["vol"] = signals['tf']
 	# pixels = hp.animations.animation(signals)
 
-	sphere_pixels = hp.animations.sphere(signals)
+	sphere_pixels = hp.animations.sphere(**signals)['value']
 	client.put_pixels(sphere_pixels*255, channel=settings.sphere_channel)
 
 	for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
-		arm_pixels = arm(signals)
+		arm_pixels = arm(**signals)['value']
 		i = 0
 		for offsets in arm_config.offsets:
 			for offset in offsets:

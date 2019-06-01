@@ -1,4 +1,4 @@
-import effects as E, logic as L, signals as S
+import effects as E, logic as L, ml, signals as S
 
 
 def get_data():
@@ -10,7 +10,7 @@ def get_data():
         loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
-        tf=S.KerasDetector(
+        tf=ml.KerasDetector(
             model='tmo_wp_20_50_linear'),
         tf2=L.Named('tf') | S.MovingAverage(n=5) | S.Exp(alpha=2),
         iso=(
@@ -22,35 +22,35 @@ def get_data():
             S.Median(n=10, threshold=0.7)
         ) | S.Exponential(alpha=0.95),
         sig1=(
-            S.Louder(n=10) | S.Linear(mult=20)
+            S.Louder(n=10) | S.Lin(mult=20)
         ) * (
             L.Named('tf') |
             S.Median(n=10, threshold=0.7)
         ),
         breadth=(
-            S.FreqBreadth(threshold=-1) | S.Linear(mult=1 / 20) |
+            S.FreqBreadth(threshold=-1) | S.Lin(mult=1 / 20) |
             S.Clip(0, 1) | S.MovingAverage(n=5)
         ),
         low=(
             S.FreqBand(hzmin=0, hzmax=800, hzslope=100) |
-            S.Linear(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
+            S.Lin(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
         ),
         medium=(
             S.FreqBand(hzmin=800, hzmax=2500, hzslope=400) |
-            S.Linear(shift=3, mult=1) | S.Clip() | S.MovingAverage(n=5)
+            S.Lin(shift=3, mult=1) | S.Clip() | S.MovingAverage(n=5)
         ),
         high=(
             S.FreqBand(hzmin=2500, hzmax=1e10, hzslope=500) |
-            S.Linear(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
+            S.Lin(shift=3, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
         ),
         ooo=(
             L.Named('iso') |
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
         ) * (
-            L.Named('left_drone') | S.Linear(shift=-1, mult=-10) | S.Clip()
+            L.Named('left_drone') | S.Lin(shift=-1, mult=-10) | S.Clip()
         ) * (
-            L.Named('right_drone') | S.Linear(shift=-1, mult=-10) | S.Clip()
+            L.Named('right_drone') | S.Lin(shift=-1, mult=-10) | S.Clip()
         ),
 
         state=S.State(),

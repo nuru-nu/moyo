@@ -1,12 +1,13 @@
 # some constants shared between files
 
-import collections, glob, os, subprocess
+import collections, json, glob, os, subprocess, sys
 
 import numpy as np
 import pyaudio
 
 
 is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
+is_blender = 'blenderplayer' in sys.argv[0]
 
 # audio
 ###############################################################################
@@ -132,3 +133,20 @@ blender_arm_configs = [
     ArmConfig('pixel_arm_05.', [[0], [60]], -2.3322),
     ArmConfig('pixel_arm_01.', [[0]], -1.4178),
 ]
+
+
+def load_mapping():
+    path = os.path.join(
+        os.path.dirname(__file__),
+        '../data',
+        'blender_polar.json' if is_blender else 'rec_2_polar.json')
+    mapping = np.zeros((sphere_pixels, 2))
+    with open(path) as json_file:
+        data = json.load(json_file)
+        for coord_data in data:
+            idx = int(coord_data['idx'])
+            phi = float(coord_data['phi'])
+            theta = float(coord_data['theta'])
+            # phi: -pi - pi, theta 0 - pi
+            mapping[idx - 1] = np.array([phi, theta])
+    return mapping

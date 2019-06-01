@@ -1,32 +1,10 @@
 """Signals transform sound to scalars."""
 
-import json, random
-
 # import aubio
 import numpy as np
-import PIL
-import tensorflow as tf
 
 import logic as L, settings
 
-
-class WithPrevious:
-    """Extends features with scaled averaged copy."""
-
-    def __init__(self, n, d):
-        self.n = n
-        self.d = d
-        self.buf = np.zeros((self.n, self.d), dtype='float32')
-        self.i = 0
-
-    def __call__(self, logmel):
-        x = logmel
-        if self.d != len(logmel):
-            x = np.array(
-                PIL.Image.fromarray(x.reshape((1, -1))).resize((self.d, 1)))[0]
-        self.buf[self.i % self.n, :] = x
-        self.i += 1
-        return np.concatenate([logmel, self.buf.mean(axis=0)])
 
 # state
 ###############################################################################
@@ -77,24 +55,19 @@ class NotInState(L.Signal):
         return value * (state.state != self.state)
 
 
-def _rnd(minmax):
-    return minmax[0] + random.random() * (
-        minmax[1] - minmax[0])
-
-
 class RndPulse(L.Signal):
 
     def init(self, break_minmax):
         self.break_minmax = break_minmax
         self.t0 = None
-        self.wait_s = _rnd(self.break_minmax)
+        self.wait_s = L.rnd(self.break_minmax)
 
     def call(self, t):
         if self.t0 is None:
             self.t0 = t
         if t - self.t0 >= self.wait_s:
             self.t0 = t
-            self.wait_s = _rnd(self.break_minmax)
+            self.wait_s = L.rnd(self.break_minmax)
             return 1.
         return 0.
 
@@ -110,10 +83,10 @@ class RndRamp(L.Signal):
             self.t3 = -1
             return 0.0
         if t > self.t3:
-            self.t0 = t + _rnd(self.break_minmax)
-            self.t1 = self.t0 + _rnd(self.ramp_minmax)
-            self.t2 = self.t1 + _rnd(self.duration_minmax)
-            self.t3 = self.t2 + _rnd(self.ramp_minmax)
+            self.t0 = t + L.rnd(self.break_minmax)
+            self.t1 = self.t0 + L.rnd(self.ramp_minmax)
+            self.t2 = self.t1 + L.rnd(self.duration_minmax)
+            self.t3 = self.t2 + L.rnd(self.ramp_minmax)
         if t < self.t0:
             return 0.
         if t < self.t1:
@@ -227,34 +200,22 @@ class FreqBand(L.Signal):
     def f01(self, x):
         return (1 + np.cos((np.clip(x, 0, 1) - 1) * np.pi)) / 2
 
-
-class KerasDetector(L.Signal):
-    """Transforms logmel to keras model scalar output."""
-
-    PREPROCESSORS = {
-        'none': lambda x: x,
-        'wp_5_5': WithPrevious(n=5, d=5),
-        'wp_10_10': WithPrevious(n=10, d=10),
-        'wp_20_50': WithPrevious(n=20, d=50),
-    }
-
-    def init(self, model):
-        preprocessor = json.load(open(settings.get_model_path(
-            model + '_conf.json')))['preprocessor']
-        self._model = tf.keras.models.load_model(
-            settings.get_model_path(model + '.h5'))
-        self._preprocessor = self.PREPROCESSORS[preprocessor]
-        self.lastv = self.lastlm = None
-
-    def call(self, features):
-        if not (features.logmel == self.lastlm).all():
-            self.lastlm = features.logmel
-            batch = np.array([self._preprocessor(features.logmel)])
-            self.lastv = self._model.predict(batch)[0, 1]
-        return self.lastv
-
 # value -> value
 ###############################################################################
+
+
+class SinT(L.Signal):
+    """Sine wave."""
+
+    def init(self, hz):
+        self.last_t = 0
+        self.last_wt = 0
+
+    def call(self, t):
+        dt = t - self.last_t
+        self.last_t += dt
+        self.last_wt += 2 * np.pi * self.hz * dt
+        return np.sin(self.last_wt)
 
 
 class Saw(L.Signal):
@@ -267,11 +228,11 @@ class Saw(L.Signal):
         return ((t + self.dt) * self.hz) % 1
 
 
-class Linear(L.Signal):
+class Lin(L.Signal):
     """Linear transformation of scalar signal."""
 
-    def __init__(self, shift=0, mult=1):
-        super().__init__(shift=shift, mult=mult)
+    def init(self, shift=0, mult=1):
+        pass
 
     def call(self, value):
         return self.mult * (value + self.shift)

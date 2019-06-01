@@ -1,343 +1,244 @@
-# vim: set noet:ts=8:sw=8
-# flake8: noqa
 
-import numpy as np
-import os
-import json
-from pathlib import Path
 import time
+
 import colorsys
+import numpy as np
 
-import pixel_functions as pf, settings, util
+import logic as L, pixel_functions as pf, settings, util
 
-max_time = 9000000 # 2500 hours
-mapping = np.zeros((settings.sphere_pixels,2))
 
-# for file in Path('git/rizhom/data/blender_polar.json').exists():
-# 	print(file)
+mapping = settings.load_mapping()
 
-root = os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
-json_path = os.path.join(root, 'data', 'blender_polar.json')
 
-if Path("../data/rec_2_polar.json").exists():
-	with open("../data/rec_2_polar.json") as json_file: 
-		data = json.load(json_file)
-		for coord_data in data:
-			idx = int(coord_data['idx'])
-			phi = float(coord_data['phi'])
-			theta = float(coord_data['theta'])
-			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
-elif Path(json_path).exists():
-	with open(json_path) as json_file: 
-		data = json.load(json_file)
-		for coord_data in data:
-			idx = int(coord_data['idx'])
-			phi = float(coord_data['phi'])
-			theta = float(coord_data['theta'])
-			mapping[idx-1] = np.array([phi, theta]) # phi: -pi - pi, theta 0 - pi
-else:
-	print("Cant find mapping JSON '{}'!".format(json_path))
+# utils
+###############################################################################
 
 
 def full_on(color, nr_pixels):
-	return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
+    return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
 
+class Noop(L.Signal):
+    def init(self, dt=0):
+        self.logger = util.PrintEvery(dt)
+
+    def call(self, value):
+        self.logger('Noop: value={}'.format(value))
+        return value
+
+# state related
+###############################################################################
+
+
+# TODO subclass L.Signal
 class Mixer:
+    """Mixes signals by state.state with some interpolation."""
 
-	def __init__(self, d):
-		self.d = d
-		self.t0 = 0
-		self.dt = 1
-		self.current = self.last = 'std'
+    def __init__(self, d):
+        self.d = d
+        self.t0 = 0
+        self.dt = 1
+        self.current = self.last = 'std'
 
-	def __call__(self, signals):
-		state = signals['state'].state
-		t = signals['t']
-		if state != self.current:
-			self.last = self.current
-			self.current = state
-			self.t0 = t
-		if t - self.t0 < self.dt:
-			v = (t - self.t0) / self.dt
-			return (1 - v) * self.d[self.last](signals) + v * self.d[state](signals)
-		return self.d[state](signals)
+    def __call__(self, **signals):
+        state = signals['state'].state
+        t = signals['t']
+        if state != self.current:
+            self.last = self.current
+            self.current = state
+            self.t0 = t
+        pixels = self.d[state](**signals)['value']
+        if t - self.t0 < self.dt:
+            v = (t - self.t0) / self.dt
+            last_pixels = self.d[self.last](**signals)['value']
+            pixels = v * pixels + (1 - v) * last_pixels
+        return dict(value=pixels)
 
-
-class Animation:
-	def __init__(self):
-		self.pixels = np.zeros((len(mapping), 3))
-
-	def __call__(self, signals):
-		pass
-
-	def __or__(self, other):
-		return ChainedAnimation(self, other)
+# color
+###############################################################################
 
 
-class ChainedAnimation(Animation):
-	def __init__(self, animation1, animation2):
-		self.animation1 = animation1
-		self.animation2 = animation2
+class RGB(L.Signal):
+    def init(self, r, g, b):
+        pass
 
-	def __call__(self, x):
-		return self.animation2(self.animation1(x))
-
-
-class Signals(Animation):
-	def __init__(self, name, dt=0):
-		self.name = name
-		self.logger = util.PrintEvery(dt)
-
-	def __call__(self, signals):
-		self.logger('signals[{}]={}'.format(
-			self.name, signals[self.name]))
-		return signals[self.name]
+    def call(self):
+        return [self.r, self.g, self.b]
 
 
-class Const(Animation):
-	def __init__(self, value):
-		self.value = value
+class HSV(L.Signal):
+    def init(self, hue=1, saturation=1, value=1):
+        pass
 
-	def __call__(self, x):
-		return self.value
+    def call(self):
+        return colorsys.hsv_to_rgb(
+            self.hue,
+            self.saturation,
+            self.value)
 
-
-class Rand(Animation):
-	def __init__(self, rand_range):
-		self.value =  rand_range[0] + (rand_range[1] - rand_range[0])*np.random.rand(1)[0]
-
-	def __call__(self, x):
-		return self.value
+# simple animations
+###############################################################################
 
 
-class Sin(Animation):
-	def __init__(self, hz):
-		self.hz = hz
+class FullOn(L.Signal):
+    def init(self, color):
+        pass
 
-	def __call__(self, x):
-		return np.sin(x * 2 * np.pi * self.hz)
+    def call(self):
+        return full_on(self.color, settings.sphere_pixels)
 
-
-class Noop(Animation):
-	def __init__(self, dt=0):
-		self.logger = util.PrintEvery(dt)
-
-	def __call__(self, x):
-		self.logger('Noop: x={}'.format(x))
-		return x
+# animation combiners
+###############################################################################
 
 
-class SinT(Animation):
-	def __init__(self, hz):
-		self.hz = or_const(hz)
-		self.last_t = 0
-		self.last_wt = 0
+# TODO subclass L.Signal
+class Add:
 
-	def __call__(self, signals):
-		dt = signals['t'] - self.last_t
-		self.last_t += dt
-		self.last_wt += 2 * np.pi * self.hz(signals) * dt
-		return np.sin(self.last_wt)
+    def __init__(self, *anims):
+        self.anims = anims
 
+    def __call__(self, **signals):
+        pixels = self.anims[0](**signals)['value']
+        for anim in self.anims[1:]:
+            pixels += anim(**signals)['value']
+        return dict(value=pixels)
 
-class OooHue:
-	def __call__(self, signals):
-		return 0.5 + 0.5 * np.sin(signals['t'] * 2 * np.pi * (
-			0.02  # + 0.01 * np.clip(signals['ooo_intensity'], 0, 1)
-			))
+# simple animations
+###############################################################################
 
 
-class Lin(Animation):
-	def __init__(self, shift=0, mult=1):
-		self.shift = shift
-		self.mult = mult
+class ThetaRing(L.Signal):
+    def init(self, phi, width, color):
+        pass
 
-	def __call__(self, x):
-		return self.shift + x*self.mult
-
-
-# class ThetaRing(Animation):
-# 	def __init__(self, width, color, pos):
-# 		self.width = or_const(width)
-# 		self.color = or_const(color)
-# 		self.pos = or_const(pos)
-
-# 	def __call__(self, signals):
-# 		I = np.clip((0.5*np.pi - self.width(signals)*np.abs(mapping[:,1] + (self.pos(signals) - np.pi))), 0, 0.5*np.pi) / (0.5*np.pi)
-# 		return np.repeat(np.expand_dims([col(signals) for col in self.color], axis=0), len(mapping), axis=0)*np.expand_dims(I, axis=1)
+    def call(self):
+        return pf.theta_ring(
+            mapping,
+            phi=self.phi,
+            width=self.width,
+            color=self.color,
+        )
 
 
-class GaussianDroplet(Animation):
-	def __init__(self, sigma, color, pos):
-		self.sigma = sigma
-		self.color = color
-		self.pos = pos
+class PhiRing(L.Signal):
+    def init(self, theta, width, color):
+        pass
 
-	def __call__(self, signals):
-		return pf.gaussian_droplet(mapping, [p(signals) for p in self.pos], self.sigma(signals), [col(signals) for col in self.color]) 
+    def call(self):
+        return pf.phi_ring(
+            mapping,
+            theta=self.theta,
+            width=self.width,
+            color=self.color,
+        )
 
-
-class GaussianRain(Animation):
-	def __init__(self, nr_droplets, radius, drop_duration, color):
-		self.radius = radius
-		self.nr_droplets = nr_droplets
-		self.drop_duration = drop_duration
-		self.color = color
-		self.t_0s = [time.time() + 5*np.random.rand(1)[0] for _ in range(int(self.nr_droplets))]
-		self.positions = [[pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))] for _ in range(int(self.nr_droplets))]
-		self.colors = [[0, 0, 0] for _ in range(int(self.nr_droplets))]
-
-	def __call__(self, signals):
-		pixels = np.zeros((len(mapping), 3))
-		for drop_nr in range(self.nr_droplets):
-			if (time.time() - self.t_0s[drop_nr]) / self.drop_duration(signals) > 1:
-				self.t_0s[drop_nr] = time.time()
-				phi, theta = util.phi_theta_samples(1)
-				self.positions[drop_nr] = [phi[0] - np.pi, 2*theta[0]]
-				# self.positions[drop_nr] = [pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))]
-				self.colors[drop_nr] = [col(signals) for col in self.color]
-
-			sigma = self.radius(signals) * (time.time() - self.t_0s[drop_nr]) / self.drop_duration(signals)
-
-			pixels += pf.gaussian_droplet(mapping, self.positions[drop_nr], sigma, self.colors[drop_nr])
-
-		return pixels 
+# gaussians
+###############################################################################
 
 
-class Hue(Animation):
-	def __init__(self, hue=Const(1), saturation=Const(1), value=Const(1)):
-		self.hue = hue
-		self.saturation = saturation
-		self.value = value
+class GaussianDroplet(L.Signal):
 
-	def __call__(self, signals):
-		return colorsys.hsv_to_rgb(
-			self.hue(signals),
-			self.saturation(signals),
-			self.value(signals))
+    def init(self, sigma, color, phi, theta):
+        pass
+
+    def call(self):
+        return pf.gaussian_droplet(
+            mapping, [self.phi, self.theta], self.sigma, self.color)
 
 
-class FullOn(Animation):
-	def __init__(self, color):
-		self.color = color
+class GaussianRain(L.Signal):
 
-	def __call__(self, signals):
-		return full_on(self.color(signals), settings.sphere_pixels)
+    def init(self, nr_droplets, radius, drop_duration, color):
+        self.t_0s = [time.time() + 5 * np.random.rand(1)[0]
+                     for _ in range(int(self.nr_droplets))]
+        self.positions = [
+            [pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))]
+            for _ in range(int(self.nr_droplets))
+        ]
+        self.colors = [[0, 0, 0] for _ in range(int(self.nr_droplets))]
 
+    def call(self):
+        pixels = np.zeros((len(mapping), 3))
+        for drop_nr in range(self.nr_droplets):
+            if (time.time() - self.t_0s[drop_nr]) / self.drop_duration > 1:
+                self.t_0s[drop_nr] = time.time()
+                phi, theta = util.phi_theta_samples(1)
+                self.positions[drop_nr] = [phi[0] - np.pi, 2 * theta[0]]
+                # self.positions[drop_nr] = [pf.rand_range((-np.pi, np.pi)), pf.rand_range((0, np.pi))]  # noqa
+                self.colors[drop_nr] = self.color
 
-class ThetaRing(Animation):
-	def __init__(self, phi, width, color):
-		self.phi = or_const(phi)
-		self.width = or_const(width)
-		self.color = or_const(color)
+            dt = time.time() - self.t_0s[drop_nr]
+            sigma = self.radius * dt / self.drop_duration
 
-	def __call__(self, signals):
-		return pf.theta_ring(
-			mapping,
-			phi=self.phi(signals),
-			width=self.width(signals),
-			color=self.color(signals),
-		)
+            pixels += pf.gaussian_droplet(
+                mapping, self.positions[drop_nr], sigma, self.colors[drop_nr])
 
-
-class PhiRing(Animation):
-	def __init__(self, theta, width, color):
-		self.theta = or_const(theta)
-		self.width = or_const(width)
-		self.color = or_const(color)
-
-	def __call__(self, signals):
-		return pf.phi_ring(
-			mapping,
-			theta=self.theta(signals),
-			width=self.width(signals),
-			color=self.color(signals),
-		)
-
-class Add(Animation):
-	def __init__(self, *anims):
-		self.anims = anims
-	def __call__(self, signals):
-		pixels = self.anims[0](signals)
-		for anim in self.anims[1:]:
-			pixels += anim(signals)
-		return pixels
+        return pixels
 
 # arms
 ###############################################################################
 
 
-def or_const(x):
-	def wrapper(signals):
-		return x
-	return x if isinstance(x, Animation) else wrapper
+class ArmFullOn(L.Signal):
+    def init(self, arm_config, color, mult=1):
+        pass
+
+    def call(self):
+        return np.concatenate([
+            full_on(self.color, 64)
+            for offsets in self.arm_config.offsets
+            for offset in offsets
+        ]) * self.mult
 
 
-class ArmFullOn(Animation):
-	def __init__(self, arm_config, color, mult=1):
-		self.arm_config = arm_config
-		self.color = or_const(color)
-		self.mult = or_const(mult)
-	def __call__(self, signals):
-		color = self.color(signals)
-		return np.concatenate([
-			full_on(color, 64)
-			for offsets in self.arm_config.offsets
-			for offset in offsets
-		]) * self.mult(signals)
+class ArmGradient(L.Signal):
+
+    def init(self, arm_config, color, func=lambda x: x, mult=1):
+        """Func is a scalar function mapping 0..1 to a value."""
+
+    def call(self):
+        pixels = np.concatenate([
+            full_on(self.color, 64)
+            for offsets in self.arm_config.offsets
+            for offset in offsets
+        ]) * self.mult
+
+        length = len(self.arm_config.offsets)
+        dist = np.concatenate([
+            np.tile(np.concatenate([
+                np.linspace(meter, meter + 1, 60) / length,
+                [0.0] * 4,
+            ]), len(offsets))
+            for meter, offsets in enumerate(
+                self.arm_config.offsets)
+        ])
+        return np.array([
+            pixel * self.func(d)
+            for d, pixel in zip(dist, pixels)
+        ])
 
 
-def linear(dist, signals=None):
-	return dist
+class ArmRing(L.Signal):
 
+    def init(self, arm_config, value, color, width):
+        """value : where the ring is (0..1)"""
 
-class ArmGradient(ArmFullOn):
-	def __init__(self, arm_config, color, func=linear, mult=1):
-		"""Func is a scalar function mapping 0..1 to a value."""
-		super().__init__(arm_config, color, mult)
-		self.func = func
-	def __call__(self, signals):
-		pixels = super().__call__(signals)
-		dist = np.concatenate([
-			np.tile(np.concatenate([
-				np.linspace(meter, meter + 1, 60) / len(self.arm_config.offsets),
-				[0.0] * 4,
-			]), len(offsets))
-			for meter, offsets in enumerate(
-				self.arm_config.offsets)
-		])
-		return np.array([
-			pixel * self.func(d, signals=signals)
-			for d, pixel in zip(dist, pixels)
-		])
-
-
-class ArmRing(Animation):
-	def __init__(self, arm_config, value, color, width, func=linear):
-		"""value : where the ring is (0..1)"""
-		self.arm_config = arm_config
-		self.value = value
-		self.color = or_const(color)
-		self.width = or_const(width)
-		self.func = func
-
-	def __call__(self, signals):
-		pixels = np.concatenate([
-			full_on(self.color(signals), 64)
-			for offsets in self.arm_config.offsets
-			for offset in offsets
-		])
-		dist = np.concatenate([
-			np.tile(np.concatenate([
-				np.linspace(meter, meter + 1, 60) / len(self.arm_config.offsets),
-				[0.0] * 4,
-			]), len(offsets))
-			for meter, offsets in enumerate(
-				self.arm_config.offsets)
-		])
-		value = self.value(signals)
-		return np.array([
-			pixel * (np.abs(self.func(value, signals=signals) - d) < self.width(signals)/2)
-			for d, pixel in zip(dist, pixels)
-		])
+    def call(self):
+        pixels = np.concatenate([
+            full_on(self.color, 64)
+            for offsets in self.arm_config.offsets
+            for offset in offsets
+        ])
+        length = len(self.arm_config.offsets)
+        dist = np.concatenate([
+            np.tile(np.concatenate([
+                np.linspace(meter, meter + 1, 60) / length,
+                [0.0] * 4,
+            ]), len(offsets))
+            for meter, offsets in enumerate(
+                self.arm_config.offsets)
+        ])
+        return np.array([
+            pixel * (np.abs(self.value - d) < self.width / 2)
+            for d, pixel in zip(dist, pixels)
+        ])

@@ -19,7 +19,15 @@ Synoposis:
   print(values['a'])
 """
 
-import inspect
+import inspect, random
+
+# utils
+###############################################################################
+
+
+def rnd(minmax):
+    return minmax[0] + random.random() * (
+        minmax[1] - minmax[0])
 
 # Base classes
 ###############################################################################
