@@ -16,11 +16,6 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--debug', type=bool, default=False,
                     help='Whether debug output should be generated.')
 
-parser.add_argument('--overdrive_threshold', type=float, default=.02,
-                    help='Consider overdrive if avg(is_overdrive)>threshold.')
-parser.add_argument('--alive_secs', type=float, default=10.,
-                    help='How often to store "{}".'.format(ALIVE_PATH))
-
 parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR,
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
@@ -30,6 +25,9 @@ parser.add_argument('--reset_secs', type=int, default=0,
                     'is HARD RESET every this many seconds. This was observed '
                     'to avoid delay creep on certain configurations '
                     '(especially after the system is unfrozen).')
+
+parser.add_argument('--monitor_address', type=str, default=settings.address,
+                    help='IP address to which to send monitor UDP data.')
 
 args = parser.parse_args()
 
@@ -166,7 +164,7 @@ def get_signals(feats, signalin, state):
 def send_signals(data):
     msg = util.pythonize(data)
     msg = json.dumps(msg).encode('utf8')
-    sock.sendto(msg, (settings.address, settings.monitor_port))
+    sock.sendto(msg, (args.monitor_address, settings.monitor_port))
     sock.sendto(msg, (settings.address, settings.player_port))
     sock.sendto(msg, (settings.address, settings.player2_port))
     sock.sendto(msg, (settings.address, settings.fadecandy_port))
@@ -222,8 +220,8 @@ while running:
     feats = input_streamer.get(signals)
     i += 1
 
-    if args.alive_secs and (
-            i - last_alive) * settings.hop_secs > args.alive_secs:
+    if settings.alive_secs and (
+            i - last_alive) * settings.hop_secs > settings.alive_secs:
         stats['ts'] = timestamp()
         stats['i'] = i
         stats['i_o'] = i_o

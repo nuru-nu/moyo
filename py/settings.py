@@ -53,6 +53,8 @@ upper_edge_hertz = 7500
 num_mel_bins2 = 256
 f2hz2 = rate / num_mel_bins2 / np.pi
 
+alive_secs = 10
+
 
 def to_string():
     return (
@@ -68,6 +70,7 @@ def to_string():
 
 
 address = 'localhost'
+monitor_listen_address = '0.0.0.0'
 monitor_port = 6100
 signalin_port = 6101
 lighter_port = 6102

@@ -21,8 +21,6 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--debug', type=bool, default=False,
                     help='Whether debug output should be generated.')
 
-parser.add_argument('--listen_address', type=str, default=settings.address,
-                    help='Which address to listen on.')
 parser.add_argument('--port', type=int, default=settings.monitor_port,
                     help='Which port to listen on.')
 
@@ -183,7 +181,7 @@ class Monitor:
         self.sock.settimeout(0)
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind((args.listen_address, args.port))
+        self.sock.bind((settings.monitor_listen_address, args.port))
 
         self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.signalin_address = (settings.address, settings.signalin_port)
