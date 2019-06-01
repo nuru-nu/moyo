@@ -47,8 +47,10 @@ class Signal:
         self.wants = inspect.getfullargspec(self.call).args[1:]
         self.params = params.keys()
         if hasattr(self, 'init'):
+            names = inspect.getfullargspec(self.init).args[1:]
+            defaults = inspect.getfullargspec(self.init).defaults[1:]
+            params.update(zip(names[::-1], defaults[::-1]))
             if args:
-                names = inspect.getfullargspec(self.init).args[1:]
                 params.update(zip(names, args))
             self.init(**params)
         for k, v in params.items():
