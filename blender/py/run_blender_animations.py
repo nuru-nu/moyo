@@ -90,12 +90,12 @@ def run(cont):
 	except io.BlockingIOError as e:
 		pass
 
-	sphere_pixels = hp.animations.sphere(signals)
+	sphere_pixels = hp.animations.sphere(**signals)['value']
 
 	set_pixels(sphere_pixels, 'pixel_', 1)
 
 	for arm_config, arm in zip(settings.blender_arm_configs, hp.animations.arms):
-		arm_pixels = arm(signals)
+		arm_pixels = arm(**signals)['value']
 		i = 0
 		for offsets in arm_config.offsets:
 			for offset in offsets:
