@@ -21,6 +21,16 @@ def rand_stable(s):
         '<L', hashlib.md5(s.encode('utf8')).digest()[:4])[0] / 2.0**32
 
 
+def load_wav(path):
+    sr, data = scipy.io.wavfile.read(path)
+    data = util.int16_to_float(data)
+    if sr == settings.rate:
+        return data
+    else:
+        print('ignoring "{}" : rate {}!={}'.format(
+            path, sr, settings.rate))
+
+
 class ValueByColumn:
     """Makes dataframe's row's values autocomplete-accessible by their col."""
 
@@ -34,6 +44,8 @@ class ValueByColumn:
         return self.row[col]
 
     def __getattr__(self, col):
+        if col == 'wav' and self.row[col] is None:
+            return load_wav(self.row['path'])
         return self.row[col]
 
     def play(self, start=0, stop=None, plot=False):
@@ -41,6 +53,18 @@ class ValueByColumn:
         if stop:
             wav = wav[:int(settings.rate * (stop - start))]
         audio.playback(wav)
+
+    def __repr__(self):
+        if settings.is_interactive:
+            from IPython.display import Audio, display
+            from matplotlib import pyplot as plt
+            fig, axs = plt.subplots(2, 1, figsize=(12, 8))
+            axs[0].plot(self.wav)
+            util.plot_logmel(self.row['logmel'], ax=axs[1])
+            plt.show()
+            display(Audio(filename=self.row['path']))
+        return '{}(path={})'.format(self.__class__.__name__,
+                                    self.row['path'])
 
 
 class RowByIndex:
@@ -167,13 +191,7 @@ class ABase:
         return self.__str__()
 
     def wav(self, name):
-        sr, data = scipy.io.wavfile.read(self.df.loc[name, 'path'])
-        data = util.int16_to_float(data)
-        if sr == settings.rate:
-            return data
-        else:
-            print('ignoring "{}" : rate {}!={}'.format(
-                name, sr, settings.rate))
+        return load_wav(self.df.loc[name, 'path'])
 
     def transform(self, col, transformer, progress_secs=5., write=True):
         data, index = [], []

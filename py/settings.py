@@ -8,6 +8,8 @@ import pyaudio
 
 is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
 is_blender = 'blenderplayer' in sys.argv[0]
+import __main__ as main  # noqa
+is_interactive = not hasattr(main, '__file__')
 
 # audio
 ###############################################################################
