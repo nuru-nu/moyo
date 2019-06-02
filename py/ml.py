@@ -33,6 +33,7 @@ class KerasDetector(L.Signal):
         'none': lambda x: x,
         'wp_5_5': WithPrevious(n=5, d=5),
         'wp_10_10': WithPrevious(n=10, d=10),
+        'wp_20_20': WithPrevious(n=20, d=20),
         'wp_20_50': WithPrevious(n=20, d=50),
     }
 
