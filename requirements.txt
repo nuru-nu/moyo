@@ -51,11 +51,13 @@ prompt-toolkit==2.0.9
 protobuf==3.7.1
 ptyprocess==0.6.0
 PyAudio==0.2.11
+PyCmdMessenger==0.2.4
 pycodestyle==2.5.0
 pyflakes==2.1.1
 Pygments==2.3.1
 pyparsing==2.3.1
 pyrsistent==0.14.11
+pyserial==3.4
 python-dateutil==2.8.0
 pytz==2019.1
 pyzmq==18.0.1
