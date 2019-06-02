@@ -90,7 +90,9 @@ class Signal:
             assert not hasattr(self, k), 'hasattr({}, {})'.format(
                 self.__class__.__name__, k)
             setattr(self, k, v)
-            if isinstance(v, Signal):
+            if hasattr(v, 'call') or isinstance(v, SignalChain):
+            # WTF
+            # if isinstance(v, Signal):
                 self.signalparams[k] = v
 
     def __or__(self, other):
