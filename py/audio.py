@@ -137,7 +137,6 @@ def make_ai(names, output=2, **kw):
     for name in names:
         device_index = AudioInterface.get_index(name)
         if device_index is not None:
-            print('XXX', name)
             return AudioInterface(output=output, device_index=device_index, **kw)
 
 
