@@ -111,7 +111,8 @@ def get_model_path(model_name):
 ###############################################################################
 
 
-sphere_channel = 1
+sphere_channel1 = 1
+sphere_channel2 = 3
 sphere_pixels = 600
 
 SphereStrip = collections.namedtuple('SphereStrip', [

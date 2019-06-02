@@ -7,7 +7,10 @@ import numpy as np
 import logic as L, pixel_functions as pf, settings, util
 
 
-mapping = settings.load_mapping()
+if settings.is_blender:
+    mapping = settings.load_mapping()
+else:
+    mapping = settings.generate_mapping()
 
 
 # utils
@@ -17,6 +20,9 @@ mapping = settings.load_mapping()
 def full_on(color, nr_pixels):
     return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
+
+def linear(x):
+    return x
 
 # state related
 ###############################################################################
@@ -84,6 +90,20 @@ class HSV(L.Signal):
             self.value)
 
 
+class Palette:
+    """Generates array of colors with precomputed interpolated palette."""
+
+    def __init__(self, colors, n=256):
+        self.n = n
+        xs = np.linspace(0, 1, n)
+        self.lookup = np.array([
+            np.interp(xs, [c.index for c in colors], [c.color[i] for c in colors])
+            for i in range(3)
+        ]).T
+    def __call__(self, values):
+        return self.lookup[(np.clip(values, 0, 1) * (self.n - 1)).astype(int)]
+
+
 class ColorPalette(L.Signal):
     def init(self, colors, n=256):
         xs = np.linspace(0, 1, n)
@@ -104,7 +124,7 @@ class FullOn(L.Signal):
         pass
 
     def call(self):
-        return full_on(self.color, settings.sphere_pixels)
+        return full_on(self.color, len(mapping))
 
 # animation combiners
 ###############################################################################
@@ -150,6 +170,30 @@ class PhiRing(L.Signal):
             width=self.width,
             color=self.color,
         )
+
+
+class ThetaPalette(L.Signal):
+    """Computes palette along theta."""
+
+    def init(self, palette, shift=0, mult=1, func=linear):
+        """Computes palette[func(shift + theta/(pi/2) * mult)]."""
+        global mapping
+        self.dists = mapping[:, 1] / (np.pi / 2)
+
+    def call(self):
+        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+
+
+class PhiPalette(L.Signal):
+    """Computes palette along phi."""
+
+    def init(self, palette, shift=0, mult=1, func=linear):
+        """Computes palette[func(shift + theta/(pi/2) * mult)]."""
+        global mapping
+        self.dists = mapping[:, 0] / (np.pi * 2)
+
+    def call(self):
+        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
 
 # gaussians
 ###############################################################################
@@ -261,3 +305,20 @@ class ArmRing(L.Signal):
             pixel * (np.abs(self.value - d) < self.width / 2)
             for d, pixel in zip(dist, pixels)
         ])
+
+
+class ArmPalette(L.Signal):
+    """Computes palette along arm."""
+
+    def init(self, arm_config, palette, shift=0, mult=1, func=linear):
+        length = len(arm_config.offsets)
+        self.dists = np.concatenate([
+            np.tile(np.concatenate([
+                np.linspace(meter, meter + 1, 60) / length,
+                [0.0] * 4,
+            ]), len(offsets))
+            for meter, offsets in enumerate(arm_config.offsets)
+        ])
+
+    def call(self):
+        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))

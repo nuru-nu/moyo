@@ -60,7 +60,8 @@ while True:
 	# pixels = hp.animations.animation(signals)
 
 	sphere_pixels = hp.animations.sphere(**signals)['value']
-	client.put_pixels(sphere_pixels*255, channel=settings.sphere_channel)
+	client.put_pixels(sphere_pixels[:512]*255, channel=settings.sphere_channel1)
+	client.put_pixels(sphere_pixels[512:]*255, channel=settings.sphere_channel2)
 
 	for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
 		arm_pixels = arm(**signals)['value']
