@@ -67,6 +67,7 @@ def get_data():
     )
 
     return dict(
+        additional_monitor_address=('localhost', 6999),
         microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

@@ -20,14 +20,14 @@ parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR,
                     help='Where to store recorded .json/.wav files. '
                     'Empty string disables storing of audio.')
 
+parser.add_argument('--channels', type=int, default=settings.in_channels,
+                    help='How many input channels to use.')
+
 parser.add_argument('--reset_secs', type=int, default=0,
                     help='If this parameter is >0, then the audio interface '
                     'is HARD RESET every this many seconds. This was observed '
                     'to avoid delay creep on certain configurations '
                     '(especially after the system is unfrozen).')
-
-parser.add_argument('--monitor_address', type=str, default=settings.address,
-                    help='IP address to which to send monitor UDP data.')
 
 args = parser.parse_args()
 
@@ -86,7 +86,7 @@ class InputStreamer(object):
         data = self.audio_interface.input_stream.read(
             samples, exception_on_overflow=False)
         data16 = np.frombuffer(data, settings.dtype_np)
-        if settings.in_channels == 2:
+        if args.channels == 2:
             data16l, data16r = audio.fromstereo(data16)
             data16 = data16l - data16r
         data = util.int16_to_float(data16)
@@ -167,7 +167,10 @@ def get_signals(feats, signalin, state):
 def send_signals(data):
     msg = util.pythonize(data)
     msg = json.dumps(msg).encode('utf8')
-    sock.sendto(msg, (args.monitor_address, settings.monitor_port))
+    monitor_address = hp.signals.additional_monitor_address
+    if monitor_address:
+        sock.sendto(msg, monitor_address)
+    sock.sendto(msg, (settings.address, settings.monitor_port))
     sock.sendto(msg, (settings.address, settings.player_port))
     sock.sendto(msg, (settings.address, settings.player2_port))
     sock.sendto(msg, (settings.address, settings.fadecandy_port))
@@ -187,8 +190,8 @@ if os.path.exists(ALIVE_PATH):
     os.rename(ALIVE_PATH, dst)
 
 logger.info('Start recording.')
-logger.info('Using in_channels={}'.format(settings.in_channels))
-ai0 = audio.AudioInterface(input=settings.in_channels)
+logger.info('Using in_channels={}'.format(args.channels))
+ai0 = audio.AudioInterface(input=args.channels)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 

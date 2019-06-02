@@ -83,7 +83,9 @@ class Graphs:
     """Updates two axes with incoming data."""
 
     _PRESETS = dict(
-        initial=('loud', 'tf2', 'left_drone', 'right_drone'),
+        initial=('loud', 'ooo', 'ooo_intensity', 'left_drone', 'right_drone'),
+        tf=('loud', 'tf', 'tf2', 'tf3'),
+        freqs=('loud', 'low', 'medium', 'high'),
     )
 
     def __init__(self, steps, controls, ax1, ax2, ax1sel=(),
