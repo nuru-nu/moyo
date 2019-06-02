@@ -92,7 +92,7 @@ class ColorPalette(L.Signal):
             for i in range(3)
         ]).T
     def call(self, value):
-        return self.lookup[int(np.clip(value, 0, 1)* self.n), :]
+        return self.lookup[int(np.clip(value, 0, 1) * (self.n - 1)), :]
 
 
 # simple animations

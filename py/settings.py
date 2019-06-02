@@ -113,6 +113,67 @@ def get_model_path(model_name):
 
 sphere_channel = 1
 sphere_pixels = 600
+
+SphereStrip = collections.namedtuple('SphereStrip', [
+    # Number of LEDs that would fit between the first LED of the stripe
+    # and the theta=0 point.
+    'led0',
+    # Number (1-based) of the LED that is at the theta=pi/2 point.
+    'led1',
+    # Number of LEDs after `led1` before going back.
+    'border_leds',
+])
+
+sphere_strips = [
+    SphereStrip(2, 30, 3),  # 0
+    SphereStrip(1, 31, 2),  # 1
+    SphereStrip(1, 31, 2),  # 2
+    SphereStrip(0, 32, 2),  # 3
+    SphereStrip(2, 30, 2),  # 4
+    SphereStrip(2, 30, 2),  # 5
+    SphereStrip(0, 32, 2),  # 6
+    SphereStrip(2, 30, 2),  # 7
+    SphereStrip(0, 32, 2),  # 8
+    SphereStrip(0, 32, 2),  # 9
+    SphereStrip(3, 29, 2),  # A
+    SphereStrip(3, 29, 2),  # B
+    SphereStrip(1, 31, 2),  # C
+    SphereStrip(3, 29, 2),  # D
+    SphereStrip(1, 31, 2),  # E
+    SphereStrip(2, 30, 2),  # F
+]
+
+
+def generate_mapping(phi0=0):
+    global sphere_strips
+    mapping = np.zeros((64 * len(sphere_strips), 2))
+    dphi = 2 * np.pi / len(sphere_strips)
+    for led, sphere_strip in enumerate(sphere_strips):
+        dtheta = np.pi / 2 / (sphere_strip.led0 + sphere_strip.led1)
+        phi1 = phi0 + led * dphi
+        phi2 = phi1 + dphi / 2
+        sphere_strip_mapping = []
+        # going outward
+        values = [
+            [phi1, i * dtheta]
+            for i in range(sphere_strip.led0,
+                           sphere_strip.led0 + sphere_strip.led1)
+        ]
+        # border
+        values += [
+            [phi1 + i * dphi / 2 / sphere_strip.border_leds, np.pi / 2]
+            for i in range(sphere_strip.border_leds)
+        ]
+        # going inward
+        values += [
+            [phi2, np.pi / 2 - i * dtheta]
+            for i in range(0, 60 - sphere_strip.led1 - sphere_strip.border_leds)
+        ]
+        assert len(values) == 60, len(values)
+        mapping[led * 64: led * 64 + 60, :] = np.array(values)
+    return mapping
+
+
 ArmConfig = collections.namedtuple('ArmConfig', [
     # the fade candy channel
     'channel',
@@ -152,6 +213,8 @@ def load_mapping():
             # phi: -pi - pi, theta 0 - pi
             mapping[idx - 1] = np.array([phi, theta])
     return mapping
+
+
 
 # Arduino
 ###############################################################################
