@@ -152,3 +152,13 @@ def load_mapping():
             # phi: -pi - pi, theta 0 - pi
             mapping[idx - 1] = np.array([phi, theta])
     return mapping
+
+# Arduino
+###############################################################################
+
+
+arduino_ports = [
+    "/dev/ttyACM0",
+    "/dev/ttyACM1",
+]
+sonar_hz = 2

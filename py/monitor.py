@@ -11,7 +11,7 @@ from tkinter import ttk
 from matplotlib import animation
 import numpy as np
 
-import settings, util
+import network, settings, util
 
 
 matplotlib.use("TkAgg")
@@ -185,8 +185,7 @@ class Monitor:
         # self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((settings.monitor_listen_address, args.port))
 
-        self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.signalin_address = (settings.address, settings.signalin_port)
+        self.signalin_sender = network.SignalinSender(logger)
 
         self.steps = 200
         self.logmel = np.zeros((self.steps, settings.num_mel_bins))
@@ -239,7 +238,7 @@ class Monitor:
         ttk.Label(state_buttons, textvariable=self.state).pack(side=tk.LEFT)
         for i, state in enumerate(('test', 'std', 'ooo', 'flash', 'dark')):
             text = '<{}> {}'.format(i, state)
-            command = functools.partial(self.send, dict(newstate=state))
+            command = functools.partial(self.signalin_sender.send, dict(newstate=state))
             button = ttk.Button(state_buttons, text=text, command=command)
             self.root.bind(str(i), lambda _: command)
             button.pack(side=tk.LEFT)
@@ -260,7 +259,7 @@ class Monitor:
         ttk.Combobox(recording_frame, values=values,
                      textvariable=self.play).pack(side=tk.LEFT)
         ttk.Button(recording_frame, text='play',
-                   command=lambda: self.send(dict(play=self.play.get()))
+                   command=lambda: self.signalin_sender.send(dict(play=self.play.get()))
                    ).pack(side=tk.LEFT)
 
         top_labels = ttk.Frame(top)
@@ -318,14 +317,14 @@ class Monitor:
                 self.recording_entry.set('{}_stop'.format(name))
 
     def update_logmel(self):
-        self.send(dict(logmel_src=self.logmel_src.get()))
+        self.signalin_sender.send(dict(logmel_src=self.logmel_src.get()))
 
     def freeze(self):
         self.frozen = 1 - self.frozen
         self.update_freeze()
 
     def update_freeze(self):
-        self.send(dict(newstate='frozen' if self.frozen else 'std'))
+        self.signalin_sender.send(dict(newstate='frozen' if self.frozen else 'std'))
         if self.frozen:
             self.ani.event_source.stop()
             self.freeze_button.configure(text='unfreeze')
@@ -343,11 +342,6 @@ class Monitor:
         with open(path, 'wb') as f:
             pickle.dump(self.logmel, f)
         logger.info('stored logmel to "{}"'.format(path))
-
-    def send(self, d):
-        logger.info('sending {}'.format(d))
-        msg = json.dumps(d).encode('utf8')
-        self.signalin_sock.sendto(msg, self.signalin_address)
 
     def anim(self, *args):
         while self.recv():

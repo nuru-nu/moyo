@@ -18,14 +18,6 @@ def full_on(color, nr_pixels):
     return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
 
 
-class Noop(L.Signal):
-    def init(self, dt=0):
-        self.logger = util.PrintEvery(dt)
-
-    def call(self, value):
-        self.logger('Noop: value={}'.format(value))
-        return value
-
 # state related
 ###############################################################################
 

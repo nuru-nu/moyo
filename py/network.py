@@ -6,6 +6,20 @@ import perf, settings, state, util
 logger = util.NoLogger()
 
 
+class SignalinSender:
+    """Sends messages to recorder2's signalin port."""
+
+    def __init__(self, logger=util.NoLogger()):
+        self.logger = logger
+        self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.signalin_address = (settings.address, settings.signalin_port)
+
+    def send(self, d):
+        self.logger.info('sending {}'.format(d))
+        msg = json.dumps(d).encode('utf8')
+        self.signalin_sock.sendto(msg, self.signalin_address)
+
+
 def create_udp_socket(port, timeout=0, address=settings.address):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(timeout)

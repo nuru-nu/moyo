@@ -12,11 +12,11 @@ FileModules = collections.namedtuple('FileModules', ['files', 'modules'])
 _MODULES = dict(
     effects=FileModules(['hotplug_effects.py', 'effects.py'],
                         ['effects', 'hotplug_effects']),
-    animations=FileModules(['hotplug_animations.py', 'animations.py', 'pixel_functions.py'],
-                           ['pixel_functions', 'animations',
+    animations=FileModules(['hotplug_animations.py', 'animations.py', 'pixel_functions.py', 'signals.py', 'logic.py'],
+                           ['pixel_functions', 'animations', 'signals', 'logic',
                             'hotplug_animations']),
-    signals=FileModules(['hotplug_signals.py', 'signals.py'],
-                        ['signals', 'hotplug_signals']),
+    signals=FileModules(['hotplug_signals.py', 'signals.py', 'logic.py'],
+                        ['logic', 'signals', 'hotplug_signals']),
 )
 
 

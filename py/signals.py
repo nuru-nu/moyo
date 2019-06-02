@@ -3,7 +3,7 @@
 # import aubio
 import numpy as np
 
-import logic as L, settings
+import logic as L, settings, util
 
 
 # state
@@ -95,6 +95,35 @@ class RndRamp(L.Signal):
             return 1.
         return 1 - (t - self.t2) / (self.t3 - self.t2)
 
+
+class Sonar(L.Signal):
+    """Normalized sonar distance signal, ignores invalid."""
+
+    def init(self, max_sonar=50):
+        self.last_sonar = 0
+
+    def call(self, signalin):
+        sonar = signalin.get('sonar', 0)
+        if sonar > 0:
+            self.last_sonar = sonar
+        return min(self.max_sonar, self.last_sonar) / self.max_sonar
+
+
+class SonarGood(L.Signal):
+    """Fraction of non-invalid sonar signals in sliding time window."""
+
+    def init(self, time_window_secs=3):
+        self.t_good_sonar = []
+
+    def call(self, t, signalin):
+        sonar = signalin.get('sonar', 0)
+        if sonar > 0:
+            self.t_good_sonar.append((t, sonar))
+        while len(self.t_good_sonar) and (
+            self.t_good_sonar[0][0] < t - self.time_window_secs):
+            del self.t_good_sonar[0]
+        return min(1.0, len(self.t_good_sonar) / (
+            self.time_window_secs * settings.sonar_hz))
 
 # features.wav
 ###############################################################################
@@ -202,6 +231,15 @@ class FreqBand(L.Signal):
 
 # value -> value
 ###############################################################################
+
+
+class Noop(L.Signal):
+    def init(self, dt=0):
+        self.logger = util.PrintEvery(dt)
+
+    def call(self, value):
+        self.logger('Noop: value={}'.format(value))
+        return value
 
 
 class SinT(L.Signal):
