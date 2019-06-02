@@ -12,7 +12,25 @@ arm_configs = (
 )
 
 ooo_hue = S.SinT(hz=L.Named('ooo_intensity')
-                 | S.Lin(shift=0.1, mult=1)) | S.Lin(shift=0.5, mult=0.5)
+                 | S.Lin(shift=0.05, mult=0.5)) | S.Lin(shift=0.5, mult=0.5)
+
+# https://coolors.co/ffffff-ea7af4-b43e8f-6200b3-8451ad
+blueish_palette = A.parse_colors_co_scss('''
+$color1: rgba(255, 255, 255, 1);
+$color2: rgba(234, 122, 244, 1);
+$color3: rgba(180, 62, 143, 1);
+$color4: rgba(98, 0, 179, 1);
+$color5: rgba(132, 81, 173, 1);
+''')
+
+ooo_color = A.HSV(
+            # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.5, mult=0.5),
+            hue=ooo_hue,
+            # hue=A.OooHue(),
+            value=L.Named("loud"),
+        )
+ooo_color = ooo_hue | A.ColorPalette(colors=blueish_palette) | S.Lin(mult=L.Named('loud'))
+
 
 
 def two_rings():
@@ -51,12 +69,7 @@ def get_sphere():
 
     return A.Mixer(dict(
         std=stereo_drone_sphere(),
-        ooo=A.FullOn(color=A.HSV(
-            # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.5, mult=0.5),
-            hue=ooo_hue,
-            # hue=A.OooHue(),
-            value=L.Named("loud"),
-        )),
+        ooo=A.FullOn(color=ooo_color),
         test=A.Add(
             A.PhiRing(
                 width=np.pi / 10,
@@ -91,12 +104,7 @@ def get_arm(arm_config, i):
 
         ooo=A.ArmGradient(
             arm_config,
-            color=A.HSV(
-                # hue=S.SinT(hz=0.2) | S.Lin(shift=0.5, mult=0.5),
-                # hue=A.OooHue(),
-                hue=ooo_hue,
-                value=L.Named("loud"),
-            ),
+            color=ooo_color,
             func=lambda x: (1 - x)**2,
         ),
         test=A.Add(
@@ -122,7 +130,9 @@ def get_arm(arm_config, i):
         flash=A.ArmGradient(
             arm_config,
             color=A.HSV(
-                value=S.SinT(hz=4) | S.Lin(shift=0.5, mult=0.5),
+                value=S.SinT(
+                    hz=L.Named('loud') | S.Lin(shift=0, mult=8)
+                ) | S.Lin(shift=0.5, mult=0.5),
                 saturation=0,
             ),
         ),

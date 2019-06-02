@@ -1,5 +1,5 @@
 
-import time
+import collections, time
 
 import colorsys
 import numpy as np
@@ -66,6 +66,21 @@ class RGB(L.Signal):
         return [self.r, self.g, self.b]
 
 
+ColorPoint = collections.namedtuple('ColorPoint', ['index', 'color'])
+
+
+def parse_colors_co_scss(scss):
+    rgbs = [
+        [float(v) / 256 for v in line[line.index('(')+1:line.index(')')].split(', ')[:3]]
+        for line in scss.split('\n')
+        if line
+    ]
+    return [
+        ColorPoint(i / len(rgbs), rgb)
+        for i, rgb in enumerate (rgbs)
+    ]
+
+
 class HSV(L.Signal):
     def init(self, hue=1, saturation=1, value=1):
         pass
@@ -75,6 +90,18 @@ class HSV(L.Signal):
             self.hue,
             self.saturation,
             self.value)
+
+
+class ColorPalette(L.Signal):
+    def init(self, colors, n=256):
+        xs = np.linspace(0, 1, n)
+        self.lookup = np.array([
+            np.interp(xs, [c.index for c in colors], [c.color[i] for c in colors])
+            for i in range(3)
+        ]).T
+    def call(self, value):
+        return self.lookup[int(np.clip(value, 0, 1)* self.n), :]
+
 
 # simple animations
 ###############################################################################
@@ -193,7 +220,7 @@ class ArmFullOn(L.Signal):
 
 class ArmGradient(L.Signal):
 
-    def init(self, arm_config, color, func=lambda x: x, mult=1):
+    def init(self, arm_config, color, func=lambda x: 1 - x, mult=1):
         """Func is a scalar function mapping 0..1 to a value."""
 
     def call(self):
