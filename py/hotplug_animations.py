@@ -92,8 +92,8 @@ def get_sphere():
     return A.Mixer(dict(
         std=stereo_drone_sphere(),
         std2=A.ThetaPalette(
-            shift=0,
-            mult=1,
+            shift=L.Named('std2'),
+            mult=-1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
             palette=A.Palette(brownish_palette),
         ) | S.Lin(mult=0.5),
@@ -145,24 +145,23 @@ def get_arm(arm_config, i):
             #     signals.get('right_drone' if i else 'left_drone', 0))),
             mult=L.Named('right_drone' if i else 'left_drone'),
         ) | A.RedToPalette(black_violet),
-        std2=A.ArmGradient(
+        std2=A.ArmPalette(
             arm_config,
-            color=[1, 0, 1],
-            func=lambda x: (1 - x)**4,
-            # func=lambda x, signals=None: 1*(x < (
-            #     signals.get('right_drone' if i else 'left_drone', 0))),
-            mult=L.Named('right_drone' if i else 'left_drone'),
-        ) | A.RedToPalette(black_violet),
+            mult=-1,
+            shift=L.Named('std2'),
+            palette=A.Palette(brownish_palette),
+        ) | A.ArmByDist(arm_config, func=lambda x: 1 - x),
         ooo=A.ArmGradient(
             arm_config,
             color=ooo_color,
             func=lambda x: (1 - x)**2,
         ),
-        test=A.ArmPalette(
-            arm_config,
-            shift=L.Named('ring1'),
-            palette=A.Palette(brownish_palette),
-        ),
+        test=A.ArmIdentify(arm_config),
+        # test=A.ArmPalette(
+        #     arm_config,
+        #     shift=L.Named('ring1'),
+        #     palette=A.Palette(brownish_palette),
+        # ),
         # test=A.Add(
         #     A.ArmRing(
         #         arm_config,

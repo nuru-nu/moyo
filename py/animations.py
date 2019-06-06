@@ -347,18 +347,56 @@ class ArmRing(L.Signal):
         ])
 
 
+def arm_dists(arm_config):
+    length = len(arm_config.offsets)
+    return np.concatenate([
+        np.tile(np.concatenate([
+            np.linspace(meter, meter + 1, 60) / length,
+            [0.0] * 4,
+        ]), len(offsets))
+        for meter, offsets in enumerate(arm_config.offsets)
+    ])
+
+
 class ArmPalette(L.Signal):
     """Computes palette along arm."""
 
     def init(self, arm_config, palette, shift=0, mult=1, func=linear):
-        length = len(arm_config.offsets)
-        self.dists = np.concatenate([
-            np.tile(np.concatenate([
-                np.linspace(meter, meter + 1, 60) / length,
-                [0.0] * 4,
-            ]), len(offsets))
-            for meter, offsets in enumerate(arm_config.offsets)
-        ])
+        self.dists = arm_dists(arm_config)
 
     def call(self):
         return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+
+
+class ArmByDist(L.Signal):
+
+    def init(self, arm_config, func):
+        dists = arm_dists(arm_config)
+        self.M = np.tile(func(dists), 3).reshape(3, -1).T
+
+    def call(self, value):
+        return value * self.M
+
+
+class ArmIdentify(L.Signal):
+    """Helper to solve mapping problems."""
+
+    _COLOR_CYCLE = [
+        (1, 0, 0),
+        (0, 1, 0),
+        (0, 0, 1),
+        (1, 0, 1),
+    ]
+
+    def init(self, arm_config):
+        values = []
+        i = 0
+        n = len(self._COLOR_CYCLE)
+        for offsets in arm_config.offsets:
+            for offset in offsets:
+                values += [self._COLOR_CYCLE[i % n]] * 64
+                i += 1
+        self.values = np.array(values)
+
+    def call(self):
+        return self.values

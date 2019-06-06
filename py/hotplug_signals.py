@@ -1,4 +1,4 @@
-import effects as E, logic as L, ml, signals as S
+import effects as E, logic as L, ml, settings, signals as S
 
 
 def get_data():
@@ -66,17 +66,14 @@ def get_data():
         ooo_intensity=(
             L.Named('ooo') | S.Ramp(up_s=0.1, down_s=0.5) | S.Clip()),
 
-        ring1=S.Saw(hz=1, dt=0),
-        ring2=S.Saw(hz=1, dt=0.5),
-        slow_sin=S.SinT(hz=0.5) | S.Lin(shift=0.5, mult=0.5),
-
-        std2=S.SinT(hz=0.5) | S.Lin(shift=0.5, mult=0.5),
+        std2=S.Saw(hz=0.5, dt=0),
+        std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 
         flash_pulse=S.TriggerPulse(state='flash', secs=1),
     )
 
     return dict(
-        additional_monitor_address=('localhost', 6999),
+        additional_monitor_address=('192.168.43.33', settings.monitor_port),
         microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )
