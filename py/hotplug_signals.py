@@ -59,7 +59,8 @@ def get_data():
         state=S.State(),
 
         left_drone=S.RndRamp([1, 5], [5, 10], [8, 8]) | S.NotInState('test'),
-        right_drone=S.RndRamp([1, 5], [5, 10], [2, 2]) | S.NotInState('test'),
+        # right_drone=S.RndRamp([1, 5], [5, 10], [2, 2]) | S.NotInState('test'),
+        right_drone=L.Constant(0.0),
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
