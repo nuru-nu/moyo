@@ -225,4 +225,4 @@ arduino_ports = [
     "/dev/ttyACM0",
     "/dev/ttyACM1",
 ]
-sonar_hz = 2
+sonar_hz = 4

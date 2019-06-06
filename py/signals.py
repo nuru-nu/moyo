@@ -21,11 +21,11 @@ class State(L.Signal):
         oldstate = state.state
         if newstate:
             state.goto(newstate)
-        elif state.state != 'std' and sonar < self.sonar_ooo:
+        elif state.state != 'std' and sonar > self.sonar_ooo:
             state.goto('std')
         elif state.state == 'test':
             return state
-        elif state.state == 'std' and sonar > self.sonar_ooo:
+        elif state.state == 'std' and sonar < self.sonar_ooo:
             state.goto('ooo')
         elif state.state == 'ooo' and ooo_intensity == 1.0:
             state.state = 'flash'
@@ -120,7 +120,7 @@ class Sonar(L.Signal):
 
     def call(self, signalin, t):
         sonar = signalin.get('sonar', 0)
-        if sonar > 0:
+        if sonar > 0.1:
             self.last_sonar = sonar
         return min(self.max_sonar, self.last_sonar) / self.max_sonar
 

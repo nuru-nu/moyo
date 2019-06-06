@@ -52,6 +52,7 @@ def get_data():
         ) * (
             L.Named('right_drone') | S.Lin(shift=-1, mult=-10) | S.Clip()
         ),
+
         sonar=S.Sonar(),
         sonar_good=S.SonarGood(),
 
