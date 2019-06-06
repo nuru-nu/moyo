@@ -86,6 +86,8 @@ class Graphs:
         initial=('loud', 'ooo', 'ooo_intensity', 'left_drone', 'right_drone'),
         tf=('loud', 'tf', 'tf2', 'tf3'),
         freqs=('loud', 'low', 'medium', 'high'),
+        all=set(),
+        none=(),
     )
 
     def __init__(self, steps, controls, ax1, ax2, ax1sel=(),
@@ -143,6 +145,7 @@ class Graphs:
         var.set(1 if key in self._PRESETS.get(self.preset.get(), ()) else 0)
         ttk.Checkbutton(self.rows[-1], text=text, variable=var).pack(
             side=tk.LEFT)
+        self._PRESETS['all'].add(key)
 
     def update(self, data):
         t = time.time()
@@ -243,6 +246,13 @@ class Monitor:
             self.root.bind(str(i), lambda _: command)
             button.pack(side=tk.LEFT)
         state_buttons.pack()
+
+        overrides = ttk.Frame(top)
+        self.overrides = tk.StringVar()
+        ttk.Label(overrides, text='overrides: ').pack(side=tk.LEFT)
+        ttk.Entry(overrides, textvariable=self.overrides).pack(side=tk.LEFT)
+        ttk.Button(overrides, text='set', command=self.override).pack(side=tk.LEFT)
+        overrides.pack()
 
         recording_frame = ttk.Frame(top)
         self.recording_entry = tk.StringVar()
@@ -368,6 +378,16 @@ class Monitor:
         # del self.ani
         self.ani.event_source.stop()
         self.root.destroy()
+
+    def override(self):
+        overrides = {}
+        for part in self.overrides.get().split(' '):
+            try:
+                k, v = part.split('=')
+                overrides[k] = float(v)
+            except ValueError:
+                logger.warn('could not parse part={}'.format(part))
+        self.signalin_sender.send(dict(overrides=overrides))
 
     def recv(self):
         try:

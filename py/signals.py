@@ -13,20 +13,20 @@ import logic as L, settings, util
 class State(L.Signal):
     """Updates the state."""
 
-    def init(self):
+    def init(self, sonar_ooo=0.5):
         self.last_change = 0
 
-    def call(self, t, state, signalin, ooo, ooo_intensity):
+    def call(self, t, state, signalin, sonar, ooo_intensity):
         newstate = signalin.get('newstate')
         oldstate = state.state
         if newstate:
             state.goto(newstate)
+        elif state.state != 'std' and sonar < self.sonar_ooo:
+            state.goto('std')
         elif state.state == 'test':
             return state
-        elif state.state == 'std' and ooo == 1.0:
+        elif state.state == 'std' and sonar > self.sonar_ooo:
             state.goto('ooo')
-        elif state.state == 'ooo' and ooo < 0.1:
-            state.state = 'std'
         elif state.state == 'ooo' and ooo_intensity == 1.0:
             state.state = 'flash'
         elif state.state == 'flash' and t - self.last_change > 10:
@@ -118,7 +118,7 @@ class Sonar(L.Signal):
     def init(self, max_sonar=50):
         self.last_sonar = 0
 
-    def call(self, signalin):
+    def call(self, signalin, t):
         sonar = signalin.get('sonar', 0)
         if sonar > 0:
             self.last_sonar = sonar

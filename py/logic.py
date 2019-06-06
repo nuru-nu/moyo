@@ -19,7 +19,7 @@ Synoposis:
   print(values['a'])
 """
 
-import inspect, random
+import inspect, random, time
 
 # utils
 ###############################################################################
@@ -233,9 +233,15 @@ class SignalRunner:
         self.signals = signals
         self.provided = provided
         self.ordered = make_order(signals, provided)
+        self.overrides = {}
 
     def __call__(self, **kw):
+        """Note that signalin['override'] is treated specially."""
+        self.overrides = kw.get('signalin', {}).get('overrides', self.overrides)
         values = dict(**kw)
         for name in self.ordered:
-            values[name] = self.signals[name](**values)['value']
+            if name in self.overrides:
+                values[name] = self.overrides[name]
+            else:
+                values[name] = self.signals[name](**values)['value']
         return values
