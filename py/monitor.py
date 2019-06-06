@@ -86,6 +86,7 @@ class Graphs:
         initial=('loud', 'ooo', 'ooo_intensity', 'left_drone', 'right_drone'),
         tf=('loud', 'tf', 'tf2', 'tf3'),
         freqs=('loud', 'low', 'medium', 'high'),
+        debug=('snoar', 'sonar_good'),
         all=set(),
         none=(),
     )
@@ -250,7 +251,9 @@ class Monitor:
         overrides = ttk.Frame(top)
         self.overrides = tk.StringVar()
         ttk.Label(overrides, text='overrides: ').pack(side=tk.LEFT)
-        ttk.Entry(overrides, textvariable=self.overrides).pack(side=tk.LEFT)
+        entry = ttk.Entry(overrides, textvariable=self.overrides)
+        entry.pack(side=tk.LEFT)
+        entry.bind('<Return>', self.override)
         ttk.Button(overrides, text='set', command=self.override).pack(side=tk.LEFT)
         overrides.pack()
 
@@ -379,7 +382,7 @@ class Monitor:
         self.ani.event_source.stop()
         self.root.destroy()
 
-    def override(self):
+    def override(self, *_):
         overrides = {}
         for part in self.overrides.get().split(' '):
             try:
