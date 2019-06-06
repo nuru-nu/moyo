@@ -112,7 +112,7 @@ def get_model_path(model_name):
 
 
 sphere_channel1 = 1
-sphere_channel2 = 3
+sphere_channel2 = 2
 sphere_pixels = 600
 
 SphereStrip = collections.namedtuple('SphereStrip', [
@@ -185,8 +185,8 @@ ArmConfig = collections.namedtuple('ArmConfig', [
     # matches phi of sphere
     'phi'])
 arm_configs = [
-    ArmConfig(2, [[0, 64]], np.pi + np.pi * 3 / 4),
-    ArmConfig(2, [[128, 192], [256, 320]], 0),
+    ArmConfig(3, [[0, 64]], np.pi + np.pi * 3 / 4),
+    ArmConfig(3, [[128, 192], [256, 320]], 0),
 ]
 
 blender_arm_configs = [
