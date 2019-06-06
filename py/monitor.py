@@ -240,7 +240,7 @@ class Monitor:
         self.state = tk.StringVar()
         self.state.set('...')
         ttk.Label(state_buttons, textvariable=self.state).pack(side=tk.LEFT)
-        for i, state in enumerate(('test', 'std', 'ooo', 'flash', 'dark')):
+        for i, state in enumerate(('test', 'std', 'std2', 'ooo', 'ooo2', 'flash', 'dark')):
             text = '<{}> {}'.format(i, state)
             command = functools.partial(self.signalin_sender.send, dict(newstate=state))
             button = ttk.Button(state_buttons, text=text, command=command)

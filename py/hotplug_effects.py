@@ -34,8 +34,10 @@ def get_data():
             # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
             # E.SilenceOrPlaying(),
 
-            E.RndPlay(gs1('single-string'), 'right_drone') | E.Compressor(300),
-            E.RndPlay(gs1('single-string'), 'left_drone') | E.Compressor(160),
+            E.RndPlay(gs1('haunting'), 'left_drone'),
+            E.RndPlay(gs1('haunting'), 'right_drone'),
+            # E.Silence(),
+            # E.RndPlay(gs1('synthy'), 'left_drone'),
 
             # E.RndPlay(gs1('muffled-thunderstorm'), 'right_drone') | E.Compressor(30),
             # E.RndPlay(gs1('muffled-thunderstorm'), 'left_drone') | E.Compressor(50),

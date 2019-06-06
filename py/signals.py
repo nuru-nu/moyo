@@ -1,5 +1,7 @@
 """Signals transform sound to scalars."""
 
+import random
+
 # import aubio
 import numpy as np
 
@@ -23,11 +25,11 @@ class State(L.Signal):
             state.goto(newstate)
         elif state.state == 'test':
             pass
-        elif state.state != 'std' and sonar > self.sonar_ooo:
-            state.goto('std')
+        elif not state.state.startswith('std') and sonar > self.sonar_ooo:
+            state.goto(random.choice(['std', 'std2']))
         elif state.state == 'test':
             return state
-        elif state.state == 'std' and sonar < self.sonar_ooo:
+        elif state.state.startswith('std') and sonar < self.sonar_ooo:
             state.goto('ooo')
         elif state.state == 'ooo' and ooo_intensity == 1.0:
             state.state = 'flash'
@@ -291,7 +293,7 @@ class Lin(L.Signal):
         pass
 
     def call(self, value):
-        return self.mult * (value + self.shift)
+        return self.mult * value + self.shift
 
 
 class Limiter(L.SignalLast):

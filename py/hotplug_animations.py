@@ -12,7 +12,7 @@ arm_configs = (
 )
 
 ooo_hue = S.SinT(hz=L.Named('ooo_intensity')
-                 | S.Lin(shift=0.05, mult=0.5)) | S.Lin(shift=0.5, mult=0.5)
+                 | S.Lin(shift=0.0025, mult=0.5)) | S.Lin(shift=0.25, mult=0.5)
 
 # https://coolors.co/ffffff-ea7af4-b43e8f-6200b3-8451ad
 blueish_palette = A.parse_colors_co_scss('''
@@ -46,7 +46,7 @@ black_violet = A.parse_colors_hex((
 ))
 
 ooo_color = A.HSV(
-            # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.5, mult=0.5),
+            # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.25, mult=0.5),
             hue=ooo_hue,
             # hue=A.OooHue(),
             value=L.Named("loud"),
@@ -91,6 +91,12 @@ def get_sphere():
 
     return A.Mixer(dict(
         std=stereo_drone_sphere(),
+        std2=A.ThetaPalette(
+            shift=0,
+            mult=1,
+            # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
+            palette=A.Palette(brownish_palette),
+        ) | S.Lin(mult=0.5),
         ooo=A.FullOn(color=ooo_color),
         # test=A.GaussianDroplet(
         #     color=A.RGB(1, 1, 1),
@@ -132,6 +138,14 @@ def get_sphere():
 def get_arm(arm_config, i):
     return A.Mixer(dict(
         std=A.ArmGradient(
+            arm_config,
+            color=[1, 0, 1],
+            func=lambda x: (1 - x)**4,
+            # func=lambda x, signals=None: 1*(x < (
+            #     signals.get('right_drone' if i else 'left_drone', 0))),
+            mult=L.Named('right_drone' if i else 'left_drone'),
+        ) | A.RedToPalette(black_violet),
+        std2=A.ArmGradient(
             arm_config,
             color=[1, 0, 1],
             func=lambda x: (1 - x)**4,

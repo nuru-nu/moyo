@@ -140,7 +140,7 @@ class ColorPalette(L.Signal):
 
 # TODO make this work with SimpleSignal
 class RedToPalette(L.Signal):
-    """Converts the red channel of a (legacy) animatoin to a color palette."""
+    """Converts the red channel of a (legacy) animation to a color palette."""
 
     # (just subclassing for the __or__ operator)
 
