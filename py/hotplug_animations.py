@@ -36,7 +36,7 @@ ooo_color = A.HSV(
             # hue=A.OooHue(),
             value=L.Named("loud"),
         )
-ooo_color = ooo_hue | A.ColorPalette(colors=blueish_palette) | S.Lin(mult=L.Named('loud'))
+ooo_color = ooo_hue | A.ColorPalette(colors=brownish_palette) | S.Lin(mult=L.Named('loud'))
 
 
 
