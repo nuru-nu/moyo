@@ -21,6 +21,8 @@ class State(L.Signal):
         oldstate = state.state
         if newstate:
             state.goto(newstate)
+        elif state.state == 'test':
+            pass
         elif state.state != 'std' and sonar > self.sonar_ooo:
             state.goto('std')
         elif state.state == 'test':
