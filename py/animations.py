@@ -78,6 +78,30 @@ def parse_colors_co_scss(scss):
     ]
 
 
+def hex_to_tuple(s):
+    if s[0] == '#':
+        s = s[1:]
+    if len(s) == 3:
+        return tuple((
+            0x10 * int(c, 0x10) / 256
+            for c in s
+        ))
+    elif len(s) == 6:
+        return tuple((
+            int(s[i * 2: (i + 1) * 2], 0x10) / 256
+            for i in range(len(s) // 2)
+        ))
+    else:
+        raise ValueError('invalid hex: {}'.format(s))
+
+
+def parse_colors_hex(indexes_and_hexes):
+    return [
+        ColorPoint(index, hex_to_tuple(hex_s))
+        for index, hex_s in indexes_and_hexes
+    ]
+
+
 class HSV(L.Signal):
     def init(self, hue=1, saturation=1, value=1):
         pass
@@ -111,7 +135,24 @@ class ColorPalette(L.Signal):
             for i in range(3)
         ]).T
     def call(self, value):
-        return self.lookup[int(np.clip(value, 0, 1) * (self.n - 1)), :]
+        return self.lookup[(np.clip(value, 0, 1) * (self.n - 1)).astype(int), :]
+
+
+# TODO make this work with SimpleSignal
+class RedToPalette(L.Signal):
+    """Converts the red channel of a (legacy) animatoin to a color palette."""
+
+    # (just subclassing for the __or__ operator)
+
+    def __init__(self, colors):
+        if not hasattr(colors, '__call__'):
+            colors = ColorPalette(colors)
+        self.color_palette = colors
+
+    def __call__(self, value, **kw):
+        red_values = value[:, 0]
+        colors = self.color_palette(value=red_values)['value']
+        return dict(value=colors)
 
 
 # simple animations

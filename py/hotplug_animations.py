@@ -30,6 +30,21 @@ $color3: rgba(220, 133, 31, 1);
 $color4: rgba(98, 27, 0, 1);
 $color5: rgba(244, 44, 4, 1);''')
 
+# https://coolors.co/ffffff-cb27ce-8a1a8c-401a8c-000000
+white_violet = A.parse_colors_co_scss('''
+$color1: rgba(255, 255, 255, 1);
+$color2: rgba(203, 39, 206, 1);
+$color3: rgba(138, 26, 140, 1);
+$color4: rgba(64, 26, 140, 1);
+$color5: rgba(0, 0, 0, 1);''')
+
+black_violet = A.parse_colors_hex((
+    (0, '000'),
+    (0.3, '000'),
+    (0.6, '418'),
+    (1.0, '818'),
+))
+
 ooo_color = A.HSV(
             # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.5, mult=0.5),
             hue=ooo_hue,
@@ -59,10 +74,10 @@ def stereo_drone_sphere():
     return A.Add(
         A.GaussianDroplet(
             sigma=L.Named('left_drone') | S.Lin(shift=0, mult=np.pi / 40),
-            color=A.RGB(1, 0, 1),
-            phi=0,
+            color=A.RGB(1, 0, 0),
+            phi=50 * dg,
             theta=np.pi / 2,
-        ),
+        ) | A.RedToPalette(A.ColorPalette(black_violet)),
         A.GaussianDroplet(
             sigma=L.Named('right_drone') | S.Lin(shift=0, mult=np.pi / 40),
             color=A.RGB(1, 0, 1),
@@ -77,10 +92,18 @@ def get_sphere():
     return A.Mixer(dict(
         std=stereo_drone_sphere(),
         ooo=A.FullOn(color=ooo_color),
+        # test=A.GaussianDroplet(
+        #     color=A.RGB(1, 1, 1),
+        #     sigma=2 * dg,
+        #     theta=90 * dg,
+        #     phi=0,
+        # ),
         test=A.ThetaPalette(
-            shift=L.Named('ring1'),
+            # shift=L.Named('ring1'),
+            shift=0,
             mult=1,
-            palette=A.Palette(brownish_palette),
+            # palette=A.Palette(brownish_palette),
+            palette=A.Palette(black_violet),
         ),
         # test=A.Add(
         #     A.PhiRing(
@@ -100,6 +123,9 @@ def get_sphere():
             ) | S.Lin(shift=0.5, mult=0.5),
             saturation=0,
         )),
+        frozen=A.FullOn(
+            color=[0, 0.1, 0],
+        ),
     ))
 
 
@@ -112,8 +138,7 @@ def get_arm(arm_config, i):
             # func=lambda x, signals=None: 1*(x < (
             #     signals.get('right_drone' if i else 'left_drone', 0))),
             mult=L.Named('right_drone' if i else 'left_drone'),
-        ),
-
+        ) | A.RedToPalette(black_violet),
         ooo=A.ArmGradient(
             arm_config,
             color=ooo_color,
@@ -152,6 +177,10 @@ def get_arm(arm_config, i):
                 ) | S.Lin(shift=0.5, mult=0.5),
                 saturation=0,
             ),
+        ),
+        frozen=A.ArmFullOn(
+            arm_config,
+            color=[0, 0.1, 0],
         ),
     ))
 
