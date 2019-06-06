@@ -189,13 +189,14 @@ class SignalMult(SignalChain):
 
 class Named(Signal):
 
-    def __init__(self, name):
+    def __init__(self, name, default=None):
         # Overwrite so we can specify positional arguments
         super().__init__(name=name)
         self.wants = (name,)
+        self.default = default
 
     def call(self, **kw):
-        return kw[self.name]
+        return kw.get(self.name, self.default)
 
 
 # SignalRunner

@@ -2,7 +2,7 @@ import glob
 
 import scipy
 
-import effects as E, settings, util
+import effects as E, logic as L, settings, util
 
 
 _get_sample_cache = {}
@@ -34,11 +34,11 @@ def get_data():
             # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
             # E.SilenceOrPlaying(),
 
-            # E.RndPlay(gs1('single-string'), 'right_drone') | E.Compressor(300),
-            # E.RndPlay(gs1('single-string'), 'left_drone') | E.Compressor(160),
+            E.RndPlay(gs1('single-string'), 'right_drone') | E.Compressor(300),
+            E.RndPlay(gs1('single-string'), 'left_drone') | E.Compressor(160),
 
-            E.RndPlay(gs1('muffled-thunderstorm'), 'right_drone') | E.Compressor(30),
-            E.RndPlay(gs1('muffled-thunderstorm'), 'left_drone') | E.Compressor(50),
+            # E.RndPlay(gs1('muffled-thunderstorm'), 'right_drone') | E.Compressor(30),
+            # E.RndPlay(gs1('muffled-thunderstorm'), 'left_drone') | E.Compressor(50),
 
             # E.RndPlay(haunted_wav, 'bass_ooo'),
             # E.Sinusoidal(50) | E.SigAmp('low'),
@@ -64,4 +64,5 @@ def get_data():
             E.Silence(),
             E.Silence(),
         ]),
+        beamz=L.Named('flash_pulse', 0),
     )
