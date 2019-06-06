@@ -215,6 +215,8 @@ while running:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
     if frozen and 'newstate' not in signalin:
         time.sleep(settings.hop_secs)
+        signals['t'] = time.time()
+        send_signals(signals)
         continue
 
     if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
