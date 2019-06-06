@@ -72,6 +72,22 @@ class RndPulse(L.Signal):
         return 0.
 
 
+class TriggerPulse(L.Signal):
+
+    def init(self, state, secs):
+        self.last_state = None
+        self.last_t = 0
+
+    def call(self, state, t):
+        if state.state != self.last_state:
+            self.last_state = state.state
+            if state.state == self.state:
+                self.last_t = t
+        if t - self.last_t < self.secs:
+            return 1.
+        return 0.
+
+
 class RndRamp(L.Signal):
 
     def init(self, break_minmax, duration_minmax, ramp_minmax=[0.5, 0.5],

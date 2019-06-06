@@ -66,6 +66,8 @@ def get_data():
 
         ring1=S.Saw(hz=1, dt=0),
         ring2=S.Saw(hz=1, dt=0.5),
+
+        flash_pulse=S.TriggerPulse(state='flash', secs=1),
     )
 
     return dict(

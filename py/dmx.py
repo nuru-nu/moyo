@@ -103,6 +103,13 @@ class StageLight(DmxDevice):
         ])
 
 
+class ZBeam(DmxDevice):
+    def init_data(self):
+        self.data = collections.OrderedDict([
+            ('volume', 0),
+        ])
+
+
 class DmxController:
     """Maps multiple DmxDevice to a controller."""
 
@@ -151,16 +158,23 @@ class DmxController:
 
 logger = util.createLogger('dmx')
 
-stage1 = StageLight()
-stage1.intensity = 255
-stage2 = StageLight()
-stage2.intensity = 255
+# stage1 = StageLight()
+# stage1.intensity = 255
+# stage2 = StageLight()
+# stage2.intensity = 255
 # stage1.green = 255
+# dmx_controller.add_device(stage1, universe=1, channel_offset=0)
+# dmx_controller.add_device(stage2, universe=1, channel_offset=4)
+
+zbeam = ZBeam()
+zbeam.volume = 0
+
 dmx_controller = DmxController()
-dmx_controller.add_device(stage1, universe=1, channel_offset=0)
-dmx_controller.add_device(stage2, universe=1, channel_offset=4)
+dmx_controller.add_device(zbeam, universe=0, channel_offset=0)
 
 dmx_controller.update()
+
+logger = util.createLogger('dmx')
 
 if __name__ == '__main__':
 
@@ -173,9 +187,13 @@ if __name__ == '__main__':
         data, address = sock.recvfrom(4096)
         data = json.loads(data.decode("utf8"))
 
-        stage1.red = int(data.get('low', 0) * 255)
-        stage1.blue = int(data.get('high', 0) * 255)
-        stage2.blue = int(data.get('low', 0) * 255)
-        stage2.red = int(data.get('high', 0) * 255)
+        # stage1.red = int(data.get('low', 0) * 255)
+        # stage1.blue = int(data.get('high', 0) * 255)
+        # stage2.blue = int(data.get('low', 0) * 255)
+        # stage2.red = int(data.get('high', 0) * 255)
+
+        zbeam.volume = int(data.get('flash_pulse', 0) * 255)
+        # if zbeam.volume:
+        #     logger.info(zbeam.volume)
 
         dmx_controller.update()
