@@ -1,4 +1,3 @@
-
 import collections, time
 
 import colorsys
@@ -10,7 +9,7 @@ import logic as L, pixel_functions as pf, settings, util
 if settings.is_blender:
     mapping = settings.load_mapping()
 else:
-    mapping = settings.generate_mapping()
+    mapping = settings.generate_mapping(phi0=220 / 360 * np.pi * 2)
 
 
 # utils

@@ -145,7 +145,7 @@ sphere_strips = [
 ]
 
 
-def generate_mapping(phi0=0):
+def generate_mapping(phi0):
     global sphere_strips
     mapping = np.zeros((64 * len(sphere_strips), 2))
     dphi = 2 * np.pi / len(sphere_strips)
