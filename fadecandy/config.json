@@ -32,9 +32,16 @@
         },
         {
             "type": "fadecandy",
-            "serial": "COLGDVAIHNHSAQJX",
+            "serial": "HBOPIYFBBJPKIIXR",
             "map": [
                 [ 4, 0, 0, 512 ]
+            ]
+        },
+        {
+            "type": "fadecandy",
+            "serial": "COLGDVAIHNHSAQJX",
+            "map": [
+                [ 5, 0, 0, 512 ]
             ]
         }
     ]
