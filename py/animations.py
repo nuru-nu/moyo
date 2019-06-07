@@ -224,6 +224,17 @@ class ThetaPalette(L.Signal):
         return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
 
 
+class ThetaPaletteWindow(L.Signal):
+    """Computes palette along theta, windowed on range from a value."""
+
+    def init(self, palette, start, end):
+        global mapping
+        self.dists = mapping[:, 1] / (np.pi / 2)
+
+    def call(self, value):
+        return self.palette(self.dists)
+
+
 class PhiPalette(L.Signal):
     """Computes palette along phi."""
 
@@ -366,6 +377,16 @@ class ArmPalette(L.Signal):
 
     def call(self):
         return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+
+
+class ArmPaletteWindow(L.Signal):
+    """Computes palette along arm, windowed on range of a value."""
+
+    def init(self, arm_config, palette, start, end):
+        self.dists = arm_dists(arm_config)
+
+    def call(self, value):
+        return self.palette(self.dists * (value - self.start) * (self.end - self.start))
 
 
 class ArmByDist(L.Signal):

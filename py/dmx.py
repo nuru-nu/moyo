@@ -69,7 +69,7 @@ if __name__ == '__main__':
         # stage2.blue = int(data.get('low', 0) * 255)
         # stage2.red = int(data.get('high', 0) * 255)
 
-        zbeam.volume = hp.effects.beamz(**signals)['value']
+        zbeam.volume = int(hp.effects.beamz(**signals)['value'] * 255)
         if zbeam.volume:
             logger.info(zbeam.volume)
 

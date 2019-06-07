@@ -187,7 +187,12 @@ ArmConfig = collections.namedtuple('ArmConfig', [
 arm_configs = [
     # ArmConfig(3, [[0, 64]], np.pi + np.pi * 3 / 4),
     # ArmConfig(3, [[128, 192], [256, 320]], 0),
+    # long arm left
     ArmConfig(3, [[0, 64], [128, 192]], 0),
+    # short arm top right
+    ArmConfig(3, [[4 * 64, 5 * 64]], 0),
+    # short arm top left
+    ArmConfig(3, [[6 * 64, 7 * 64]], 0),
 ]
 
 blender_arm_configs = [

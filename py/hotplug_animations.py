@@ -38,12 +38,48 @@ $color3: rgba(138, 26, 140, 1);
 $color4: rgba(64, 26, 140, 1);
 $color5: rgba(0, 0, 0, 1);''')
 
+coolors_rainbow = A.parse_colors_co_scss('''
+$color1: rgba(31, 139, 248, 1);
+$color2: rgba(237, 37, 78, 1);
+$color3: rgba(222, 13, 146, 1);
+$color4: rgba(208, 5, 118, 1);
+$color5: rgba(249, 220, 92, 1);''')
+
+just_greens = A.parse_colors_co_scss('''
+$color1: rgba(56, 108, 11, 1);
+$color2: rgba(56, 167, 0, 1);
+$color3: rgba(49, 216, 67, 1);
+$color4: rgba(4, 106, 56, 1);
+$color5: rgba(62, 255, 139, 1);''')
+
+quite_bright = A.parse_colors_co_scss('''
+$color1: rgba(48, 69, 41, 1);
+$color2: rgba(74, 103, 65, 1);
+$color3: rgba(140, 112, 81, 1);
+$color4: rgba(237, 180, 88, 1);
+$color5: rgba(212, 212, 170, 1);''')
+
+blue_purple = A.parse_colors_co_scss('''
+$color1: rgba(202, 44, 146, 1);
+$color2: rgba(127, 0, 255, 1);
+$color3: rgba(0, 56, 168, 1);
+$color4: rgba(129, 20, 83, 1);
+$color5: rgba(159, 0, 197, 1);''')
+
 black_violet = A.parse_colors_hex((
     (0, '000'),
     (0.3, '000'),
     (0.6, '418'),
     (1.0, '818'),
 ))
+
+std2_palette = A.Palette(brownish_palette)
+# std2_palette = A.Palette(blue_purple)
+
+std3_palette = A.Palette(A.parse_colors_hex((
+    (0.0, 'fff'),
+    (1.0, '000'),
+)))
 
 ooo_color = A.HSV(
             # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.25, mult=0.5),
@@ -95,8 +131,12 @@ def get_sphere():
             shift=L.Named('std2'),
             mult=-1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
-            palette=A.Palette(brownish_palette),
+            palette=std2_palette,
         ) | S.Lin(mult=0.5),
+        std3=L.Named('std3') | A.ThetaPaletteWindow(
+            palette=std3_palette,
+            start=0, end=1,
+        ),
         ooo=A.FullOn(color=ooo_color),
         # test=A.GaussianDroplet(
         #     color=A.RGB(1, 1, 1),
@@ -149,8 +189,13 @@ def get_arm(arm_config, i):
             arm_config,
             mult=-1,
             shift=L.Named('std2'),
-            palette=A.Palette(brownish_palette),
-        ) | A.ArmByDist(arm_config, func=lambda x: 1 - x),
+            palette=std2_palette,
+        ),# | A.ArmByDist(arm_config, func=lambda x: 1 - x),
+        std3=L.Named('std3') | A.ArmPaletteWindow(
+            arm_config,
+            palette=std3_palette,
+            start=1, end=1,
+        ),
         ooo=A.ArmGradient(
             arm_config,
             color=ooo_color,
