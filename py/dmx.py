@@ -17,8 +17,12 @@ Prerequisites : OLA & DMX USB Pro
   device_dir = /dev
   device_prefix = tty.usbserial-
   EOC
+- checks logs
+  linux : grep olad /var/log/syslog
+  linux : dmesg
 - Start server:
   OS X : olad -l 2
+  linux : sudo /etc/init.d/olad restart
   http://localhost:9090/ola.html
 """
 

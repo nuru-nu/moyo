@@ -69,7 +69,7 @@ def get_data():
         std2=S.Saw(hz=0.5, dt=0),
         std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 
-        flash_pulse=S.TriggerPulse(state='flash', secs=1),
+        flash_pulse=S.TriggerPulse(state='flash', secs=3),
     )
 
     return dict(

@@ -39,6 +39,7 @@ all_arm_pixels = {
 }
 
 last_t = 0
+xxx = False
 while True:
 	##################### Audio ##########################
 	try:
@@ -73,4 +74,10 @@ while True:
 				i += 1
 	for channel, pixels in all_arm_pixels.items():
 		client.put_pixels(pixels*255, channel=channel)
+		if not xxx: print(pixels.shape, pixels.dtype, pixels[:10])
 
+	beamz = hp.animations.beamz(**signals)['value']
+	pixels = (beamz * np.ones(shape=(512, 3)) * 255 * beamz)
+	client.put_pixels(pixels, channel=settings.enttec_channel)
+	if beamz > 0: print(pixels.shape, pixels.dtype, pixels[:10])
+	xxx = True

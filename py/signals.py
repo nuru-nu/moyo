@@ -26,7 +26,7 @@ class State(L.Signal):
         elif state.state == 'test':
             pass
         elif not state.state.startswith('std') and sonar > self.sonar_ooo:
-            state.goto(random.choice(['std', 'std2']))
+            state.goto(random.choice(['std2', 'std2']))
         elif state.state == 'test':
             return state
         elif state.state.startswith('std') and sonar < self.sonar_ooo:

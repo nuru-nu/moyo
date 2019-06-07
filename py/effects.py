@@ -9,7 +9,8 @@ import perf, settings, util
 
 class Effector:
     """Composes effects and handles channels."""
-    def __init__(self, effects, buf_size=settings.buf_size):
+    def __init__(self, rate, effects):
+        buf_size = int(rate * settings.buf_secs)
         self.effects = effects
         self.bufs = [
             util.RollingBuffer(buf_size) for _ in range(len(effects))
@@ -309,4 +310,21 @@ class RndPlay(Effect):
             self.i += n
         if value < 1:
             buf = buf * value
+        return buf
+
+
+class Loop(Effect):
+
+    def __init__(self, wav):
+        self.wav = wav
+        self.i = 0
+
+    def __call__(self, buf, signals):
+        n = len(buf)
+        buf = self.wav[self.i: self.i + n]
+        self.i = (self.i + n) % len(self.wav)
+        if len(buf) < n:
+            print(len(buf), self.i, n - len(buf))
+            buf = np.concatenate(
+                buf, self.wav[self.i - (n - len(buf)): self.i])
         return buf

@@ -29,7 +29,7 @@ def gs2(partial):
 
 def get_data():
     return dict(
-        effector1=E.Effector([
+        effector1=E.Effector(settings.out1_rate, [
             # E.Delay(1) | E.Echo(0.2, 0.9) | E.SigAmp('ios'),
             # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
             # E.SilenceOrPlaying(),
@@ -58,13 +58,15 @@ def get_data():
             #     break_minmax=[1, 20],
             #     ramp_minmax=[2, 4]),
         ]),
-        effector2=E.Effector([
+        effector2=E.Effector(settings.out2_rate, [
             # E.RndPlay(gs2('rain-and-thunderstorm'), 'left_drone'),
             # E.RndPlay(gs2('rain-and-thunderstorm'), 'right_drone'),
             # E.RndPlay(haunted2_wav, 'left_drone'),
             # E.RndPlay(haunted2_wav, 'bass_ooo', rate=settings.out2_rate),
-            E.Silence(),
-            E.Silence(),
+            E.Loop(gs2('haunting')),
+            E.Loop(gs2('haunting')),
+            # E.Silence(),
+            # E.Silence(),
         ]),
         beamz=L.Named('flash_pulse', 0),
     )

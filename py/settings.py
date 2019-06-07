@@ -112,10 +112,10 @@ def get_model_path(model_name):
 # animation
 ###############################################################################
 
-
 sphere_channel1 = 1
 sphere_channel2 = 2
 sphere_pixels = 600
+enttec_channel = 6
 
 SphereStrip = collections.namedtuple('SphereStrip', [
     # Number of LEDs that would fit between the first LED of the stripe
@@ -190,7 +190,8 @@ dg = np.pi / 180
 arm_configs = [
     ArmConfig(3, [[0 * 64, 1 * 64], [2 * 64, 3 * 64]], 90 * dg),
     ArmConfig(3, [[4 * 64, 5 * 64]], 150 * dg),
-    ArmConfig(3, [[6 * 64, 7 * 64]], 210 * dg),  # MISSING 1m
+    ArmConfig(3, [[6 * 64, 7 * 64]], 210 * dg),
+    ArmConfig(4, [[0 * 64, 1 * 64]], 210 * dg),  # TESTING
     ArmConfig(4, [[2 * 64, 3 * 64]], 260 * dg),    
     ArmConfig(4, [[4 * 64, 5 * 64]], 290 * dg),    
     ArmConfig(4, [[6 * 64, 7 * 64]], 0 * dg),    

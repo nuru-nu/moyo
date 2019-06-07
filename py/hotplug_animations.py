@@ -73,8 +73,17 @@ black_violet = A.parse_colors_hex((
     (1.0, '818'),
 ))
 
+
+test_colors = A.parse_colors_hex((
+    (0, 'FF0000'),
+    (0.1, '000'),
+    (0.9, '000'),
+    (1.0, '00FF00'),
+))
+
 std2_palette = A.Palette(brownish_palette)
-# std2_palette = A.Palette(blue_purple)
+std2_palette = A.Palette(blue_purple)
+std2_palette = A.Palette(coolors_rainbow)
 
 std3_palette = A.Palette(A.parse_colors_hex((
     (0.0, 'fff'),
@@ -129,7 +138,7 @@ def get_sphere():
         std=stereo_drone_sphere(),
         std2=A.ThetaPalette(
             shift=L.Named('std2'),
-            mult=-1,
+            mult=1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
             palette=std2_palette,
         ) | S.Lin(mult=0.5),
@@ -149,7 +158,7 @@ def get_sphere():
             shift=0,
             mult=1,
             # palette=A.Palette(brownish_palette),
-            palette=A.Palette(black_violet),
+            palette=A.Palette(test_colors),
         ),
         # test=A.Add(
         #     A.PhiRing(
@@ -187,7 +196,7 @@ def get_arm(arm_config, i):
         ) | A.RedToPalette(black_violet),
         std2=A.ArmPalette(
             arm_config,
-            mult=-1,
+            mult=1,
             shift=L.Named('std2'),
             palette=std2_palette,
         ),# | A.ArmByDist(arm_config, func=lambda x: 1 - x),
@@ -248,5 +257,6 @@ def get_data():
     return dict(
         sphere=get_sphere(),
         arms=[get_arm(arm_config, i)
-              for i, arm_config in enumerate(arm_configs)]
+              for i, arm_config in enumerate(arm_configs)],
+        beamz=L.Named('flash_pulse', 0),
     )
