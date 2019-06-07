@@ -61,19 +61,19 @@ programs - start these separately (or use `./launch.sh`), they communicate on lo
 ```
 locally:
 
-socat -T15 udp4-recvfrom:6107,reuseaddr,fork tcp:localhost:6107
+# socat -T15 udp4-recvfrom:6107,reuseaddr,fork tcp:localhost:6107
 socat tcp4-listen:6101,reuseaddr,fork udp:localhost:6101
 ssh -i ~/.ssh/rizhom -R6122:localhost:22 -R6101:localhost:6101 -L6107:localhost:6107 rizhom@figur.li
 
 remotely:
 
 socat -T15 udp4-recvfrom:6101,reuseaddr,fork tcp:localhost:6101
-socat tcp4-listen:6107,reuseaddr,fork udp:localhost:6107
+# socat tcp4-listen:6107,reuseaddr,fork udp:localhost:6107
 ```
 
 then there are two standalone programs to be run on the remote server:
 
-- `py/server.py` : shows status information
+- `py/server.py` : web interface for displaying status & sending commands
 - `py/signalin.py` : send commands via command line
 
 ## Development

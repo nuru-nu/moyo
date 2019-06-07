@@ -97,10 +97,14 @@ def main_page():
 
 <pre>{status_by_name}</pre>
 
+<div id="status"></div>
+
 <div id="buttons"></div>
 
 <script>
 const commands = ['test', 'flash', 'std', 'freeze']
+
+let status = document.getElementById('status')
 
 let buttons = document.getElementById('buttons')
 commands.forEach(function(command) {
@@ -118,6 +122,7 @@ function send_command(command) {
     req.onreadystatechange = function() {
         if (req.readyState === XMLHttpRequest.DONE) {
             console.log(req.status, req.responseText)
+            status.innerText = 'status=' + req.status + '; responseText=' + req.responseText
         }
     }
     req.open('GET', '/command?command=' + command, true)
