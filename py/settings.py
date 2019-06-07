@@ -186,15 +186,14 @@ ArmConfig = collections.namedtuple('ArmConfig', [
     'offsets',
     # matches phi of sphere
     'phi'])
+dg = np.pi / 180
 arm_configs = [
-    # ArmConfig(3, [[0, 64]], np.pi + np.pi * 3 / 4),
-    # ArmConfig(3, [[128, 192], [256, 320]], 0),
-    # long arm left
-    ArmConfig(3, [[0, 64], [128, 192]], 0),
-    # short arm top right
-    ArmConfig(3, [[4 * 64, 5 * 64]], 0),
-    # short arm top left
-    ArmConfig(3, [[6 * 64, 7 * 64]], 0),
+    ArmConfig(3, [[0 * 64, 1 * 64], [2 * 64, 3 * 64]], 90 * dg),
+    ArmConfig(3, [[4 * 64, 5 * 64]], 150 * dg),
+    ArmConfig(3, [[6 * 64, 7 * 64]], 210 * dg),  # MISSING 1m
+    ArmConfig(4, [[2 * 64, 3 * 64]], 260 * dg),    
+    ArmConfig(4, [[4 * 64, 5 * 64]], 290 * dg),    
+    ArmConfig(4, [[6 * 64, 7 * 64]], 0 * dg),    
 ]
 
 blender_arm_configs = [

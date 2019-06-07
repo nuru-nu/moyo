@@ -3,9 +3,9 @@
 import socket, sys
 
 commands = dict(
-    test='{"state": "test"}',
-    flash='{"state": "flash"}',
-    std='{"state": "std"}',
+    test='{"newstate": "test"}',
+    flash='{"newstate": "flash"}',
+    std='{"newstate": "std"}',
 )
 
 signalin_port = 6101
