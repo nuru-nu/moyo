@@ -28,25 +28,29 @@ class StatusSender:
         self.repeat_secs = repeat_secs
         self.logger = logger
         self.status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.status_address = (settings.address, settings.status_port)
         self.last_status = None
         self.last_t = 0
 
-    def send(self, status):
+    def send(self, status, address=settings.status_address, log_send=True):
         assert isinstance(status, str), '{} should be string'.format(status)
         t = time.time()
         if self.last_status == status and t - self.last_t < self.repeat_secs:
             return
-        self.status = status
+        self.last_status = status
         self.last_t = t
         d = dict(
             name=self.name,
-            status=self.status,
+            status=status,
             t=t,
         )
-        self.logger.info('sending {}'.format(d))
+        if log_send:
+            self.logger.info('sending {}'.format(d))
         msg = json.dumps(d).encode('utf8')
-        self.status_sock.sendto(msg, self.status_address)
+        status_address = (address, settings.status_port)
+        try:
+            self.status_sock.sendto(msg, status_address)
+        except socket.gaierror as e:
+            logger.error('Could not send GAI error : {}')
 
 
 def create_udp_socket(port, timeout=0, address=settings.address):

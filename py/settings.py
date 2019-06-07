@@ -86,6 +86,7 @@ dmx_port = 6104
 player_port = 6105
 player2_port = 6106
 status_port = 6107
+status_address = 'figur.li'
 
 # files
 ###############################################################################

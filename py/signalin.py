@@ -9,7 +9,6 @@ commands = dict(
 )
 
 signalin_port = 6101
-update_secs = 10
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 

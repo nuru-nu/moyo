@@ -73,7 +73,7 @@ def get_data():
     )
 
     return dict(
-        additional_monitor_address=('192.168.43.33', settings.monitor_port),
+        additional_monitor_address=None,  #('192.168.43.33', settings.monitor_port),
         microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )
