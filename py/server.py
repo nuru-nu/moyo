@@ -43,6 +43,13 @@ def get_json(sock, max_size=4096):
         print('*** Could not decode {!r} : {}'.format(data, e))
         return None
 
+def status_text(status_by_name):
+    text = ''
+    for name, status in status_by_name.items():
+        text += '{}={} [{}s ago]'.format(
+            name, status['status'], int(time.time() - status['t']))
+    return text
+
 def udp_loop():
     t0 = 0
     sock = create_udp_socket(status_port, timeout=1)
@@ -57,9 +64,7 @@ def udp_loop():
             continue
         t0 = time.time()
         print('\n' + str(datetime.datetime.now()))
-        for name, status in status_by_name.items():
-            print('{}={} [{}s ago]'.format(
-                name, status['status'], int(time.time() - status['t'])))
+        print(status_text(status_by_name))
 
 thread = threading.Thread(target=udp_loop)
 thread.start()
@@ -70,7 +75,7 @@ commands = dict(
     test={"newstate": "test"},
     flash={"newstate": "flash"},
     std={"newstate": "std"},
-    freeze={"newstate": "freeze"},
+    freeze={"newstate": "frozen"},
 )
 
 def send_signalin(signalin):
@@ -121,7 +126,7 @@ function send_command(command) {
 </script>
 
 """.replace(
-        '{status_by_name}', json.dumps(status_by_name, indent=2)
+        '{status_by_name}', status_text(status_by_name)
     )
 
 @app.route("/command", methods=("GET", "POST"))
