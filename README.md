@@ -39,16 +39,42 @@ modules:
 - `py/hotplug_effects.py` : defines how to compute sound effects from audio input & signals
 - `py/hotplug_animatinos.py` : defines how to compute visual effects from audio input & signals
 
-programs - start these separately, they communicate on localhost over UDP:
+programs - start these separately (or use `./launch.sh`), they communicate on localhost over UDP;
 
 - `py/recorder2.py` : records, plays audio + sends UDP
 - `py/monitor.py` : listens UDP, plots + sends commands
-- (not used currently) `py/dmx.py` : listens + controls DMX devices - needs
+- `py/player.py` : listens UDP, plays sound on a single sound card (start 
+  twice for two soundcards)
+- `py/dmx.py` : listens + controls DMX devices - needs
 - (needs a running fadecandy server) `py/run_fadecandy_animations.py` : runs the fadecandy animations
 - (to simulate neopixels in Blender) `blender/sphere_animation_interface.blend` :
   use Blender to start this (see below for how to set up Blender)
   -> run `blender/py/run_blender_animations.py` INSIDE Blender
 
+
+### Remote maintenance
+
+- connect to remote server, forwarding local SSH port for back-login
+- forward UDP ports using `socat` (signalin 6101 remote->local and status 6107 local->signalin):
+- see also convenient `./launch_maintenance.sh`
+
+```
+locally:
+
+socat -T15 udp4-recvfrom:6107,reuseaddr,fork tcp:localhost:6107
+socat tcp4-listen:6101,reuseaddr,fork udp:localhost:6101
+ssh -i ~/.ssh/rizhom -R6122:localhost:22 -R6101:localhost:6101 -L6107:localhost:6107 rizhom@figur.li
+
+remotely:
+
+socat -T15 udp4-recvfrom:6101,reuseaddr,fork tcp:localhost:6101
+socat tcp4-listen:6107,reuseaddr,fork udp:localhost:6107
+```
+
+then there are two standalone programs to be run on the remote server:
+
+- `py/server.py` : shows status information
+- `py/signalin.py` : send commands via command line
 
 ## Development
 

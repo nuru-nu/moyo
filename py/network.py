@@ -1,6 +1,6 @@
 import io, json, socket
 
-import perf, settings, state, util
+import perf, settings, state, time, util
 
 
 logger = util.NoLogger()
@@ -18,6 +18,35 @@ class SignalinSender:
         self.logger.info('sending {}'.format(d))
         msg = json.dumps(d).encode('utf8')
         self.signalin_sock.sendto(msg, self.signalin_address)
+
+
+class StatusSender:
+    """Sends changes and periodic confirmations of updates."""
+
+    def __init__(self, name, repeat_secs=10, logger=util.NoLogger()):
+        self.name = name
+        self.repeat_secs = repeat_secs
+        self.logger = logger
+        self.status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.status_address = (settings.address, settings.status_port)
+        self.last_status = None
+        self.last_t = 0
+
+    def send(self, status):
+        assert isinstance(status, str), '{} should be string'.format(status)
+        t = time.time()
+        if self.last_status == status and t - self.last_t < self.repeat_secs:
+            return
+        self.status = status
+        self.last_t = t
+        d = dict(
+            name=self.name,
+            status=self.status,
+            t=t,
+        )
+        self.logger.info('sending {}'.format(d))
+        msg = json.dumps(d).encode('utf8')
+        self.status_sock.sendto(msg, self.status_address)
 
 
 def create_udp_socket(port, timeout=0, address=settings.address):

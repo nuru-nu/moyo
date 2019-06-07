@@ -195,6 +195,8 @@ ai0 = audio.AudioInterface(input=args.channels)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 
+status_sender = network.StatusSender(name='recorder2')
+
 started = False
 think_t0 = None
 frozen = 0
@@ -217,6 +219,7 @@ while running:
         time.sleep(settings.hop_secs)
         signals['t'] = time.time()
         send_signals(signals)
+        status_sender.send('frozen')
         continue
 
     if args.reset_secs and time.time() - last_reset_t > args.reset_secs:
@@ -246,6 +249,7 @@ while running:
             hp.effects.effector.bufs[channel].buf).logmel
 
     send_signals(signals)
+    status_sender.send('running')
 
 
 logger.info('Stop recording.')
@@ -254,3 +258,5 @@ del ai0
 
 print('\nPERF STATS:')
 print(perf.stats())
+
+status_sender.send('done')
