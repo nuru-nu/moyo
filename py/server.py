@@ -31,6 +31,7 @@ def create_udp_socket(port, timeout=0, address='0.0.0.0'):
     sock.bind((address, port))
     return sock
 
+
 def get_json(sock, max_size=4096):
     try:
         data, address = sock.recvfrom(max_size)
@@ -43,12 +44,14 @@ def get_json(sock, max_size=4096):
         print('*** Could not decode {!r} : {}'.format(data, e))
         return None
 
+
 def status_text(status_by_name):
     text = ''
     for name, status in status_by_name.items():
-        text += '{}={} [{}s ago]'.format(
+        text += '{}={} [{}s ago]\n'.format(
             name, status['status'], int(time.time() - status['t']))
     return text
+
 
 def udp_loop():
     t0 = 0
@@ -66,6 +69,7 @@ def udp_loop():
         print('\n' + str(datetime.datetime.now()))
         print(status_text(status_by_name))
 
+
 thread = threading.Thread(target=udp_loop)
 thread.start()
 
@@ -75,16 +79,21 @@ commands = dict(
     test={"newstate": "test"},
     flash={"newstate": "flash"},
     std={"newstate": "std"},
+    std2={"newstate": "std"},
+    std3={"newstate": "std"},
     freeze={"newstate": "frozen"},
 )
+
 
 def send_signalin(signalin):
     msg = json.dumps(signalin).encode('utf8')
     logging.info('sending signalin={}'.format(msg))
     signalin_sock.sendto(msg, ('localhost', signalin_port))
 
-from flask import Flask, request, Response
+
+from flask import Flask, request, Response  # NOQA
 app = Flask(__name__)
+
 
 @app.route("/")
 def main_page():
@@ -102,7 +111,7 @@ def main_page():
 <div id="buttons"></div>
 
 <script>
-const commands = ['test', 'flash', 'std', 'freeze']
+const commands = {commands}
 
 let status = document.getElementById('status')
 
@@ -122,7 +131,9 @@ function send_command(command) {
     req.onreadystatechange = function() {
         if (req.readyState === XMLHttpRequest.DONE) {
             console.log(req.status, req.responseText)
-            status.innerText = 'status=' + req.status + '; responseText=' + req.responseText
+            status.innerText = (
+                'status=' + req.status + '; responseText=' + req.responseText
+            )
         }
     }
     req.open('GET', '/command?command=' + command, true)
@@ -132,7 +143,10 @@ function send_command(command) {
 
 """.replace(
         '{status_by_name}', status_text(status_by_name)
+    ).replace(
+        '{commands}', json.dumps(list(commands.keys()))
     )
+
 
 @app.route("/command", methods=("GET", "POST"))
 def send_command():
