@@ -82,8 +82,8 @@ test_colors = A.parse_colors_hex((
 ))
 
 std2_palette = A.Palette(brownish_palette)
-std2_palette = A.Palette(blue_purple)
-std2_palette = A.Palette(coolors_rainbow)
+# std2_palette = A.Palette(blue_purple)
+# std2_palette = A.Palette(coolors_rainbow)
 
 std3_palette = A.Palette(A.parse_colors_hex((
     (0.0, 'fff'),
@@ -269,18 +269,19 @@ def std():
 
 
 def std2():
+    colors = A.Palette(coolors_rainbow)
     return (
         A.ThetaPalette(
             shift=L.Named('std2'),
             mult=1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
-            palette=std2_palette,
+            palette=colors,
         ) | S.Lin(mult=0.5),
         lambda i, arm_config: A.ArmPalette(
             arm_config,
             mult=1,
             shift=L.Named('std2'),
-            palette=std2_palette,
+            palette=colors,
         ),
     )
 
