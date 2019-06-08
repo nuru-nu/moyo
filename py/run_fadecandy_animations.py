@@ -1,7 +1,7 @@
 import json, socket
 
 import numpy as np
-import opc  # NOQA
+import opc
 
 import hotplug, settings, state, util
 
@@ -9,8 +9,8 @@ import hotplug, settings, state, util
 logger = util.createLogger('fadecandy')
 hp = hotplug.HotPlug(logger, modules=('animations',))
 
-# client = opc.Client('localhost:7890')
-# client.set_interpolation(False)
+client = opc.Client('localhost:7890')
+client.set_interpolation(False)
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -43,10 +43,10 @@ while True:
         print(e)
 
     sphere_pixels = hp.animations.sphere(**signals)['value']
-    # client.put_pixels(
-    #     sphere_pixels[:512] * 255, channel=settings.sphere_channel1)
-    # client.put_pixels(
-    #     sphere_pixels[512:] * 255, channel=settings.sphere_channel2)
+    client.put_pixels(
+        sphere_pixels[:512] * 255, channel=settings.sphere_channel1)
+    client.put_pixels(
+        sphere_pixels[512:] * 255, channel=settings.sphere_channel2)
 
     for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
         arm_pixels = arm(**signals)['value']
@@ -60,8 +60,7 @@ while True:
         # TODO dirty hack!
         all_arm_pixels[4][0: 2 * 64] = all_arm_pixels[3][8 * 64:]
     for channel, pixels in all_arm_pixels.items():
-        # client.put_pixels(pixels[:8 * 64] * 255, channel=channel)
-        pass
+        client.put_pixels(pixels[:8 * 64] * 255, channel=channel)
 
     # beamz = hp.animations.beamz(**signals)['value']
     # pixels = (beamz * np.ones(shape=(512, 3)) * 255 * beamz)
