@@ -26,7 +26,9 @@ Prerequisites : OLA & DMX USB Pro
   http://localhost:9090/ola.html
 """
 
-import json, sys
+import sys
+
+import numpy as np
 
 import dmx_devices, hotplug, network, settings, util
 
@@ -64,7 +66,10 @@ if __name__ == '__main__':
     sock = network.create_udp_socket(settings.dmx_port, timeout=None)
 
     hp = hotplug.HotPlug()
+    status_sender = network.StatusSender(name='dmx', logger=logger)
 
+    beamz_volumes = np.zeros(int(10 / settings.hop_secs))
+    loop_i = 0
     while True:
         signals = network.get_json(sock, {})
 
@@ -78,3 +83,7 @@ if __name__ == '__main__':
             logger.info(zbeam.volume)
 
         dmx_controller.update()
+
+        beamz_volumes[loop_i % len(beamz_volumes)] = zbeam.volume
+        loop_i += 1
+        status_sender.send('beamz_volume={}'.format(beamz_volumes.mean()))

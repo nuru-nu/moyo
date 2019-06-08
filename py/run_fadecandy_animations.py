@@ -3,7 +3,7 @@ import json, socket
 import numpy as np
 import opc
 
-import hotplug, settings, state, util
+import hotplug, network, settings, state, util
 
 
 logger = util.createLogger('fadecandy')
@@ -30,7 +30,10 @@ all_arm_pixels = {
     for channel in arm_channels
 }
 
+status_sender = network.StatusSender(name='run_fc_anim', logger=logger)
 last_t = 0
+success = np.zeros(int(10 / settings.hop_secs))
+loop_i = 0
 while True:
     try:
         data, address = sock.recvfrom(4096)
@@ -42,10 +45,11 @@ while True:
     except socket.error as e:
         print(e)
 
+    ok = True
     sphere_pixels = hp.animations.sphere(**signals)['value']
-    client.put_pixels(
+    ok &= client.put_pixels(
         sphere_pixels[:512] * 255, channel=settings.sphere_channel1)
-    client.put_pixels(
+    ok &= client.put_pixels(
         sphere_pixels[512:] * 255, channel=settings.sphere_channel2)
 
     for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
@@ -60,7 +64,11 @@ while True:
         # TODO dirty hack!
         all_arm_pixels[4][0: 2 * 64] = all_arm_pixels[3][8 * 64:]
     for channel, pixels in all_arm_pixels.items():
-        client.put_pixels(pixels[:8 * 64] * 255, channel=channel)
+        ok &= client.put_pixels(pixels[:8 * 64] * 255, channel=channel)
+
+    success[loop_i % len(success)] = 1 * ok
+    loop_i += 1
+    status_sender.send('success_pct={:.1f}'.format(success.mean()))
 
     # beamz = hp.animations.beamz(**signals)['value']
     # pixels = (beamz * np.ones(shape=(512, 3)) * 255 * beamz)
