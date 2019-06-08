@@ -195,7 +195,8 @@ ai0 = audio.AudioInterface(input=args.channels)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
 
-status_sender = network.StatusSender(name='recorder2', logger=logger)
+status_sender = network.StatusSender(
+    name='recorder2_{}'.format(network.get_ip()), logger=logger)
 
 started = False
 think_t0 = None

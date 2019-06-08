@@ -84,3 +84,7 @@ def get_json(sock, data, max_size=4096):
     if newdata:
         return newdata
     return data
+
+
+def get_ip():
+    return socket.gethostbyname(socket.gethostname())
