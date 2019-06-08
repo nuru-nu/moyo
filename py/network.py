@@ -50,7 +50,9 @@ class StatusSender:
         try:
             self.status_sock.sendto(msg, status_address)
         except socket.gaierror as e:
-            logger.error('Could not send GAI error : {}')
+            logger.error('Could not send GAI error : {}'.format(e))
+        except socket.error as e:
+            logger.error('Could not send socket error : {}'.format(e))
 
 
 def create_udp_socket(port, timeout=0, address=settings.address):
