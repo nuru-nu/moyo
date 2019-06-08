@@ -39,6 +39,36 @@ class Effect:
         return ChainedEffect(self, other)
 
 
+# TODO merge with A.Mixer ?
+class Mixer:
+    """Mixes effects by state.state with some interpolation."""
+
+    def __init__(self, default_effect, effect_by_state):
+        self.default_effect = default_effect
+        self.effect_by_state = effect_by_state
+        self.t0 = 0
+        self.dt = 1
+        self.current = self.last = 'std'
+
+    def get(self, state, buf, signals):
+        effect = self.effect_by_state.get(state, self.default_effect)
+        return effect(buf, signals)
+
+    def __call__(self, buf, signals):
+        state = signals['state'].state
+        t = signals['t']
+        if state != self.current:
+            self.last = self.current
+            self.current = state
+            self.t0 = t
+        out = self.get(state, buf, signals)
+        if t - self.t0 < self.dt:
+            lastbuf = self.get(self.last, buf, signals)
+            v = (t - self.t0) / self.dt
+            out = v * buf + (1 - v) * lastbuf
+        return out
+
+
 class Recording(Effect):
     """Plays a recording from signalin[name]."""
 
@@ -132,9 +162,11 @@ class Passthrough(Effect):
 
 class Silence(Effect):
     def __init__(self):
-        self.buf = np.zeros(settings.hop_size)
+        self.buf = np.zeros(0)
 
     def __call__(self, buf, signals):
+        if len(self.buf) != len(buf):
+            self.buf = np.zeros(buf.shape)
         return self.buf
 
 
@@ -290,14 +322,19 @@ class RndPlay(Effect):
         self.wav = wav
         self.signal = signal
         self.i = None
-        self.zeros = np.zeros(settings.hop_size)
+        self.zeros = np.zeros(0)
+
+    def get_zeros(self, buf):
+        if len(self.zeros) != len(buf):
+            self.zeros = np.zeros(buf.shape)
+        return self.zeros
 
     def __call__(self, buf, signals):
-        n = settings.hop_size
+        n = len(buf)
         value = signals.get(self.signal, 0)
         if value == 0:
             self.i = None
-            return self.zeros
+            return self.get_zeros(buf)
         if self.i is None:
             self.i = int(self.rate * random.random() * (
                 len(self.wav) / self.rate))
@@ -328,3 +365,29 @@ class Loop(Effect):
             buf = np.concatenate(
                 buf, self.wav[self.i - (n - len(buf)): self.i])
         return buf
+
+
+class PlayPart(Effect):
+    """One shot player triggered by signal>0."""
+
+    def __init__(self, signal, wav, rate, start_secs=0, length=None):
+        self.signal = signal
+        self.wav = wav
+        self.i0 = int(rate * start_secs)
+        if length is None:
+            self.i1 = len(wav)
+        else:
+            self.i1 = int(rate * (start_secs + length))
+        self.i = None
+
+    def __call__(self, buf, signals):
+        if self.i > self.i1:
+            self.i = None
+        if self.i is None:
+            value = signals.get(self.signal)
+            if not value:
+                return buf
+            self.i = self.i0
+        i = self.i
+        self.i += len(buf)
+        return self.wav[i: i + len(buf)]

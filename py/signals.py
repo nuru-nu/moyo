@@ -18,18 +18,21 @@ class State(L.Signal):
     def init(self, sonar_ooo=0.5):
         self.last_change = 0
 
-    def call(self, t, state, signalin, sonar, ooo_intensity):
+    def call(self, t, state, signalin, sonar, ooo_intensity, into):
         newstate = signalin.get('newstate')
         oldstate = state.state
+        dt = t - self.last_change
         if newstate:
             state.goto(newstate)
         elif state.state == 'test':
             pass
         elif not state.state.startswith('std') and sonar > self.sonar_ooo:
-            state.goto(random.choice(['std2', 'std2']))
+            state.goto(random.choice(['std', 'std2']))
         elif state.state == 'test':
             return state
         elif state.state.startswith('std') and sonar < self.sonar_ooo:
+            state.goto('into')
+        elif state.state == 'into' and dt > 1:
             state.goto('ooo')
         elif state.state == 'ooo' and ooo_intensity == 1.0:
             state.state = 'flash'
@@ -287,11 +290,14 @@ class Saw(L.Signal):
 class Lin(L.Signal):
     """Linear transformation of scalar signal."""
 
-    def init(self, shift=0, mult=1):
+    def init(self, shift=0, mult=1, mod=None):
         pass
 
     def call(self, value):
-        return self.mult * value + self.shift
+        value = self.mult * value + self.shift
+        if self.mod:
+            value = value % self.mod
+        return value
 
 
 class Limiter(L.SignalLast):
@@ -308,7 +314,10 @@ class Limiter(L.SignalLast):
 
 class MovingAverage(L.Signal):
 
-    def init(self, n):
+    def init(self, n=None, secs=None):
+        assert n or secs and not (n and secs)
+        if secs:
+            n = int(secs // settings.hop_secs)
         self.buf = np.zeros(n)
         self.i = 0
 

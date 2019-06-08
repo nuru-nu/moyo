@@ -5,32 +5,52 @@ import subprocess, sys, time
 import network, util
 
 waits_i = 0
-waits_secs = [0, 0, 0, 10, 10, 10, 60]
+waits_secs = [2, 4, 10, 10, 10, 60]
 waits_reset_secs = 60
 
 logger = util.createLogger('restarter')
 
-argv = ['python'] + sys.argv[1:]
+argv = list(sys.argv[1:])
+
+
+def execute_fc(argv):
+    process = subprocess.Popen(
+        # argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+    out_iter = iter(process.stdout.readline, '')
+    # err_iter = iter(process.stderr.readline, '')
+    for output in out_iter:
+        print(output, end='')
+        if (
+        'detached' in output or
+        'Fadecandy: Access denied' in output):
+            logger.info('KILLING fcserver')
+            process.kill()
+            break
 
 
 stats = 'initial'
 name = 'restarter_{}'.format(' '.join(argv[1:]))
-status_sender = StatusSender(name, logger=logger)
+status_sender = network.StatusSender(name, logger=logger)
 
 counter = 0
 times_log = []
 waits_log = []
 while True:
     status_sender.send(stats)
-    logger.info('starting {}'.format(argv))
     started = time.time()
-    subprocess.run(argv)
+    if './fcserver' in argv:
+        logger.info('starting fadecandy {}'.format(argv))
+        execute_fc(argv)
+    else:
+        logger.info('starting {}'.format(argv))
+        subprocess.run(argv)
     stopped = time.time()
     times_log.append(int(stopped - started))
     counter += 1
     if stopped - started > waits_reset_secs:
         waits_i = 0
-    wait = waits[waits_i]
+    wait = waits_secs[waits_i]
     waits_log.append(wait)
     waits_i += 1
     logger.info('stopped, waiting {} seconds'.format(wait))

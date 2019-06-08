@@ -85,10 +85,7 @@ std2_palette = A.Palette(brownish_palette)
 # std2_palette = A.Palette(blue_purple)
 # std2_palette = A.Palette(coolors_rainbow)
 
-std3_palette = A.Palette(A.parse_colors_hex((
-    (0.0, 'fff'),
-    (1.0, '000'),
-)))
+std4_palette = A.Palette(blue_purple)
 
 ooo_color = A.HSV(
     # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.25, mult=0.5),
@@ -282,6 +279,7 @@ def std():
 
 def std2():
     colors = A.Palette(coolors_rainbow)
+    colors = A.Palette(brownish_palette)
     return (
         A.ThetaPalette(
             shift=L.Named('std2'),
@@ -299,14 +297,39 @@ def std2():
 
 
 def std3():
+    colors = A.parse_colors_hex((
+        (0.0, 'fff'),
+        (1.0, '000'),
+    ))
+    colors = blue_purple
+    sig = 'std3'
+
+    return (
+        A.PhiPalette(
+            shift=L.Named(sig),
+            mult=1,
+            # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
+            palette=A.Palette(colors),
+        ) | S.Lin(mult=0.5),
+        lambda i, arm_config: A.ArmFullOn(
+            arm_config,
+            color=(
+                L.Named(sig) | S.Lin(shift=arm_config.phi, mod=2 * np.pi)
+                | A.ColorPalette(colors)
+            ),
+        ),
+    )
+
+
+def std4():
     return (
         L.Named('std3') | A.ThetaPaletteWindow(
-            palette=std3_palette,
+            palette=std4_palette,
             start=0, end=1,
         ),
         lambda i, arm_config: L.Named('std3') | A.ArmPaletteWindow(
             arm_config,
-            palette=std3_palette,
+            palette=std4_palette,
             start=1, end=1,
         )
     )
@@ -373,10 +396,12 @@ def get_sphere_arms_by_state():
         std=std(),
         std2=std2(),
         std3=std3(),
+        std4=std4(),
         ooo=ooo(),
         test=test(),
         flash=flash(),
         frozen=frozen(),
+        into=frozen(),
     )
 
 
@@ -394,7 +419,7 @@ def get_data():
                 state: sphere_arms[1](i, arm_config)
                 for state, sphere_arms in sphere_arms_by_state.items()
             })
-            for i, arm_config in enumerate(arm_configs)
+            for i, arm_config in enumerate(settings.arm_configs)
         ],
         # sphere=get_sphere(),
         # arms=[get_arm(arm_config, i)
