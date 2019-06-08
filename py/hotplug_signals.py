@@ -63,7 +63,7 @@ def get_data():
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
-            L.Named('ooo') | S.Ramp(up_s=0.1, down_s=0.5) | S.Clip()),
+            L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.5) | S.Clip()),
 
         std2=S.Saw(hz=0.5, dt=0),
         std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
