@@ -24,7 +24,7 @@ class StatusSender:
     """Sends changes and periodic confirmations of updates."""
 
     def __init__(self, name, repeat_secs=10, logger=util.NoLogger()):
-        self.name = name
+        self.name = '{}_{}'.format(name, get_ip())
         self.repeat_secs = repeat_secs
         self.logger = logger
         self.status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
