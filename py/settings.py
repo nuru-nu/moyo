@@ -1,6 +1,6 @@
 # some constants shared between files
 
-import collections, json, glob, os, subprocess, sys
+import collections, glob, os, subprocess, sys
 
 import numpy as np
 import pyaudio
@@ -112,6 +112,7 @@ def get_model_path(model_name):
 # animation
 ###############################################################################
 
+
 sphere_channel1 = 1
 sphere_channel2 = 2
 sphere_pixels = 600
@@ -147,36 +148,6 @@ sphere_strips = [
 ]
 
 
-def generate_mapping(phi0):
-    global sphere_strips
-    mapping = np.zeros((64 * len(sphere_strips), 2))
-    dphi = 2 * np.pi / len(sphere_strips)
-    for led, sphere_strip in enumerate(sphere_strips):
-        dtheta = np.pi / 2 / (sphere_strip.led0 + sphere_strip.led1)
-        phi1 = phi0 + led * dphi
-        phi2 = phi1 + dphi / 2
-        sphere_strip_mapping = []
-        # going outward
-        values = [
-            [phi1, i * dtheta]
-            for i in range(sphere_strip.led0,
-                           sphere_strip.led0 + sphere_strip.led1)
-        ]
-        # border
-        values += [
-            [phi1 + i * dphi / 2 / sphere_strip.border_leds, np.pi / 2]
-            for i in range(sphere_strip.border_leds)
-        ]
-        # going inward
-        values += [
-            [phi2, np.pi / 2 - i * dtheta]
-            for i in range(0, 60 - sphere_strip.led1 - sphere_strip.border_leds)
-        ]
-        assert len(values) == 60, len(values)
-        mapping[led * 64: led * 64 + 60, :] = np.array(values)
-    return mapping
-
-
 ArmConfig = collections.namedtuple('ArmConfig', [
     # the fade candy channel
     'channel',
@@ -190,11 +161,48 @@ dg = np.pi / 180
 arm_configs = [
     ArmConfig(3, [[0 * 64, 1 * 64], [2 * 64, 3 * 64]], 90 * dg),
     ArmConfig(3, [[4 * 64, 5 * 64]], 150 * dg),
-    ArmConfig(3, [[6 * 64, 7 * 64]], 210 * dg),
-    ArmConfig(4, [[0 * 64, 1 * 64]], 210 * dg),  # TESTING
-    ArmConfig(4, [[2 * 64, 3 * 64]], 260 * dg),    
-    ArmConfig(4, [[4 * 64, 5 * 64]], 290 * dg),    
-    ArmConfig(4, [[6 * 64, 7 * 64]], 0 * dg),    
+    # TODO dirty hack!
+    ArmConfig(3, [[6 * 64, 7 * 64], [8 * 64, 9 * 64]], 210 * dg),
+    ArmConfig(4, [[2 * 64, 3 * 64]], 260 * dg),
+    ArmConfig(4, [[4 * 64, 5 * 64]], 290 * dg),
+    ArmConfig(4, [[6 * 64, 7 * 64]], 0 * dg),
+]
+
+ArmSegment = collections.namedtuple('ArmSegment', [
+    # fadecandy channel
+    'channel',
+    # fadecandy output (0..7)
+    'output',
+    # matches phi of sphere
+    'phi',
+    # start distance from border (meters)
+    'start',
+    # end distance from border (meters)
+    'stop',
+])
+arm_segments = [
+    # long arm left
+    ArmSegment(3, 0, 90 * dg, 0, 1),
+    ArmSegment(3, 1, 90 * dg, 0, 1),
+    ArmSegment(3, 2, 90 * dg, 1, 2),
+    ArmSegment(3, 3, 90 * dg, 1, 2),
+    # short arm left
+    ArmSegment(3, 4, 150 * dg, 0, 1),
+    ArmSegment(3, 5, 150 * dg, 0, 1),
+    # long arm right
+    ArmSegment(3, 6, 210 * dg, 0, 1),
+    ArmSegment(3, 7, 210 * dg, 0, 1),
+    ArmSegment(4, 0, 210 * dg, 1, 2),
+    ArmSegment(4, 1, 210 * dg, 1, 2),
+    # short arm right 1
+    ArmSegment(4, 2, 260 * dg, 0, 1),
+    ArmSegment(4, 3, 260 * dg, 0, 1),
+    # short arm right 2
+    ArmSegment(4, 4, 290 * dg, 0, 1),
+    ArmSegment(4, 5, 290 * dg, 0, 1),
+    # short arm bottom
+    ArmSegment(4, 6, 0 * dg, 0, 1),
+    ArmSegment(4, 7, 0 * dg, 0, 1),
 ]
 
 blender_arm_configs = [
@@ -207,22 +215,11 @@ blender_arm_configs = [
 ]
 
 
-def load_mapping():
-    path = os.path.join(
+def get_mapping_path():
+    return os.path.join(
         os.path.dirname(__file__),
         '../data',
         'blender_polar.json' if is_blender else 'rec_2_polar.json')
-    mapping = np.zeros((sphere_pixels, 2))
-    with open(path) as json_file:
-        data = json.load(json_file)
-        for coord_data in data:
-            idx = int(coord_data['idx'])
-            phi = float(coord_data['phi'])
-            theta = float(coord_data['theta'])
-            # phi: -pi - pi, theta 0 - pi
-            mapping[idx - 1] = np.array([phi, theta])
-    return mapping
-
 
 
 # Arduino

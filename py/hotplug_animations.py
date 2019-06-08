@@ -91,13 +91,15 @@ std3_palette = A.Palette(A.parse_colors_hex((
 )))
 
 ooo_color = A.HSV(
-            # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.25, mult=0.5),
-            hue=ooo_hue,
-            # hue=A.OooHue(),
-            value=L.Named("loud"),
-        )
-ooo_color = ooo_hue | A.ColorPalette(colors=brownish_palette) | S.Lin(mult=L.Named('loud'))
-
+    # hue=L.Named("t") | A.Sin(hz=0.2) | S.Lin(shift=0.25, mult=0.5),
+    hue=ooo_hue,
+    # hue=A.OooHue(),
+    value=L.Named("loud"),
+)
+ooo_color = (
+    ooo_hue | A.ColorPalette(colors=brownish_palette)
+    | S.Lin(mult=L.Named('loud'))
+)
 
 
 def two_rings():
@@ -118,13 +120,13 @@ def two_rings():
 def stereo_drone_sphere():
     return A.Add(
         A.GaussianDroplet(
-            sigma=L.Named('left_drone') | S.Lin(shift=0, mult=np.pi / 40),
+            sigma=L.Named('drone1') | S.Lin(shift=0, mult=np.pi / 40),
             color=A.RGB(1, 0, 0),
             phi=50 * dg,
             theta=np.pi / 2,
         ) | A.RedToPalette(A.ColorPalette(black_violet)),
         A.GaussianDroplet(
-            sigma=L.Named('right_drone') | S.Lin(shift=0, mult=np.pi / 40),
+            sigma=L.Named('drone2') | S.Lin(shift=0, mult=np.pi / 40),
             color=A.RGB(1, 0, 1),
             phi=1.3 * np.pi / 2,
             theta=np.pi / 2,
@@ -132,111 +134,204 @@ def stereo_drone_sphere():
     )
 
 
-def get_sphere():
+# def get_sphere():
+#
+#     return A.Mixer(dict(
+#         std=stereo_drone_sphere(),
+#         std2=A.ThetaPalette(
+#             shift=L.Named('std2'),
+#             mult=1,
+#             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
+#             palette=std2_palette,
+#         ) | S.Lin(mult=0.5),
+#         std3=L.Named('std3') | A.ThetaPaletteWindow(
+#             palette=std3_palette,
+#             start=0, end=1,
+#         ),
+#         ooo=A.FullOn(color=ooo_color),
+#         # test=A.GaussianDroplet(
+#         #     color=A.RGB(1, 1, 1),
+#         #     sigma=2 * dg,
+#         #     theta=90 * dg,
+#         #     phi=0,
+#         # ),
+#         test=A.ThetaPalette(
+#             # shift=L.Named('ring1'),
+#             shift=0,
+#             mult=1,
+#             # palette=A.Palette(brownish_palette),
+#             palette=A.Palette(test_colors),
+#         ),
+#         # test=A.Add(
+#         #     A.PhiRing(
+#         #         width=np.pi / 10,
+#         #         color=[0.8, 0, 1],
+#         #         theta=L.Named('ring1') | S.Lin(mult=np.pi),
+#         #     ),
+#         #     A.PhiRing(
+#         #         width=np.pi / 10,
+#         #         color=[1, 0, 0.8],
+#         #         theta=L.Named('ring2') | S.Lin(mult=np.pi / 2),
+#         #     ),
+#         # ),
+#         flash=A.FullOn(color=A.HSV(
+#             value=S.SinT(
+#                 hz=L.Named('loud') | S.Lin(shift=0, mult=8)
+#             ) | S.Lin(shift=0.5, mult=0.5),
+#             saturation=0,
+#         )),
+#         frozen=A.FullOn(
+#             color=[0, 0.1, 0],
+#         ),
+#     ))
 
-    return A.Mixer(dict(
-        std=stereo_drone_sphere(),
-        std2=A.ThetaPalette(
+
+# def get_arm(arm_config, i):
+#     return A.Mixer(dict(
+#         std=A.ArmGradient(
+#             arm_config,
+#             color=[1, 0, 1],
+#             func=lambda x: (1 - x)**4,
+#             # func=lambda x, signals=None: 1*(x < (
+#             #     signals.get('right_drone' if i else 'left_drone', 0))),
+#             mult=L.Named('right_drone' if i else 'left_drone'),
+#         ) | A.RedToPalette(black_violet),
+#         std2=A.ArmPalette(
+#             arm_config,
+#             mult=1,
+#             shift=L.Named('std2'),
+#             palette=std2_palette,
+#         ),  # | A.ArmByDist(arm_config, func=lambda x: 1 - x),
+#         std3=L.Named('std3') | A.ArmPaletteWindow(
+#             arm_config,
+#             palette=std3_palette,
+#             start=1, end=1,
+#         ),
+#         ooo=A.ArmGradient(
+#             arm_config,
+#             color=ooo_color,
+#             func=lambda x: (1 - x)**2,
+#         ),
+#         test=A.ArmIdentify(arm_config),
+#         # test=A.ArmPalette(
+#         #     arm_config,
+#         #     shift=L.Named('ring1'),
+#         #     palette=A.Palette(brownish_palette),
+#         # ),
+#         # test=A.Add(
+#         #     A.ArmRing(
+#         #         arm_config,
+#         #         color=[0.8, 0, 1],
+#         #         value=(
+#         #             L.Named('ring1') | S.Lin(shift=-1, mult=2)
+#         #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
+#         #         ),
+#         #         width=0.1,
+#         #     ),
+#         #     A.ArmRing(
+#         #         arm_config,
+#         #         color=[0.1, 0, 0.8],
+#         #         value=(
+#         #             L.Named('ring2') | S.Lin(shift=-1, mult=2)
+#         #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
+#         #         ),
+#         #         width=0.1,
+#         #     ),
+#         # ),
+#         flash=A.ArmGradient(
+#             arm_config,
+#             color=A.HSV(
+#                 value=S.SinT(
+#                     hz=L.Named('loud') | S.Lin(shift=0, mult=8)
+#                 ) | S.Lin(shift=0.5, mult=0.5),
+#                 saturation=0,
+#             ),
+#         ),
+#         frozen=A.ArmFullOn(
+#             arm_config,
+#             color=[0, 0.1, 0],
+#         ),
+#     ))
+
+
+def std():
+    return (
+        stereo_drone_sphere(),
+        lambda i, arm_config: A.ArmGradient(
+            arm_config,
+            color=[1, 0, 1],
+            func=lambda x: (1 - x)**4,
+            # func=lambda x, signals=None: 1*(x < (
+            #     signals.get('right_drone' if i else 'left_drone', 0))),
+            mult=L.Named('drone1' if i else 'drone2'),
+        ) | A.RedToPalette(black_violet),
+    )
+
+
+def std2():
+    return (
+        A.ThetaPalette(
             shift=L.Named('std2'),
             mult=1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
             palette=std2_palette,
         ) | S.Lin(mult=0.5),
-        std3=L.Named('std3') | A.ThetaPaletteWindow(
+        lambda i, arm_config: A.ArmPalette(
+            arm_config,
+            mult=1,
+            shift=L.Named('std2'),
+            palette=std2_palette,
+        ),
+    )
+
+
+def std3():
+    return (
+        L.Named('std3') | A.ThetaPaletteWindow(
             palette=std3_palette,
             start=0, end=1,
         ),
-        ooo=A.FullOn(color=ooo_color),
-        # test=A.GaussianDroplet(
-        #     color=A.RGB(1, 1, 1),
-        #     sigma=2 * dg,
-        #     theta=90 * dg,
-        #     phi=0,
-        # ),
-        test=A.ThetaPalette(
+        lambda i, arm_config: L.Named('std3') | A.ArmPaletteWindow(
+            arm_config,
+            palette=std3_palette,
+            start=1, end=1,
+        )
+    )
+
+
+def ooo():
+    return (
+        A.FullOn(color=ooo_color),
+        lambda i, arm_config: A.ArmGradient(
+            arm_config,
+            color=ooo_color,
+            func=lambda x: (1 - x)**2,
+        ),
+    )
+
+
+def test():
+    return (
+        A.ThetaPalette(
             # shift=L.Named('ring1'),
             shift=0,
             mult=1,
             # palette=A.Palette(brownish_palette),
             palette=A.Palette(test_colors),
         ),
-        # test=A.Add(
-        #     A.PhiRing(
-        #         width=np.pi / 10,
-        #         color=[0.8, 0, 1],
-        #         theta=L.Named('ring1') | S.Lin(mult=np.pi),
-        #     ),
-        #     A.PhiRing(
-        #         width=np.pi / 10,
-        #         color=[1, 0, 0.8],
-        #         theta=L.Named('ring2') | S.Lin(mult=np.pi / 2),
-        #     ),
-        # ),
-        flash=A.FullOn(color=A.HSV(
+        lambda i, arm_config: A.ArmIdentify(arm_config),
+    )
+
+
+def flash():
+    return (
+        A.FullOn(color=A.HSV(
             value=S.SinT(
                 hz=L.Named('loud') | S.Lin(shift=0, mult=8)
             ) | S.Lin(shift=0.5, mult=0.5),
             saturation=0,
         )),
-        frozen=A.FullOn(
-            color=[0, 0.1, 0],
-        ),
-    ))
-
-
-def get_arm(arm_config, i):
-    return A.Mixer(dict(
-        std=A.ArmGradient(
-            arm_config,
-            color=[1, 0, 1],
-            func=lambda x: (1 - x)**4,
-            # func=lambda x, signals=None: 1*(x < (
-            #     signals.get('right_drone' if i else 'left_drone', 0))),
-            mult=L.Named('right_drone' if i else 'left_drone'),
-        ) | A.RedToPalette(black_violet),
-        std2=A.ArmPalette(
-            arm_config,
-            mult=1,
-            shift=L.Named('std2'),
-            palette=std2_palette,
-        ),# | A.ArmByDist(arm_config, func=lambda x: 1 - x),
-        std3=L.Named('std3') | A.ArmPaletteWindow(
-            arm_config,
-            palette=std3_palette,
-            start=1, end=1,
-        ),
-        ooo=A.ArmGradient(
-            arm_config,
-            color=ooo_color,
-            func=lambda x: (1 - x)**2,
-        ),
-        test=A.ArmIdentify(arm_config),
-        # test=A.ArmPalette(
-        #     arm_config,
-        #     shift=L.Named('ring1'),
-        #     palette=A.Palette(brownish_palette),
-        # ),
-        # test=A.Add(
-        #     A.ArmRing(
-        #         arm_config,
-        #         color=[0.8, 0, 1],
-        #         value=(
-        #             L.Named('ring1') | S.Lin(shift=-1, mult=2)
-        #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
-        #         ),
-        #         width=0.1,
-        #     ),
-        #     A.ArmRing(
-        #         arm_config,
-        #         color=[0.1, 0, 0.8],
-        #         value=(
-        #             L.Named('ring2') | S.Lin(shift=-1, mult=2)
-        #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
-        #         ),
-        #         width=0.1,
-        #     ),
-        # ),
-        flash=A.ArmGradient(
+        lambda i, arm_config: A.ArmGradient(
             arm_config,
             color=A.HSV(
                 value=S.SinT(
@@ -245,18 +340,51 @@ def get_arm(arm_config, i):
                 saturation=0,
             ),
         ),
-        frozen=A.ArmFullOn(
+    )
+
+
+def frozen():
+    return (
+        A.FullOn(
+            color=[0, 0.1, 0],
+        ),
+        lambda i, arm_config: A.ArmFullOn(
             arm_config,
             color=[0, 0.1, 0],
         ),
-    ))
+    )
+
+
+def get_sphere_arms_by_state():
+    return dict(
+        std=std(),
+        std2=std2(),
+        std3=std3(),
+        ooo=ooo(),
+        test=test(),
+        flash=flash(),
+        frozenn=frozen(),
+    )
 
 
 def get_data():
 
+    sphere_arms_by_state = get_sphere_arms_by_state()
+
     return dict(
-        sphere=get_sphere(),
-        arms=[get_arm(arm_config, i)
-              for i, arm_config in enumerate(arm_configs)],
-        beamz=L.Named('flash_pulse', 0),
+        sphere=A.Mixer({
+            state: sphere_arms[0]
+            for state, sphere_arms in sphere_arms_by_state.items()
+        }),
+        arms=[
+            A.Mixer({
+                state: sphere_arms[1](i, arm_config)
+                for state, sphere_arms in sphere_arms_by_state.items()
+            })
+            for i, arm_config in enumerate(arm_configs)
+        ],
+        # sphere=get_sphere(),
+        # arms=[get_arm(arm_config, i)
+        #       for i, arm_config in enumerate(arm_configs)],
+        # beamz=L.Named('flash_pulse', 0),
     )

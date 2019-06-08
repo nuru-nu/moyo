@@ -1,4 +1,4 @@
-import effects as E, logic as L, ml, settings, signals as S
+import effects as E, logic as L, ml, signals as S
 
 
 def get_data():
@@ -47,10 +47,6 @@ def get_data():
             L.Named('iso') |
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
-        ) * (
-            L.Named('left_drone') | S.Lin(shift=10, mult=-10) | S.Clip()
-        ) * (
-            L.Named('right_drone') | S.Lin(shift=10, mult=-10) | S.Clip()
         ),
 
         sonar=S.Sonar(),
@@ -58,9 +54,12 @@ def get_data():
 
         state=S.State(),
 
-        left_drone=S.RndRamp([1, 5], [5, 10], [8, 8]) | S.NotInState('test'),
-        # right_drone=S.RndRamp([1, 5], [5, 10], [2, 2]) | S.NotInState('test'),
-        right_drone=L.Constant(0.0),
+        drone1=S.RndRamp(),
+        drone2=S.RndRamp(),
+        drone3=S.RndRamp(),
+        drone4=S.RndRamp(),
+        drone5=S.RndRamp(),
+        drone6=S.RndRamp(),
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
@@ -73,7 +72,8 @@ def get_data():
     )
 
     return dict(
-        additional_monitor_address=None,  #('192.168.43.33', settings.monitor_port),
+        # additional_monitor_address=('192.168.43.33', settings.monitor_port),
+        additional_monitor_address=None,
         microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

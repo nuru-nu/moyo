@@ -1,16 +1,110 @@
-import collections, time
+import collections, json, time
 
 import colorsys
 import numpy as np
 
 import logic as L, pixel_functions as pf, settings, util
 
+# mapping
+###############################################################################
+
+
+# LEGACY
+def load_mapping():
+    mapping = np.zeros((settings.sphere_pixels, 2))
+    with open(settings.get_mapping_path()) as json_file:
+        data = json.load(json_file)
+        for coord_data in data:
+            idx = int(coord_data['idx'])
+            phi = float(coord_data['phi'])
+            theta = float(coord_data['theta'])
+            # phi: -pi - pi, theta 0 - pi
+            mapping[idx - 1] = np.array([phi, theta])
+    return mapping
+
+
+def generate_sphere_mapping(phi0):
+    mapping = np.zeros((64 * len(settings.sphere_strips), 2))
+    dphi = 2 * np.pi / len(settings.sphere_strips)
+    for led, sphere_strip in enumerate(settings.sphere_strips):
+        dtheta = np.pi / 2 / (sphere_strip.led0 + sphere_strip.led1)
+        phi1 = phi0 + led * dphi
+        phi2 = phi1 + dphi / 2
+        # going outward
+        values = [
+            [phi1, i * dtheta]
+            for i in range(sphere_strip.led0,
+                           sphere_strip.led0 + sphere_strip.led1)
+        ]
+        # border
+        values += [
+            [phi1 + i * dphi / 2 / sphere_strip.border_leds, np.pi / 2]
+            for i in range(sphere_strip.border_leds)
+        ]
+        # going inward
+        values += [
+            [phi2, np.pi / 2 - i * dtheta]
+            for i in range(
+                0, 60 - sphere_strip.led1 - sphere_strip.border_leds)
+        ]
+        assert len(values) == 60, len(values)
+        mapping[led * 64: led * 64 + 60, :] = np.array(values)
+    return mapping
+
+
+def arm_dists(arm_config):
+    length = len(arm_config.offsets)
+    return np.concatenate([
+        np.tile(np.concatenate([
+            np.linspace(meter, meter + 1, 60) / length,
+            [0.0] * 4,
+        ]), len(offsets))
+        for meter, offsets in enumerate(arm_config.offsets)
+    ])
+
+
+def generate_arm_mapping():
+    mapping_by_channel = {}
+    for arm_segment in settings.arm_segments:
+        if arm_segment.channel not in mapping_by_channel:
+            mapping_by_channel[arm_segment.channel] = np.zeros((512, 2))
+        pixels = mapping_by_channel[arm_segment.channel]
+        i0 = 64 * arm_segment.output
+        pixels[i0: i0 + 60, 0] = arm_segment.phi
+        pixels[i0: i0 + 60, 1] = np.linspace(
+            arm_segment.start, arm_segment.stop, 60)
+    return mapping_by_channel
+
+
+def generate_total_mapping(phi0):
+    """Returns is_sphere, mapping [(phi, theta), ...] for sphere & all arms.
+
+    The pixels in the sphere have phi 0..2pi and theta 0..pi/2, while the
+    pixels of the arms have phi 0..2pi and "theta" 0..1 (for short arms) or
+    0..2 (for long arms).
+    """
+    sc1 = settings.sphere_channel1
+    sc2 = settings.sphere_channel2
+    channel_max = max(
+        sc1, sc2,
+        *[segment.channel for segment in settings.arm_segments])
+    total_mapping = np.zeros((512 * channel_max, 2))
+    is_sphere = np.zeros(total_mapping.shape[0])
+    sphere_mapping = generate_sphere_mapping(phi0)
+    total_mapping[(sc1 - 1) * 512: sc1 * 512] = sphere_mapping[:512]
+    total_mapping[(sc2 - 1) * 512: sc2 * 512] = sphere_mapping[512:]
+    is_sphere[(sc1 - 1) * 512: sc1 * 512] = 1.0
+    is_sphere[(sc2 - 1) * 512: sc2 * 512] = 1.0
+    for channel, segment_mapping in generate_arm_mapping().items():
+        total_mapping[(channel - 1) * 512: channel * 512] = segment_mapping
+    return is_sphere, total_mapping
+
 
 if settings.is_blender:
-    mapping = settings.load_mapping()
+    sphere_mapping = load_mapping()
 else:
-    mapping = settings.generate_mapping(phi0=220 / 360 * np.pi * 2)
-
+    sphere_mapping = generate_sphere_mapping(phi0=220 * settings.dg)
+    is_sphere, total_mapping = generate_total_mapping(phi0=220 * settings.dg)
 
 # utils
 ###############################################################################
@@ -22,6 +116,7 @@ def full_on(color, nr_pixels):
 
 def linear(x):
     return x
+
 
 # state related
 ###############################################################################
@@ -68,13 +163,14 @@ ColorPoint = collections.namedtuple('ColorPoint', ['index', 'color'])
 
 def parse_colors_co_scss(scss):
     rgbs = [
-        [float(v) / 256 for v in line[line.index('(')+1:line.index(')')].split(', ')[:3]]
+        [float(v) / 256
+         for v in line[line.index('(') + 1:line.index(')')].split(', ')[:3]]
         for line in scss.split('\n')
         if line
     ]
     return [
         ColorPoint(i / len(rgbs), rgb)
-        for i, rgb in enumerate (rgbs)
+        for i, rgb in enumerate(rgbs)
     ]
 
 
@@ -120,9 +216,11 @@ class Palette:
         self.n = n
         xs = np.linspace(0, 1, n)
         self.lookup = np.array([
-            np.interp(xs, [c.index for c in colors], [c.color[i] for c in colors])
+            np.interp(
+                xs, [c.index for c in colors], [c.color[i] for c in colors])
             for i in range(3)
         ]).T
+
     def __call__(self, values):
         return self.lookup[(np.clip(values, 0, 1) * (self.n - 1)).astype(int)]
 
@@ -131,11 +229,14 @@ class ColorPalette(L.Signal):
     def init(self, colors, n=256):
         xs = np.linspace(0, 1, n)
         self.lookup = np.array([
-            np.interp(xs, [c.index for c in colors], [c.color[i] for c in colors])
+            np.interp(
+                xs, [c.index for c in colors], [c.color[i] for c in colors])
             for i in range(3)
         ]).T
+
     def call(self, value):
-        return self.lookup[(np.clip(value, 0, 1) * (self.n - 1)).astype(int), :]
+        return self.lookup[
+            (np.clip(value, 0, 1) * (self.n - 1)).astype(int), :]
 
 
 # TODO make this work with SimpleSignal
@@ -164,7 +265,7 @@ class FullOn(L.Signal):
         pass
 
     def call(self):
-        return full_on(self.color, len(mapping))
+        return full_on(self.color, len(sphere_mapping))
 
 # animation combiners
 ###############################################################################
@@ -192,7 +293,7 @@ class ThetaRing(L.Signal):
 
     def call(self):
         return pf.theta_ring(
-            mapping,
+            sphere_mapping,
             phi=self.phi,
             width=self.width,
             color=self.color,
@@ -205,7 +306,7 @@ class PhiRing(L.Signal):
 
     def call(self):
         return pf.phi_ring(
-            mapping,
+            sphere_mapping,
             theta=self.theta,
             width=self.width,
             color=self.color,
@@ -217,19 +318,20 @@ class ThetaPalette(L.Signal):
 
     def init(self, palette, shift=0, mult=1, func=linear):
         """Computes palette[func(shift + theta/(pi/2) * mult)]."""
-        global mapping
-        self.dists = mapping[:, 1] / (np.pi / 2)
+        global sphere_mapping
+        self.dists = sphere_mapping[:, 1] / (np.pi / 2)
 
     def call(self):
-        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+        return self.palette(
+            self.func((self.shift + self.dists * self.mult) % 1))
 
 
 class ThetaPaletteWindow(L.Signal):
     """Computes palette along theta, windowed on range from a value."""
 
     def init(self, palette, start, end):
-        global mapping
-        self.dists = mapping[:, 1] / (np.pi / 2)
+        global sphere_mapping
+        self.dists = sphere_mapping[:, 1] / (np.pi / 2)
 
     def call(self, value):
         return self.palette(self.dists)
@@ -240,11 +342,12 @@ class PhiPalette(L.Signal):
 
     def init(self, palette, shift=0, mult=1, func=linear):
         """Computes palette[func(shift + theta/(pi/2) * mult)]."""
-        global mapping
-        self.dists = mapping[:, 0] / (np.pi * 2)
+        global sphere_mapping
+        self.dists = sphere_mapping[:, 0] / (np.pi * 2)
 
     def call(self):
-        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+        return self.palette(
+            self.func((self.shift + self.dists * self.mult) % 1))
 
 # gaussians
 ###############################################################################
@@ -257,7 +360,7 @@ class GaussianDroplet(L.Signal):
 
     def call(self):
         return pf.gaussian_droplet(
-            mapping, [self.phi, self.theta], self.sigma, self.color)
+            sphere_mapping, [self.phi, self.theta], self.sigma, self.color)
 
 
 class GaussianRain(L.Signal):
@@ -272,7 +375,7 @@ class GaussianRain(L.Signal):
         self.colors = [[0, 0, 0] for _ in range(int(self.nr_droplets))]
 
     def call(self):
-        pixels = np.zeros((len(mapping), 3))
+        pixels = np.zeros((len(sphere_mapping), 3))
         for drop_nr in range(self.nr_droplets):
             if (time.time() - self.t_0s[drop_nr]) / self.drop_duration > 1:
                 self.t_0s[drop_nr] = time.time()
@@ -285,7 +388,8 @@ class GaussianRain(L.Signal):
             sigma = self.radius * dt / self.drop_duration
 
             pixels += pf.gaussian_droplet(
-                mapping, self.positions[drop_nr], sigma, self.colors[drop_nr])
+                sphere_mapping,
+                self.positions[drop_nr], sigma, self.colors[drop_nr])
 
         return pixels
 
@@ -358,17 +462,6 @@ class ArmRing(L.Signal):
         ])
 
 
-def arm_dists(arm_config):
-    length = len(arm_config.offsets)
-    return np.concatenate([
-        np.tile(np.concatenate([
-            np.linspace(meter, meter + 1, 60) / length,
-            [0.0] * 4,
-        ]), len(offsets))
-        for meter, offsets in enumerate(arm_config.offsets)
-    ])
-
-
 class ArmPalette(L.Signal):
     """Computes palette along arm."""
 
@@ -376,7 +469,8 @@ class ArmPalette(L.Signal):
         self.dists = arm_dists(arm_config)
 
     def call(self):
-        return self.palette(self.func((self.shift + self.dists * self.mult) % 1))
+        return self.palette(
+            self.func((self.shift + self.dists * self.mult) % 1))
 
 
 class ArmPaletteWindow(L.Signal):
@@ -386,7 +480,8 @@ class ArmPaletteWindow(L.Signal):
         self.dists = arm_dists(arm_config)
 
     def call(self, value):
-        return self.palette(self.dists * (value - self.start) * (self.end - self.start))
+        return self.palette(
+            self.dists * (value - self.start) * (self.end - self.start))
 
 
 class ArmByDist(L.Signal):

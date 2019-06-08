@@ -94,14 +94,12 @@ class TriggerPulse(L.Signal):
 
 class RndRamp(L.Signal):
 
-    def init(self, break_minmax, duration_minmax, ramp_minmax=[0.5, 0.5],
+    def init(self, break_minmax=[1, 60], duration_minmax=[2, 5],
+             ramp_minmax=[1, 2],
              state='std'):
         self.t3 = -1
 
     def call(self, t, state):
-        if state.state != 'std':
-            self.t3 = -1
-            return 0.0
         if t > self.t3:
             self.t0 = t + L.rnd(self.break_minmax)
             self.t1 = self.t0 + L.rnd(self.ramp_minmax)
@@ -140,7 +138,7 @@ class SonarGood(L.Signal):
         if sonar > 0:
             self.t_good_sonar.append((t, sonar))
         while len(self.t_good_sonar) and (
-            self.t_good_sonar[0][0] < t - self.time_window_secs):
+                self.t_good_sonar[0][0] < t - self.time_window_secs):
             del self.t_good_sonar[0]
         return min(1.0, len(self.t_good_sonar) / (
             self.time_window_secs * settings.sonar_hz))

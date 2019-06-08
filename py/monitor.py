@@ -84,6 +84,7 @@ class Graphs:
 
     _PRESETS = dict(
         initial=('loud', 'ooo', 'ooo_intensity', 'left_drone', 'right_drone'),
+        std1=('drone1', 'drone2', 'drone3', 'drone4', 'drone5', 'drone6'),
         tf=('loud', 'tf', 'tf2', 'tf3'),
         freqs=('loud', 'low', 'medium', 'high'),
         debug=('snoar', 'sonar_good'),
@@ -240,9 +241,13 @@ class Monitor:
         self.state = tk.StringVar()
         self.state.set('...')
         ttk.Label(state_buttons, textvariable=self.state).pack(side=tk.LEFT)
-        for i, state in enumerate(('test', 'std', 'std2', 'std3', 'ooo', 'ooo2', 'flash', 'dark')):
+        for i, state in enumerate(
+                ('std', 'std2', 'std3',
+                 'ooo', 'ooo2',
+                 'test', 'flash', 'dark')):
             text = '<{}> {}'.format(i, state)
-            command = functools.partial(self.signalin_sender.send, dict(newstate=state))
+            command = functools.partial(
+                self.signalin_sender.send, dict(newstate=state))
             button = ttk.Button(state_buttons, text=text, command=command)
             self.root.bind(str(i), lambda _: command)
             button.pack(side=tk.LEFT)
@@ -254,7 +259,8 @@ class Monitor:
         entry = ttk.Entry(overrides, textvariable=self.overrides)
         entry.pack(side=tk.LEFT)
         entry.bind('<Return>', self.override)
-        ttk.Button(overrides, text='set', command=self.override).pack(side=tk.LEFT)
+        ttk.Button(overrides, text='set', command=self.override).pack(
+            side=tk.LEFT)
         overrides.pack()
 
         recording_frame = ttk.Frame(top)
@@ -272,7 +278,8 @@ class Monitor:
         ttk.Combobox(recording_frame, values=values,
                      textvariable=self.play).pack(side=tk.LEFT)
         ttk.Button(recording_frame, text='play',
-                   command=lambda: self.signalin_sender.send(dict(play=self.play.get()))
+                   command=lambda: self.signalin_sender.send(
+                       dict(play=self.play.get()))
                    ).pack(side=tk.LEFT)
 
         top_labels = ttk.Frame(top)
@@ -337,7 +344,8 @@ class Monitor:
         self.update_freeze()
 
     def update_freeze(self):
-        self.signalin_sender.send(dict(newstate='frozen' if self.frozen else 'std'))
+        self.signalin_sender.send(dict(
+            newstate='frozen' if self.frozen else 'std'))
         if self.frozen:
             self.ani.event_source.stop()
             self.freeze_button.configure(text='unfreeze')
