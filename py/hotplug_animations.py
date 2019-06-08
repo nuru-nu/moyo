@@ -118,20 +118,32 @@ def two_rings():
 
 
 def stereo_drone_sphere():
-    return A.Add(
+    return A.Add(*[
         A.GaussianDroplet(
-            sigma=L.Named('drone1') | S.Lin(shift=0, mult=np.pi / 40),
+            sigma=(
+                L.Named('drone{}'.format(i + 1))
+                | S.Lin(shift=0, mult=np.pi / 40)
+            ),
             color=A.RGB(1, 0, 0),
-            phi=50 * dg,
+            phi=arm_config.phi,
             theta=np.pi / 2,
-        ) | A.RedToPalette(A.ColorPalette(black_violet)),
-        A.GaussianDroplet(
-            sigma=L.Named('drone2') | S.Lin(shift=0, mult=np.pi / 40),
-            color=A.RGB(1, 0, 1),
-            phi=1.3 * np.pi / 2,
-            theta=np.pi / 2,
-        ),
-    )
+        ) | A.RedToPalette(A.ColorPalette(black_violet))
+        for i, arm_config in enumerate(settings.arm_configs)
+    ])
+    # return A.Add(
+    #     A.GaussianDroplet(
+    #         sigma=L.Named('drone1') | S.Lin(shift=0, mult=np.pi / 40),
+    #         color=A.RGB(1, 0, 0),
+    #         phi=50 * dg,
+    #         theta=np.pi / 2,
+    #     ) | A.RedToPalette(A.ColorPalette(black_violet)),
+    #     A.GaussianDroplet(
+    #         sigma=L.Named('drone2') | S.Lin(shift=0, mult=np.pi / 40),
+    #         color=A.RGB(1, 0, 1),
+    #         phi=1.3 * np.pi / 2,
+    #         theta=np.pi / 2,
+    #     ),
+    # )
 
 
 # def get_sphere():
@@ -263,7 +275,7 @@ def std():
             func=lambda x: (1 - x)**4,
             # func=lambda x, signals=None: 1*(x < (
             #     signals.get('right_drone' if i else 'left_drone', 0))),
-            mult=L.Named('drone1' if i else 'drone2'),
+            mult=L.Named('drone{}'.format(i + 1)),
         ) | A.RedToPalette(black_violet),
     )
 
@@ -363,7 +375,7 @@ def get_sphere_arms_by_state():
         ooo=ooo(),
         test=test(),
         flash=flash(),
-        frozenn=frozen(),
+        frozen=frozen(),
     )
 
 
