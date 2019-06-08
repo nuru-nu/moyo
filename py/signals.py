@@ -28,6 +28,12 @@ class State(L.Signal):
             pass
         elif not state.state.startswith('std') and sonar > self.sonar_ooo:
             state.goto(random.choice(['std', 'std2']))
+            state.color = random.choice([
+                'brownish_palette',
+                'coolors_rainbow',
+                'just_greens',
+                'blue_purple',
+            ])
         elif state.state == 'test':
             return state
         elif state.state.startswith('std') and sonar < self.sonar_ooo:
@@ -47,7 +53,7 @@ class State(L.Signal):
 class InState(L.Signal):
 
     def init(self, state):
-        self.state = state
+        pass
 
     def call(self, value, state):
         return value * (state.state == self.state)

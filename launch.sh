@@ -30,7 +30,7 @@ tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which py
 tmux selectp -t 5
 tmux send-keys "cd fadecandy" C-M "python ../py/restarter.py ./fcserver config.json" $CM
 tmux splitw -v -p 66
-tmux send-keys ". env/bin/activate && cd py" C-M "python run_fadecandy_animations.py" $CM
+tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) run_fadecandy_animations.py' $CM
 tmux splitw -v
 tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) dmx.py' $CM
 tmux splitw -v

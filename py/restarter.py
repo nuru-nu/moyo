@@ -50,7 +50,7 @@ while True:
     counter += 1
     if stopped - started > waits_reset_secs:
         waits_i = 0
-    wait = waits_secs[waits_i]
+    wait = waits_secs[min(waits_i, len(wait_secs) - 1)]
     waits_log.append(wait)
     waits_i += 1
     logger.info('stopped, waiting {} seconds'.format(wait))

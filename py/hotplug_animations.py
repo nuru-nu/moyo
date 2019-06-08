@@ -122,10 +122,10 @@ def stereo_drone_sphere():
                 | S.Lin(shift=0, mult=np.pi / 40)
             ),
             color=A.RGB(1, 0, 0),
-            phi=arm_config.phi,
+            phi=phi,
             theta=np.pi / 2,
         ) | A.RedToPalette(A.ColorPalette(black_violet))
-        for i, arm_config in enumerate(settings.arm_configs)
+        for i, phi in [(0, np.pi / 2), (1, 3 * np.pi / 2)]
     ])
     # return A.Add(
     #     A.GaussianDroplet(
@@ -269,10 +269,14 @@ def std():
         lambda i, arm_config: A.ArmGradient(
             arm_config,
             color=[1, 0, 1],
-            func=lambda x: (1 - x)**4,
+            func=lambda x: (1 - x + 0.3)**4,
             # func=lambda x, signals=None: 1*(x < (
             #     signals.get('right_drone' if i else 'left_drone', 0))),
-            mult=L.Named('drone{}'.format(i + 1)),
+            mult=L.Named(
+                ['drone1', 'drone2',
+                 'drone1', 'drone2', 'drone2',
+                 'drone3'][i]
+            ),
         ) | A.RedToPalette(black_violet),
     )
 
@@ -280,6 +284,14 @@ def std():
 def std2():
     colors = A.Palette(coolors_rainbow)
     colors = A.Palette(brownish_palette)
+    colors = A.StatePalette(
+        A.Palette(brownish_palette),
+        dict(
+            brownish_palette=A.Palette(brownish_palette),
+            coolors_rainbow=A.Palette(coolors_rainbow),
+            just_greens=A.Palette(just_greens),
+            blue_purple=A.Palette(blue_purple),
+    ))
     return (
         A.ThetaPalette(
             shift=L.Named('std2'),
@@ -348,13 +360,19 @@ def ooo():
 
 def test():
     return (
-        A.ThetaPalette(
-            # shift=L.Named('ring1'),
-            shift=0,
-            mult=1,
-            # palette=A.Palette(brownish_palette),
-            palette=A.Palette(test_colors),
-        ),
+        A.GaussianDroplet(
+            sigma=np.pi / 40,
+            color=A.RGB(1, 0, 0),
+            phi=82 * dg,
+            theta=np.pi / 2,
+        ) | A.RedToPalette(A.ColorPalette(black_violet)),
+        # A.ThetaPalette(
+        #     # shift=L.Named('ring1'),
+        #     shift=0,
+        #     mult=1,
+        #     # palette=A.Palette(brownish_palette),
+        #     palette=A.Palette(test_colors),
+        # ),
         lambda i, arm_config: A.ArmIdentify(arm_config),
     )
 

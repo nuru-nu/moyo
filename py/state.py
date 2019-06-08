@@ -12,6 +12,7 @@ class State:
             ])
         self.playing = parts.get('playing')
         self.state = parts.get('state', 'std')
+        self.color = parts.get('color', 'brownish')
 
     def goto(self, state):
         """Sets a new state."""
@@ -27,6 +28,7 @@ class State:
             for k, v in dict(
                 playing=self.playing,
                 state=self.state,
+                color=self.color,
             ).items()
             if v is not None
         ]
