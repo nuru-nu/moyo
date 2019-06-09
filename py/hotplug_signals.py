@@ -47,26 +47,31 @@ def get_data():
             L.Named('iso') |
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
-        ),
+        ) | S.InState('ooo'),
 
         sonar=S.Sonar(),
         sonar_good=S.SonarGood(),
 
         state=S.State(),
 
-        drone1=S.RndRamp(),
-        drone2=S.RndRamp(),
+        drone1=S.RndRamp(break_minmax=[1, 5],
+            duration_minmax=[3, 10]) | S.InState('std'),
+        drone2=S.RndRamp(break_minmax=[1, 5],
+            duration_minmax=[3, 10]) | S.InState('std'),
         drone3=S.RndRamp(),
         drone4=S.RndRamp(),
         drone5=S.RndRamp(),
         drone6=S.RndRamp(),
 
+        into=S.TriggerPulse('into', 1) | S.MovingAverage(secs=1),
+
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
-            L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.5) | S.Clip()),
+            L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
 
         std2=S.Saw(hz=0.5, dt=0),
-        std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
+        std3=S.Saw(hz=0.5, dt=0),
+        # std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 
         flash_pulse=S.TriggerPulse(state='flash', secs=3),
     )

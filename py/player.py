@@ -1,7 +1,6 @@
-import signal, threading, time
+import os, signal, sys, threading, time, traceback
 
 import numpy as np
-import pyaudio
 
 import audio, hotplug, network, perf, settings, util
 
@@ -35,11 +34,14 @@ stats = dict(cb1=0, cb2=0)
 
 
 buffer_factor = 10
-out_names = settings.out1_names if sys.argv[1] == 'out1' else settings.out2_names
+out_names = (
+    settings.out1_names if sys.argv[1] == 'out1'
+    else settings.out2_names
+)
 out_rate = settings.out1_rate if sys.argv[1] == 'out1' else settings.out2_rate
 port = settings.player_port if sys.argv[1] == 'out1' else settings.player2_port
 effector = 'effector1' if sys.argv[1] == 'out1' else 'effector2'
-ai1 = audio.make_ai(out_names, #stream_callback=stream_callback1,
+ai1 = audio.make_ai(out_names,  # stream_callback=stream_callback1,
                     rate=settings.out1_rate,
                     frames_per_buffer=int(
                         buffer_factor * settings.hop_secs * out_rate),
@@ -47,10 +49,11 @@ ai1 = audio.make_ai(out_names, #stream_callback=stream_callback1,
 assert ai1 is not None, 'Could not find any of: {}'.format(settings.out1_names)
 # ai1.output_stream.start_stream()
 ai2 = None
-ai2 = audio.make_ai(settings.out2_names, #stream_callback=stream_callback2,
+ai2 = audio.make_ai(settings.out2_names,  # stream_callback=stream_callback2,
                     rate=settings.out2_rate,
                     frames_per_buffer=int(
-                        buffer_factor * settings.hop_secs * settings.out2_rate))
+                        buffer_factor * settings.hop_secs *
+                        settings.out2_rate))
 logger.info('ai2={}'.format(ai2))
 
 
@@ -62,12 +65,21 @@ def signal_handler(signal, frame):
 
 running = True
 zeros = np.zeros(int(settings.out2_rate * settings.hop_secs))
-def play_audio():
-    global running
-    while running:
-        bufs = getattr(hp.effects, effector)(zeros, signals)
-        ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
 
+
+def play_audio():
+    global ai1, running
+    try:
+        while not signals:
+            logger.info('waiting for signals...')
+            time.sleep(1)
+        while running:
+            bufs = getattr(hp.effects, effector)(zeros, signals)
+            ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
+    except:
+        print('#### EXITING ####')
+        traceback.print_exception(*sys.exc_info())
+        os._exit(-999)
 
 audio_thread = threading.Thread(target=play_audio)
 audio_thread.start()

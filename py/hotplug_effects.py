@@ -6,10 +6,12 @@ import effects as E, logic as L, settings, util
 
 
 _get_sample_cache = {}
+
+
 def get_sample(partial, rate):
     global _get_sample_cache
     key = '{} {}'.format(partial, rate)
-    if not key in _get_sample_cache:
+    if key not in _get_sample_cache:
         pattern = '../data/samples/{}/*{}*.wav'.format(rate, partial)
         paths = glob.glob(pattern)
         assert len(paths) == 1, '{} matches {}'.format(partial, paths)
@@ -34,13 +36,34 @@ def get_data():
             # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
             # E.SilenceOrPlaying(),
 
-            E.RndPlay(gs1('haunting'), 'left_drone'),
-            E.RndPlay(gs1('haunting'), 'right_drone'),
+            E.RndPlay(gs1('haunting'), 'drone1'),
+            E.RndPlay(gs1('haunting'), 'drone2'),
+
+            # E.Mixer(
+            #     default_effect=E.RndPlay(gs1('haunting'), 'drone1'),
+            #     effect_by_state=dict(
+            #         into=E.Silence(),
+            #         ooo=E.Silence(),
+            #     ),
+            # ),
+            # E.Mixer(
+            #     default_effect=E.RndPlay(gs1('haunting'), 'drone2'),
+            #     effect_by_state=dict(
+            #         into=E.Silence(),
+            #         ooo=E.Silence(),
+            #     ),
+            # ),
             # E.Silence(),
             # E.RndPlay(gs1('synthy'), 'left_drone'),
 
-            # E.RndPlay(gs1('muffled-thunderstorm'), 'right_drone') | E.Compressor(30),
-            # E.RndPlay(gs1('muffled-thunderstorm'), 'left_drone') | E.Compressor(50),
+            # (
+            #     E.RndPlay(gs1('muffled-thunderstorm'), 'right_drone')
+            #     | E.Compressor(30)
+            # ),
+            # (
+            #     E.RndPlay(gs1('muffled-thunderstorm'), 'left_drone')
+            #     | E.Compressor(50)
+            # ),
 
             # E.RndPlay(haunted_wav, 'bass_ooo'),
             # E.Sinusoidal(50) | E.SigAmp('low'),
@@ -63,8 +86,34 @@ def get_data():
             # E.RndPlay(gs2('rain-and-thunderstorm'), 'right_drone'),
             # E.RndPlay(haunted2_wav, 'left_drone'),
             # E.RndPlay(haunted2_wav, 'bass_ooo', rate=settings.out2_rate),
-            E.Loop(gs2('haunting')),
-            E.Loop(gs2('haunting')),
+            # E.Loop(gs2('haunting')),
+            # E.Loop(gs2('haunting')),
+            E.RandomLoop([
+                # gs2('haunting'),
+                gs2('brook-1'),
+                gs2('brook-3'),
+                gs2('birds'),
+                gs2('lush-drone'),
+                gs2('single-string'),
+                gs2('water-running'),
+                gs2('muffled-thunderstorm'),
+                gs2('dark-sound'),
+                gs2('cruel'),
+                gs2('guitar-'),
+            ]),
+            E.RandomLoop([
+                # gs2('haunting'),
+                gs2('brook-1'),
+                gs2('brook-3'),
+                gs2('birds'),
+                gs2('lush-drone'),
+                gs2('single-string'),
+                gs2('water-running'),
+                gs2('muffled-thunderstorm'),
+                gs2('dark-sound'),
+                gs2('cruel'),
+                gs2('guitar-'),
+            ]),
             # E.Silence(),
             # E.Silence(),
         ]),

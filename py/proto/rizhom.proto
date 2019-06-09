@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+package rizhom;
+
+message Signal {
+	string name = 1;
+	float value = 2;
+}
+
+message Monitor {
+	repeated Signal signals = 1;
+}
+

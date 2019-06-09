@@ -205,6 +205,8 @@ signals = dict(state=state.State())
 while running:
 
     signalin = network.get_json(signalin_sock, {})
+    if signalin and set(signalin.keys()) != {'sonar'}:
+        logger.info('signalin={!r}'.format(signalin))    
 
     new_frozen = signals['state'].state == 'frozen'
     if new_frozen and signalin.get('newstate', 'frozen') != 'frozen':

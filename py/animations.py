@@ -103,8 +103,8 @@ def generate_total_mapping(phi0):
 if settings.is_blender:
     sphere_mapping = load_mapping()
 else:
-    sphere_mapping = generate_sphere_mapping(phi0=220 * settings.dg)
-    is_sphere, total_mapping = generate_total_mapping(phi0=220 * settings.dg)
+    sphere_mapping = generate_sphere_mapping(phi0=122 * settings.dg)
+    is_sphere, total_mapping = generate_total_mapping(phi0=122 * settings.dg)
 
 # utils
 ###############################################################################
@@ -225,6 +225,29 @@ class Palette:
         return self.lookup[(np.clip(values, 0, 1) * (self.n - 1)).astype(int)]
 
 
+
+class StatePalette(L.Signal):
+    def init(self, default_palette, palettes_dict):
+        pass
+
+    def call(self, state):
+        return self.palettes_dict.get(
+                state.color,
+                self.default_palette
+                )
+
+
+class StateColorPalette(L.Signal):
+    def init(self, default_palette, palettes_dict):
+        pass
+
+    def call(self, value, state):
+        return self.palettes_dict.get(
+            state.color,
+            self.default_palette
+        )(value)
+
+
 class ColorPalette(L.Signal):
     def init(self, colors, n=256):
         xs = np.linspace(0, 1, n)
@@ -237,7 +260,6 @@ class ColorPalette(L.Signal):
     def call(self, value):
         return self.lookup[
             (np.clip(value, 0, 1) * (self.n - 1)).astype(int), :]
-
 
 # TODO make this work with SimpleSignal
 class RedToPalette(L.Signal):

@@ -14,6 +14,63 @@ arm_configs = (
 ooo_hue = S.SinT(hz=L.Named('ooo_intensity')
                  | S.Lin(shift=0.0025, mult=0.5)) | S.Lin(shift=0.25, mult=0.5)
 
+
+funny_rainbow = A.parse_colors_co_scss('''
+$color1: rgba(249, 200, 14, 1);
+$color2: rgba(248, 102, 36, 1);
+$color3: rgba(234, 53, 70, 1);
+$color4: rgba(102, 46, 155, 1);
+$color5: rgba(67, 188, 205, 1);''')
+
+barbie = A.parse_colors_co_scss('''
+$color1: rgba(247, 237, 240, 1);
+$color2: rgba(244, 203, 198, 1);
+$color3: rgba(244, 175, 171, 1);
+$color4: rgba(244, 238, 169, 1);
+$color5: rgba(244, 244, 130, 1);''')
+
+purple_haze = A.parse_colors_co_scss('''
+$color1: rgba(110, 68, 255, 1);
+$color2: rgba(184, 146, 255, 1);
+$color3: rgba(244, 175, 171, 1);
+$color4: rgba(255, 194, 226, 1);
+$color5: rgba(239, 122, 133, 1);''')
+
+red_death = A.parse_colors_co_scss('''
+$color1: rgba(252, 68, 15, 1);
+$color2: rgba(162, 0, 33, 1);
+$color3: rgba(245, 47, 87, 1);
+$color4: rgba(247, 157, 92, 1);
+$color5: rgba(237, 237, 244, 1);''')
+
+gabe_red = A.parse_colors_co_scss('''
+$color1: rgba(88, 39, 7, 1);
+$color2: rgba(162, 0, 33, 1);
+$color3: rgba(255, 75, 62, 1);
+$color4: rgba(255, 178, 15, 1);
+$color5: rgba(255, 229, 72, 1);''')
+
+super_red = A.parse_colors_co_scss('''
+$color1: rgba(196, 30, 61, 1);
+$color2: rgba(125, 17, 40, 1);
+$color3: rgba(255, 44, 85, 1);
+$color4: rgba(60, 9, 25, 1);
+$color5: rgba(226, 41, 79, 1);''')
+
+ultra_rainbows = A.parse_colors_co_scss('''
+$color1: rgba(4, 231, 98, 1);
+$color2: rgba(245, 183, 0, 1);
+$color3: rgba(255, 44, 85, 1);
+$color4: rgba(0, 161, 228, 1);
+$color5: rgba(137, 252, 0, 1);''')
+
+earth_life = A.parse_colors_co_scss('''
+$color1: rgba(79, 52, 90, 1);
+$color2: rgba(89, 60, 143, 1);
+$color3: rgba(143, 169, 152, 1);
+$color4: rgba(156, 191, 167, 1);
+$color5: rgba(201, 242, 153, 1);''')
+
 # https://coolors.co/ffffff-ea7af4-b43e8f-6200b3-8451ad
 blueish_palette = A.parse_colors_co_scss('''
 $color1: rgba(255, 255, 255, 1);
@@ -93,8 +150,24 @@ ooo_color = A.HSV(
     # hue=A.OooHue(),
     value=L.Named("loud"),
 )
+state_color_palette = A.StateColorPalette(
+        A.Palette(brownish_palette),
+        dict(
+            brownish_palette=A.Palette(brownish_palette),
+            coolors_rainbow=A.Palette(coolors_rainbow),
+            just_greens=A.Palette(just_greens),
+            blue_purple=A.Palette(blue_purple),
+            funny_rainbow=A.Palette(funny_rainbow),
+            barbie=A.Palette(barbie),
+            purple_haze=A.Palette(purple_haze),
+            red_death=A.Palette(red_death),
+            gabe_red=A.Palette(gabe_red),
+            super_red=A.Palette(super_red),
+            ultra_rainbows=A.Palette(ultra_rainbows),
+            earth_life=A.Palette(earth_life),
+            ))
 ooo_color = (
-    ooo_hue | A.ColorPalette(colors=brownish_palette)
+    ooo_hue | state_color_palette
     | S.Lin(mult=L.Named('loud'))
 )
 
@@ -122,10 +195,10 @@ def stereo_drone_sphere():
                 | S.Lin(shift=0, mult=np.pi / 40)
             ),
             color=A.RGB(1, 0, 0),
-            phi=arm_config.phi,
+            phi=phi,
             theta=np.pi / 2,
         ) | A.RedToPalette(A.ColorPalette(black_violet))
-        for i, arm_config in enumerate(settings.arm_configs)
+        for i, phi in [(0, np.pi / 2), (1, 3 * np.pi / 2)]
     ])
     # return A.Add(
     #     A.GaussianDroplet(
@@ -269,16 +342,37 @@ def std():
         lambda i, arm_config: A.ArmGradient(
             arm_config,
             color=[1, 0, 1],
-            func=lambda x: (1 - x)**4,
+            func=lambda x: (1 - x + 0.3)**4,
             # func=lambda x, signals=None: 1*(x < (
             #     signals.get('right_drone' if i else 'left_drone', 0))),
-            mult=L.Named('drone{}'.format(i + 1)),
+            mult=L.Named(
+                ['drone1', 'drone2',
+                 'drone1', 'drone2', 'drone2',
+                 'drone3'][i]
+            ),
         ) | A.RedToPalette(black_violet),
     )
 
 
 def std2():
     colors = A.Palette(coolors_rainbow)
+    colors = A.Palette(brownish_palette)
+    colors = A.StatePalette(
+        A.Palette(brownish_palette),
+        dict(
+            brownish_palette=A.Palette(brownish_palette),
+            coolors_rainbow=A.Palette(coolors_rainbow),
+            just_greens=A.Palette(just_greens),
+            blue_purple=A.Palette(blue_purple),
+            funny_rainbow=A.Palette(funny_rainbow),
+            barbie=A.Palette(barbie),
+            purple_haze=A.Palette(purple_haze),
+            red_death=A.Palette(red_death),
+            gabe_red=A.Palette(gabe_red),
+            super_red=A.Palette(super_red),
+            ultra_rainbows=A.Palette(ultra_rainbows),
+            earth_life=A.Palette(earth_life),
+    ))
     return (
         A.ThetaPalette(
             shift=L.Named('std2'),
@@ -312,7 +406,10 @@ def std3():
         ) | S.Lin(mult=0.5),
         lambda i, arm_config: A.ArmFullOn(
             arm_config,
-            color=L.Named(sig) | A.ColorPalette(colors),
+            color=(
+                L.Named(sig) | S.Lin(shift=arm_config.phi, mod=2 * np.pi)
+                | A.ColorPalette(colors)
+            ),
         ),
     )
 
@@ -344,13 +441,19 @@ def ooo():
 
 def test():
     return (
-        A.ThetaPalette(
-            # shift=L.Named('ring1'),
-            shift=0,
-            mult=1,
-            # palette=A.Palette(brownish_palette),
-            palette=A.Palette(test_colors),
-        ),
+        A.GaussianDroplet(
+            sigma=np.pi / 40,
+            color=A.RGB(1, 0, 0),
+            phi=82 * dg,
+            theta=np.pi / 2,
+        ) | A.RedToPalette(A.ColorPalette(black_violet)),
+        # A.ThetaPalette(
+        #     # shift=L.Named('ring1'),
+        #     shift=0,
+        #     mult=1,
+        #     # palette=A.Palette(brownish_palette),
+        #     palette=A.Palette(test_colors),
+        # ),
         lambda i, arm_config: A.ArmIdentify(arm_config),
     )
 
@@ -397,6 +500,7 @@ def get_sphere_arms_by_state():
         test=test(),
         flash=flash(),
         frozen=frozen(),
+        into=frozen(),
     )
 
 
@@ -414,7 +518,7 @@ def get_data():
                 state: sphere_arms[1](i, arm_config)
                 for state, sphere_arms in sphere_arms_by_state.items()
             })
-            for i, arm_config in enumerate(arm_configs)
+            for i, arm_config in enumerate(settings.arm_configs)
         ],
         # sphere=get_sphere(),
         # arms=[get_arm(arm_config, i)
