@@ -1,4 +1,4 @@
-import signal, sys, threading, time
+import os, signal, sys, threading, time, traceback
 
 import numpy as np
 
@@ -77,8 +77,9 @@ def play_audio():
             bufs = getattr(hp.effects, effector)(zeros, signals)
             ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
     except:
-        sys.exit(-1)
-
+        print('#### EXITING ####')
+        traceback.print_exception(*sys.exc_info())
+        os._exit(-999)
 
 audio_thread = threading.Thread(target=play_audio)
 audio_thread.start()

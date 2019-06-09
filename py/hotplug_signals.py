@@ -47,7 +47,7 @@ def get_data():
             L.Named('iso') |
             S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
             S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
-        ),
+        ) | S.InState('ooo'),
 
         sonar=S.Sonar(),
         sonar_good=S.SonarGood(),
@@ -67,7 +67,7 @@ def get_data():
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
-            L.Named('ooo') | S.Ramp(up_s=0.05, down_s=0.5) | S.Clip()),
+            L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
 
         std2=S.Saw(hz=0.5, dt=0),
         std3=S.Saw(hz=0.5, dt=0),

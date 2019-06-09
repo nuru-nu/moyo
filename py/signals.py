@@ -28,11 +28,20 @@ class State(L.Signal):
             pass
         elif not state.state.startswith('std') and sonar > self.sonar_ooo:
             state.goto(random.choice(['std', 'std2']))
+            state.rnd = random.choice(range(10))
             state.color = random.choice([
                 'brownish_palette',
                 'coolors_rainbow',
                 'just_greens',
                 'blue_purple',
+                'funny_rainbow',
+                'barbie',
+                'purple_haze',
+                'red_death',
+                'gabe_red',
+                'super_red',
+                'ultra_rainbows',
+                'earth_life',
             ])
         elif state.state == 'test':
             return state

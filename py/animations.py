@@ -232,9 +232,20 @@ class StatePalette(L.Signal):
 
     def call(self, state):
         return self.palettes_dict.get(
+                state.color,
+                self.default_palette
+                )
+
+
+class StateColorPalette(L.Signal):
+    def init(self, default_palette, palettes_dict):
+        pass
+
+    def call(self, value, state):
+        return self.palettes_dict.get(
             state.color,
             self.default_palette
-        )
+        )(value)
 
 
 class ColorPalette(L.Signal):

@@ -367,6 +367,25 @@ class Loop(Effect):
         return buf
 
 
+class RandomLoop(Effect):
+
+    def __init__(self, wavs):
+        self.wavs = wavs
+        self.i = 0
+
+    def __call__(self, buf, signals):
+        wav = self.wavs[int(signals['state'].rnd) % len(self.wavs)]
+        n = len(buf)
+        if self.i > len(wav):
+            self.i = 0
+        buf = wav[self.i: self.i + n]
+        self.i = (self.i + n) % len(wav)
+        if len(buf) < n:
+            diff = n - len(buf)
+            buf = np.concatenate([buf, np.zeros(diff)])
+        return buf
+
+
 class PlayPart(Effect):
     """One shot player triggered by signal>0."""
 
