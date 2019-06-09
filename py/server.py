@@ -45,12 +45,24 @@ def get_json(sock, max_size=4096):
         return None
 
 
-def status_text(status_by_name):
-    text = ''
+def fmtt(t):
+    if t > 3600 * 24:
+        t = int(t / 3600)
+        return '{}d{}h'.format(t // 24, t % 24)
+    if t > 3600:
+        t = int(t / 60)
+        return '{}h{}m'.format(t // 60, t % 60)
+    t = int(t)
+    return '{}m{}s'.format(t // 60, t % 60)
+
+
+def status_text(status_by_name, top_n=0):
+    lines = []
     for name, status in status_by_name.items():
-        text += '{}={} [{}s ago]\n'.format(
-            name, status['status'], int(time.time() - status['t']))
-    return text
+        ago = time.time() - status['t']
+        lines += [(ago, '{}={} [{} ago]'.format(
+            name, status['status'], fmtt(ago)))]
+    return '\n'.join([line[1] for line in sorted(lines)])
 
 
 def udp_loop():
