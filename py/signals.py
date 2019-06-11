@@ -151,7 +151,7 @@ class Sonar(L.Signal):
     """Normalized sonar distance signal, ignores invalid."""
 
     def init(self, max_sonar=50):
-        self.last_sonar = 0
+        self.last_sonar = max_sonar
 
     def call(self, signalin, t):
         sonar = signalin.get('sonar', 0)
