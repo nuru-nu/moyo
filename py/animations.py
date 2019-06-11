@@ -126,10 +126,11 @@ def linear(x):
 class Mixer:
     """Mixes signals by state.state with some interpolation."""
 
-    def __init__(self, d):
+    def __init__(self, d, default_dt=1, dt_by_state={}):
         self.d = d
         self.t0 = 0
-        self.dt = 1
+        self.default_dt = default_dt
+        self.dt_by_state = dt_by_state
         self.current = self.last = 'std'
 
     def __call__(self, **signals):
@@ -140,8 +141,9 @@ class Mixer:
             self.current = state
             self.t0 = t
         pixels = self.d[state](**signals)['value']
-        if t - self.t0 < self.dt:
-            v = (t - self.t0) / self.dt
+        dt = self.dt_by_state.get(state, self.default_dt)
+        if t - self.t0 < dt:
+            v = (t - self.t0) / dt
             last_pixels = self.d[self.last](**signals)['value']
             pixels = v * pixels + (1 - v) * last_pixels
         return dict(value=pixels)
@@ -225,16 +227,15 @@ class Palette:
         return self.lookup[(np.clip(values, 0, 1) * (self.n - 1)).astype(int)]
 
 
-
 class StatePalette(L.Signal):
     def init(self, default_palette, palettes_dict):
         pass
 
     def call(self, state):
         return self.palettes_dict.get(
-                state.color,
-                self.default_palette
-                )
+            state.color,
+            self.default_palette
+        )
 
 
 class StateColorPalette(L.Signal):
@@ -260,6 +261,7 @@ class ColorPalette(L.Signal):
     def call(self, value):
         return self.lookup[
             (np.clip(value, 0, 1) * (self.n - 1)).astype(int), :]
+
 
 # TODO make this work with SimpleSignal
 class RedToPalette(L.Signal):

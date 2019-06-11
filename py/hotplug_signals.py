@@ -1,4 +1,4 @@
-import effects as E, logic as L, ml, signals as S
+import effects as E, logic as L, ml, settings, signals as S
 
 
 def get_data():
@@ -8,6 +8,7 @@ def get_data():
         #     S.Exponential(alpha=0.8)
         # ),
         loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
+        rawloud=S.Louder(n=3) | S.Lin(mult=2),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
         tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
@@ -54,31 +55,35 @@ def get_data():
 
         state=S.State(),
 
-        drone1=S.RndRamp(break_minmax=[1, 5],
-            duration_minmax=[3, 10]) | S.InState('std'),
-        drone2=S.RndRamp(break_minmax=[1, 5],
-            duration_minmax=[3, 10]) | S.InState('std'),
+        drone1=(
+            S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
+            | S.InState('std') | S.MovingAverage(secs=0.5)
+        ),
+        drone2=(
+            S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
+            | S.InState('std') | S.MovingAverage(secs=0.5)
+        ),
         drone3=S.RndRamp(),
-        drone4=S.RndRamp(),
-        drone5=S.RndRamp(),
-        drone6=S.RndRamp(),
 
-        into=S.TriggerPulse('into', 1) | S.MovingAverage(secs=1),
+        into=S.TriggerPulse('into', 2) | S.MovingAverage(secs=2),
 
         bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
         ooo_intensity=(
             L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
 
         std2=S.Saw(hz=0.5, dt=0),
+        std22=S.Saw(hz=1.0, dt=0),
         std3=S.Saw(hz=0.5, dt=0),
         # std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 
-        flash_pulse=S.TriggerPulse(state='flash', secs=3),
+        # flash_pulse=S.TriggerPulse(state='flash', secs=3),
+        flash_pulse=L.Named('rawloud') | S.Smoke(0.5, 2, 40),
     )
 
     return dict(
         # additional_monitor_address=('192.168.43.33', settings.monitor_port),
         additional_monitor_address=None,
+        additional_monitor_logmel=False,
         microphone_effect=E.Compressor(2) | E.Recording('play'),
         runner=L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     )

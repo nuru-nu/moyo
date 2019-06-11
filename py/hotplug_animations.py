@@ -150,7 +150,10 @@ ooo_color = A.HSV(
     # hue=A.OooHue(),
     value=L.Named("loud"),
 )
-state_color_palette = A.StateColorPalette(
+
+
+def get_state_colors(StatePaletteOrStateColorPalette):
+    return StatePaletteOrStateColorPalette(
         A.Palette(brownish_palette),
         dict(
             brownish_palette=A.Palette(brownish_palette),
@@ -158,18 +161,14 @@ state_color_palette = A.StateColorPalette(
             just_greens=A.Palette(just_greens),
             blue_purple=A.Palette(blue_purple),
             funny_rainbow=A.Palette(funny_rainbow),
-            barbie=A.Palette(barbie),
-            purple_haze=A.Palette(purple_haze),
+            # barbie=A.Palette(barbie),
+            # purple_haze=A.Palette(purple_haze),
             red_death=A.Palette(red_death),
             gabe_red=A.Palette(gabe_red),
             super_red=A.Palette(super_red),
             ultra_rainbows=A.Palette(ultra_rainbows),
             earth_life=A.Palette(earth_life),
-            ))
-ooo_color = (
-    ooo_hue | state_color_palette
-    | S.Lin(mult=L.Named('loud'))
-)
+        ))
 
 
 def two_rings():
@@ -185,6 +184,12 @@ def two_rings():
             color=A.RGB(0, 0, 1),
         ),
     )
+
+
+ooo_color = (
+    ooo_hue | get_state_colors(A.StateColorPalette)
+    | S.Lin(mult=L.Named('loud'))
+)
 
 
 def stereo_drone_sphere():
@@ -216,126 +221,6 @@ def stereo_drone_sphere():
     # )
 
 
-# def get_sphere():
-#
-#     return A.Mixer(dict(
-#         std=stereo_drone_sphere(),
-#         std2=A.ThetaPalette(
-#             shift=L.Named('std2'),
-#             mult=1,
-#             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
-#             palette=std2_palette,
-#         ) | S.Lin(mult=0.5),
-#         std3=L.Named('std3') | A.ThetaPaletteWindow(
-#             palette=std3_palette,
-#             start=0, end=1,
-#         ),
-#         ooo=A.FullOn(color=ooo_color),
-#         # test=A.GaussianDroplet(
-#         #     color=A.RGB(1, 1, 1),
-#         #     sigma=2 * dg,
-#         #     theta=90 * dg,
-#         #     phi=0,
-#         # ),
-#         test=A.ThetaPalette(
-#             # shift=L.Named('ring1'),
-#             shift=0,
-#             mult=1,
-#             # palette=A.Palette(brownish_palette),
-#             palette=A.Palette(test_colors),
-#         ),
-#         # test=A.Add(
-#         #     A.PhiRing(
-#         #         width=np.pi / 10,
-#         #         color=[0.8, 0, 1],
-#         #         theta=L.Named('ring1') | S.Lin(mult=np.pi),
-#         #     ),
-#         #     A.PhiRing(
-#         #         width=np.pi / 10,
-#         #         color=[1, 0, 0.8],
-#         #         theta=L.Named('ring2') | S.Lin(mult=np.pi / 2),
-#         #     ),
-#         # ),
-#         flash=A.FullOn(color=A.HSV(
-#             value=S.SinT(
-#                 hz=L.Named('loud') | S.Lin(shift=0, mult=8)
-#             ) | S.Lin(shift=0.5, mult=0.5),
-#             saturation=0,
-#         )),
-#         frozen=A.FullOn(
-#             color=[0, 0.1, 0],
-#         ),
-#     ))
-
-
-# def get_arm(arm_config, i):
-#     return A.Mixer(dict(
-#         std=A.ArmGradient(
-#             arm_config,
-#             color=[1, 0, 1],
-#             func=lambda x: (1 - x)**4,
-#             # func=lambda x, signals=None: 1*(x < (
-#             #     signals.get('right_drone' if i else 'left_drone', 0))),
-#             mult=L.Named('right_drone' if i else 'left_drone'),
-#         ) | A.RedToPalette(black_violet),
-#         std2=A.ArmPalette(
-#             arm_config,
-#             mult=1,
-#             shift=L.Named('std2'),
-#             palette=std2_palette,
-#         ),  # | A.ArmByDist(arm_config, func=lambda x: 1 - x),
-#         std3=L.Named('std3') | A.ArmPaletteWindow(
-#             arm_config,
-#             palette=std3_palette,
-#             start=1, end=1,
-#         ),
-#         ooo=A.ArmGradient(
-#             arm_config,
-#             color=ooo_color,
-#             func=lambda x: (1 - x)**2,
-#         ),
-#         test=A.ArmIdentify(arm_config),
-#         # test=A.ArmPalette(
-#         #     arm_config,
-#         #     shift=L.Named('ring1'),
-#         #     palette=A.Palette(brownish_palette),
-#         # ),
-#         # test=A.Add(
-#         #     A.ArmRing(
-#         #         arm_config,
-#         #         color=[0.8, 0, 1],
-#         #         value=(
-#         #             L.Named('ring1') | S.Lin(shift=-1, mult=2)
-#         #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
-#         #         ),
-#         #         width=0.1,
-#         #     ),
-#         #     A.ArmRing(
-#         #         arm_config,
-#         #         color=[0.1, 0, 0.8],
-#         #         value=(
-#         #             L.Named('ring2') | S.Lin(shift=-1, mult=2)
-#         #             | S.Clip() | S.Exp(1.5) | S.Lin(shift=-0.1)
-#         #         ),
-#         #         width=0.1,
-#         #     ),
-#         # ),
-#         flash=A.ArmGradient(
-#             arm_config,
-#             color=A.HSV(
-#                 value=S.SinT(
-#                     hz=L.Named('loud') | S.Lin(shift=0, mult=8)
-#                 ) | S.Lin(shift=0.5, mult=0.5),
-#                 saturation=0,
-#             ),
-#         ),
-#         frozen=A.ArmFullOn(
-#             arm_config,
-#             color=[0, 0.1, 0],
-#         ),
-#     ))
-
-
 def std():
     return (
         stereo_drone_sphere(),
@@ -355,31 +240,14 @@ def std():
 
 
 def std2():
-    colors = A.Palette(coolors_rainbow)
-    colors = A.Palette(brownish_palette)
-    colors = A.StatePalette(
-        A.Palette(brownish_palette),
-        dict(
-            brownish_palette=A.Palette(brownish_palette),
-            coolors_rainbow=A.Palette(coolors_rainbow),
-            just_greens=A.Palette(just_greens),
-            blue_purple=A.Palette(blue_purple),
-            funny_rainbow=A.Palette(funny_rainbow),
-            barbie=A.Palette(barbie),
-            purple_haze=A.Palette(purple_haze),
-            red_death=A.Palette(red_death),
-            gabe_red=A.Palette(gabe_red),
-            super_red=A.Palette(super_red),
-            ultra_rainbows=A.Palette(ultra_rainbows),
-            earth_life=A.Palette(earth_life),
-    ))
+    colors = get_state_colors(A.StatePalette)
     return (
         A.ThetaPalette(
             shift=L.Named('std2'),
             mult=1,
             # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
-            palette=colors,
-        ) | S.Lin(mult=0.5),
+            palette=colors
+        ) | S.Lin(mult=0.2),
         lambda i, arm_config: A.ArmPalette(
             arm_config,
             mult=1,
@@ -490,6 +358,24 @@ def frozen():
     )
 
 
+def into():
+    colors = get_state_colors(A.StatePalette)
+    return (
+        A.ThetaPalette(
+            shift=L.Named('std22'),
+            mult=-1,
+            # mult=S.SinT(hz=.1) | S.Lin(shift=0.75, mult=0.25),
+            palette=colors
+        ) | S.Lin(mult=L.Named('into') | S.Lin(shift=0.3, mult=0.7)),
+        lambda i, arm_config: A.ArmPalette(
+            arm_config,
+            mult=-1,
+            shift=L.Named('std2'),
+            palette=colors,
+        ) | A.ArmByDist(arm_config, func=lambda x: (1 - x)**2.5),
+    )
+
+
 def get_sphere_arms_by_state():
     return dict(
         std=std(),
@@ -500,7 +386,7 @@ def get_sphere_arms_by_state():
         test=test(),
         flash=flash(),
         frozen=frozen(),
-        into=frozen(),
+        into=into(),
     )
 
 

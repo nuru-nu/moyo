@@ -77,6 +77,7 @@ def to_string():
 
 
 address = 'localhost'
+signalin_address = '0.0.0.0'  # TODO remove ?
 monitor_listen_address = '0.0.0.0'
 monitor_port = 6100
 signalin_port = 6101

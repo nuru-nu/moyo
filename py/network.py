@@ -12,12 +12,12 @@ class SignalinSender:
     def __init__(self, logger=util.NoLogger()):
         self.logger = logger
         self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.signalin_address = (settings.address, settings.signalin_port)
 
-    def send(self, d):
-        self.logger.info('sending {}'.format(d))
+    def send(self, d, address=settings.address):
+        self.logger.info('sending {} to {}'.format(d, address))
         msg = json.dumps(d).encode('utf8')
-        self.signalin_sock.sendto(msg, self.signalin_address)
+        print('xxx', address)
+        self.signalin_sock.sendto(msg, (address, settings.signalin_port))
 
 
 class StatusSender:

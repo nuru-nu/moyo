@@ -29,6 +29,23 @@ def gs2(partial):
     return get_sample(partial, rate=settings.out2_rate)
 
 
+def bass_loops(gs):
+    return E.RandomLoop([
+        # gs('gong18'),
+        gs('haunting'),
+        gs('brook-1'),
+        gs('brook-3'),
+        gs('birds'),
+        gs('lush-drone'),
+        gs('single-string'),
+        gs('water-running'),
+        gs('muffled-thunderstorm'),
+        gs('dark-sound'),
+        gs('cruel'),
+        gs('guitar-'),
+    ])
+
+
 def get_data():
     return dict(
         effector1=E.Effector(settings.out1_rate, [
@@ -88,32 +105,8 @@ def get_data():
             # E.RndPlay(haunted2_wav, 'bass_ooo', rate=settings.out2_rate),
             # E.Loop(gs2('haunting')),
             # E.Loop(gs2('haunting')),
-            E.RandomLoop([
-                # gs2('haunting'),
-                gs2('brook-1'),
-                gs2('brook-3'),
-                gs2('birds'),
-                gs2('lush-drone'),
-                gs2('single-string'),
-                gs2('water-running'),
-                gs2('muffled-thunderstorm'),
-                gs2('dark-sound'),
-                gs2('cruel'),
-                gs2('guitar-'),
-            ]),
-            E.RandomLoop([
-                # gs2('haunting'),
-                gs2('brook-1'),
-                gs2('brook-3'),
-                gs2('birds'),
-                gs2('lush-drone'),
-                gs2('single-string'),
-                gs2('water-running'),
-                gs2('muffled-thunderstorm'),
-                gs2('dark-sound'),
-                gs2('cruel'),
-                gs2('guitar-'),
-            ]),
+            bass_loops(gs2),
+            bass_loops(gs2),
             # E.Silence(),
             # E.Silence(),
         ]),

@@ -47,16 +47,31 @@ class State(L.Signal):
             return state
         elif state.state.startswith('std') and sonar < self.sonar_ooo:
             state.goto('into')
-        elif state.state == 'into' and dt > 1:
+        elif state.state == 'into' and dt > 2:
             state.goto('ooo')
-        elif state.state == 'ooo' and ooo_intensity == 1.0:
-            state.state = 'flash'
+        # elif state.state == 'ooo' and ooo_intensity == 1.0:
+        #     state.state = 'flash'
         elif state.state == 'flash' and t - self.last_change > 10:
             state.state = 'std'
 
         if oldstate != state.state:
             self.last_change = t
         return state
+
+
+class Smoke(L.Signal):
+
+    def init(self, threshold, pulse_secs, refactory_secs):
+        self.t0 = 0
+
+    def call(self, t, value):
+        if t - self.t0 < self.pulse_secs:
+            return 1
+        if value < self.threshold:
+            return 0
+        if t - self.t0 > self.refactory_secs:
+            self.t0 = t
+            return 1
 
 
 class InState(L.Signal):

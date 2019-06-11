@@ -167,18 +167,29 @@ def get_signals(feats, signalin, state):
 def send_signals(data):
     msg = util.pythonize(data)
     msg = json.dumps(msg).encode('utf8')
-    monitor_address = hp.signals.additional_monitor_address
-    if monitor_address:
-        sock.sendto(msg, monitor_address)
     sock.sendto(msg, (settings.address, settings.monitor_port))
     sock.sendto(msg, (settings.address, settings.player_port))
     sock.sendto(msg, (settings.address, settings.player2_port))
     sock.sendto(msg, (settings.address, settings.fadecandy_port))
     sock.sendto(msg, (settings.address, settings.dmx_port))
+    monitor_address = hp.signals.additional_monitor_address
+    if monitor_address:
+        if not hp.signals.additional_monitor_logmel:
+            msg = util.pythonize({
+                k: v for k, v in data.items()
+                if k not in ('logmel', 'mfccs')
+            })
+        msg = json.dumps(msg).encode('utf8')
+        try:
+            sock.sendto(msg, monitor_address)
+        except socket.error:
+            # e.g. additional_monitor network gone
+            pass
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-signalin_sock = network.create_udp_socket(settings.signalin_port)
+signalin_sock = network.create_udp_socket(
+    settings.signalin_port, address=settings.signalin_address)
 
 i = 0
 i_o = 0
@@ -206,7 +217,7 @@ while running:
 
     signalin = network.get_json(signalin_sock, {})
     if signalin and set(signalin.keys()) != {'sonar'}:
-        logger.info('signalin={!r}'.format(signalin))    
+        logger.info('signalin={!r}'.format(signalin))
 
     new_frozen = signals['state'].state == 'frozen'
     if new_frozen and signalin.get('newstate', 'frozen') != 'frozen':
