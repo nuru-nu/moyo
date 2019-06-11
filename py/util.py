@@ -1,5 +1,5 @@
 
-import collections, json, logging, sys, time
+import collections, json, logging, os, sys, time, traceback
 
 import numpy as np
 
@@ -204,7 +204,20 @@ class PrintEvery:
     def __init__(self, dt):
         self.dt = dt
         self.t0 = 0
+
     def __call__(self, msg):
         if self.dt > 0 and time.time() - self.t0 > self.dt:
             self.t0 = time.time()
             print(msg)
+
+
+def except_kill(func):
+    """Kills the program if any exception is encountered."""
+    def wrapper(*args, **kw):
+        try:
+            return func(*args, **kw)
+        except:  # NOQA
+            print('#### EXITING ####')
+            traceback.print_exception(*sys.exc_info())
+            os._exit(-999)
+    return wrapper

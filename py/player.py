@@ -1,10 +1,8 @@
-import os, signal, sys, threading, time, traceback
+import signal, socket, sys, threading, time
 
 import numpy as np
 
 import audio, hotplug, network, perf, settings, util
-
-import sys
 
 assert sys.argv[1] in ('out1', 'out2')
 
@@ -55,6 +53,7 @@ ai2 = audio.make_ai(settings.out2_names,  # stream_callback=stream_callback2,
                         buffer_factor * settings.hop_secs *
                         settings.out2_rate))
 logger.info('ai2={}'.format(ai2))
+running = True
 
 
 def signal_handler(signal, frame):
@@ -63,40 +62,35 @@ def signal_handler(signal, frame):
     running = False
 
 
-running = True
-zeros = np.zeros(int(settings.out2_rate * settings.hop_secs))
-
-
+@util.except_kill
 def play_audio():
     global ai1, running
-    try:
-        while not signals:
-            logger.info('waiting for signals...')
-            time.sleep(1)
-        while running:
-            bufs = getattr(hp.effects, effector)(zeros, signals)
-            ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
-    except:
-        print('#### EXITING ####')
-        traceback.print_exception(*sys.exc_info())
-        os._exit(-999)
+    zeros = np.zeros(int(settings.out2_rate * settings.hop_secs))
+    while not signals and running:
+        logger.info('waiting for signals...')
+        time.sleep(1)
+    while running:
+        bufs = getattr(hp.effects, effector)(zeros, signals)
+        ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
+    ai1.close()
+
+
+@util.except_kill
+def main_loop():
+    global signals
+    while running:
+        try:
+            signals = network.get_json(sock, signals)
+        except socket.timeout:
+            logger.warning('timeout get_json from recorder2')
+
 
 audio_thread = threading.Thread(target=play_audio)
 audio_thread.start()
 
 signal.signal(signal.SIGINT, signal_handler)
-zerohop = np.zeros(settings.hop_size)
-sock = network.create_udp_socket(port, timeout=None)
-t0 = time.time()
-while running:
-    signals = network.get_json(sock, signals)
-    if time.time() - t0 > 1e10:
-        print(signals.get('left_drone'), signals.get('right_drone'), stats)
-        t0 = time.time()
-    # bufs = hp.effects.effector1(zeros, signals)
-    # ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
-    # ai2.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
-# audio_thread.join()
+sock = network.create_udp_socket(port, timeout=1)
+main_loop()
 
 logger.info('Stop playing.')
 del ai1

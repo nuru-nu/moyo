@@ -19,8 +19,9 @@ class AudioInterface:
 
     CHUNK = 1024
 
-    def __init__(self, input=0, output=0, device_index=None, rate=settings.rate,
-                 stream_callback=None, frames_per_buffer=settings.hop_size):
+    def __init__(self, input=0, output=0, device_index=None,
+                 rate=settings.rate, stream_callback=None,
+                 frames_per_buffer=settings.hop_size):
         self.p = pyaudio.PyAudio()
         # (for compatibility)
         input = int(input)
@@ -48,7 +49,7 @@ class AudioInterface:
                 frames_per_buffer=frames_per_buffer,
                 stream_callback=stream_callback)
 
-    def __del__(self):
+    def close(self):
         if hasattr(self, 'input_stream'):
             self.input_stream.stop_stream()
             self.input_stream.close()
@@ -56,6 +57,9 @@ class AudioInterface:
             self.output_stream.stop_stream()
             self.output_stream.close()
         self.p.terminate()
+
+    def __del__(self):
+        self.close()
 
     def play(self, wav):
         """Plays `wav` (can be float or int16 array) using `settings`."""
@@ -137,7 +141,8 @@ def make_ai(names, output=2, **kw):
     for name in names:
         device_index = AudioInterface.get_index(name)
         if device_index is not None:
-            return AudioInterface(output=output, device_index=device_index, **kw)
+            return AudioInterface(
+                output=output, device_index=device_index, **kw)
 
 
 if __name__ == '__main__':
