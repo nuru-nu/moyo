@@ -16,7 +16,6 @@ class SignalinSender:
     def send(self, d, address=settings.address):
         self.logger.info('sending {} to {}'.format(d, address))
         msg = json.dumps(d).encode('utf8')
-        print('xxx', address)
         self.signalin_sock.sendto(msg, (address, settings.signalin_port))
 
 
@@ -24,7 +23,7 @@ class StatusSender:
     """Sends changes and periodic confirmations of updates."""
 
     def __init__(self, name, repeat_secs=10, logger=util.NoLogger()):
-        self.name = '{}_{}'.format(name, get_ip())
+        self.name = name
         self.repeat_secs = repeat_secs
         self.logger = logger
         self.status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -42,6 +41,7 @@ class StatusSender:
             name=self.name,
             status=status,
             t=t,
+            ip=get_ip(),
         )
         if log_send:
             self.logger.info('sending {}'.format(d))

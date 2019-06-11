@@ -13,7 +13,7 @@ update_secs = 10
 
 signalin_port = 6101
 
-status_by_name = {}
+status_by_name_and_ip = {}
 
 logger = logging.getLogger('server')
 logger.setLevel(logging.INFO)
@@ -32,17 +32,17 @@ def create_udp_socket(port, timeout=0, address='0.0.0.0'):
     return sock
 
 
-def get_json(sock, max_size=4096):
+def get_json_and_address(sock, max_size=4096):
     try:
         data, address = sock.recvfrom(max_size)
     except socket.timeout:
-        return None
+        return None, None
     try:
         data = json.loads(data.decode('utf8'))
-        return data
+        return data, address[0]
     except json.JSONDecodeError as e:
         print('*** Could not decode {!r} : {}'.format(data, e))
-        return None
+        return None, None
 
 
 def fmtt(t):
@@ -56,12 +56,12 @@ def fmtt(t):
     return '{}m{}s'.format(t // 60, t % 60)
 
 
-def status_text(status_by_name, top_n=0):
+def status_text(status_by_name_and_ip, top_n=0):
     lines = []
-    for name, status in status_by_name.items():
+    for (name, ip), status in status_by_name_and_ip.items():
         ago = time.time() - status['t']
-        lines += [(ago, '{}={} [{} ago]'.format(
-            name, status['status'], fmtt(ago)))]
+        lines += [(ago, '{}: {}={} [{} ago]'.format(
+            ip, name, status['status'], fmtt(ago)))]
     return '\n'.join([line[1] for line in sorted(lines)])
 
 
@@ -69,17 +69,18 @@ def udp_loop():
     t0 = 0
     sock = create_udp_socket(status_port, timeout=1)
     while True:
-        data = get_json(sock)
+        data, address = get_json_and_address(sock)
         if data:
             name = data['name']
             status = data['status']
             t = data['t']
-            status_by_name[name] = dict(status=status, t=t)
+            ip = data['ip']
+            status_by_name_and_ip[(name, ip)] = dict(status=status, t=t)
         if time.time() - t0 < update_secs:
             continue
         t0 = time.time()
         print('\n' + str(datetime.datetime.now()))
-        print(status_text(status_by_name))
+        print(status_text(status_by_name_and_ip))
 
 
 thread = threading.Thread(target=udp_loop)
@@ -154,7 +155,7 @@ function send_command(command) {
 </script>
 
 """.replace(
-        '{status_by_name}', status_text(status_by_name)
+        '{status_by_name}', status_text(status_by_name_and_ip)
     ).replace(
         '{commands}', json.dumps(list(commands.keys()))
     )
