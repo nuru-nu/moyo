@@ -17,7 +17,7 @@ for c in sys.argv[1:]:
     for command, msg in commands.items():
         if command.startswith(c):
             print('{} => {} : {}'.format(c, command, msg))
-            sock.sendto(msg, ('localhost', signalin_port))
+            sock.sendto(msg.encode('utf8'), ('localhost', signalin_port))
             sent = True
             break
     if not sent:
