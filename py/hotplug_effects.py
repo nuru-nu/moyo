@@ -33,16 +33,16 @@ def bass_loops(gs):
     return E.RandomLoop([
         # gs('gong18'),
         gs('haunting'),
-        gs('brook-1'),
-        gs('brook-3'),
-        gs('birds'),
-        gs('lush-drone'),
-        gs('single-string'),
-        gs('water-running'),
-        gs('muffled-thunderstorm'),
-        gs('dark-sound'),
-        gs('cruel'),
-        gs('guitar-'),
+        # gs('brook-1'),
+        # gs('brook-3'),
+        # gs('birds'),
+        # gs('lush-drone'),
+        # gs('single-string'),
+        # gs('water-running'),
+        # gs('muffled-thunderstorm'),
+        # gs('dark-sound'),
+        # gs('cruel'),
+        # gs('guitar-'),
     ])
 
 
