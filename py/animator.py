@@ -13,6 +13,7 @@ from autobahn.asyncio.websocket import WebSocketServerProtocol
 from autobahn.websocket.protocol import WebSocketProtocol
 
 import numpy as np
+import opc
 
 import hotplug, network, settings, state, util
 
@@ -28,7 +29,6 @@ parser.add_argument('--fadecandy', type=bool, default=False,
                     help='Whether to stream animations to fadecandy.')
 
 args = parser.parse_args()
-assert not args.fadecandy
 
 logger = util.createLogger('animator')
 hp = hotplug.HotPlug(logger, modules=('animations',))
@@ -209,8 +209,18 @@ class Animator:
     #     }
     #
 
+def pad_fadecandy(values):
+    """Adds 4 zero RGBs after every 60 values."""
+    zeros = np.zeros((4, 3), 'uint8')
+    return np.concatenate([
+        np.concatenate([
+            values[i0: i0 + 60],
+            zeros
+        ])
+        for i0 in range(0, values.shape[0], 60)
+    ])
 
-async def render_loop(animator, fps, stats, global_state):
+async def render_loop(animator, client, fps, stats, global_state):
     t0 = time.time()
     try:
         while True:
@@ -224,19 +234,25 @@ async def render_loop(animator, fps, stats, global_state):
 
             pixels = animator(global_state.signals)
             data = pixels
-            # data = np.concatenate([
-            #     pixels[0],
-            #     pixels[1],
-            #     pixels[3],
-            #     pixels[4],
-            # ])
             data = np.clip((255 * data).astype('uint8'), 0, 255)
             stats('animation', data)
+
+            try:
+                if client:
+                    fc_data = pad_fadecandy(data)
+                    ok = True
+                    for channel, i0 in enumerate(range(0, fc_data.shape[0], 512)):
+                        ok &= client.put_pixels(fc_data[i0: i0 + 512], channel)
+                    if ok:
+                        stats('fc_animation', fc_data)
+            except e:
+                print('COULD NOT FC', e)
 
             if isOpen(global_state.animation_ws_proto):
                 stats('ws_animation', data)
                 global_state.animation_ws_proto.sendMessage(
                     data.tostring(), isBinary=True)
+
     except Exception as e:
         logger.fatal('render_loop FAILED : %s', e)
         print(traceback.format_exc())
@@ -244,6 +260,11 @@ async def render_loop(animator, fps, stats, global_state):
 
 
 def main():
+    client = None
+    if args.fadecandy:
+        client = opc.Client('localhost:7890')
+        assert client.can_connect()
+        client.set_interpolation(False)
     stats = StreamingStats()
     animator = Animator()
     global_state = GlobalState()
@@ -273,7 +294,7 @@ def main():
     loop.run_until_complete(transport)
 
     render_task = asyncio.ensure_future(render_loop(
-        animator, args.fps, stats, global_state))
+        animator, client, args.fps, stats, global_state))
 
     try:
         loop.run_forever()
