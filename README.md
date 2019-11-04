@@ -36,21 +36,57 @@ modules:
 - `py/util.py` : logging & more
 - `py/logic.py` : computes signals in DAG
 - `py/hotplug_signals.py` : defines how to compute signals from audio features
-- `py/hotplug_effects.py` : defines how to compute sound effects from audio input & signals
-- `py/hotplug_animatinos.py` : defines how to compute visual effects from audio input & signals
+- `py/hotplug_effects.py` : defines how to compute sound effects from audio
+  input & signals
+- `py/hotplug_animatinos.py` : defines how to compute visual effects from
+  audio input & signals
 
-programs - start these separately (or use `./launch.sh`), they communicate on localhost over UDP;
+programs - start these separately (or use `./launch.sh`), they communicate on
+localhost over UDP;
 
 - `py/recorder2.py` : records, plays audio + sends UDP
-- `py/monitor.py` : listens UDP, plots + sends commands
+- `py/animator.py` : runs animations, duplex websocket communication with
+   webapp and optionally streams pixels to fadecandy server
+- `cd js && python -m http.server` : serves files for the webapp
 - `py/player.py` : listens UDP, plays sound on a single sound card (start 
   twice for two soundcards)
 - `py/dmx.py` : listens + controls DMX devices - needs
-- (needs a running fadecandy server) `py/run_fadecandy_animations.py` : runs the fadecandy animations
-- (to simulate neopixels in Blender) `blender/sphere_animation_interface.blend` :
+- (to simulate neopixels in Blender)
+  `blender/sphere_animation_interface.blend` :
   use Blender to start this (see below for how to set up Blender)
   -> run `blender/py/run_blender_animations.py` INSIDE Blender
 
+deprecated programs:
+
+- `py/monitor.py` : listens UDP, plots + sends commands
+- (needs a running fadecandy server) `py/run_fadecandy_animations.py` :
+  runs the fadecandy animations
+
+### Communication between programs
+
+referring to ports in `settings.py`:
+
+- `recorder2.py` -> `animator.py:monitor_port` : signals
+- `animator.py` -> `recorder2.py` : signalin
+- * -> `settings.status_address`:`settings.status_port` : status
+
+signals protocol: JSON encoded signals, all scalars except:
+
+- logmel
+- mfccs
+- state
+
+signalin protocol: JSON encoded instructions (ES6 notation):
+
+- signalin
+- `{logmel_src}` with possible values `input`, `output0`, `output1`
+- `{newstate}` with possible values `frozen` or any state name
+- `{overrides: {signal1: value1, ...}}` : applied in `logic.SignalRunner`
+
+status protocol:
+
+- JSON encoded {name, statust, ip}
+- defaults to send to `figur.li`
 
 ### Remote maintenance
 

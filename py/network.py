@@ -87,4 +87,7 @@ def get_json(sock, data, max_size=4096):
 
 
 def get_ip():
-    return socket.gethostbyname(socket.gethostname())
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        return 'get_ip:gaierror'

@@ -38,7 +38,7 @@ logger = util.createLogger('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-hp = hotplug.HotPlug(logger, modules=('signals',))
+hp = hotplug.HotPlug(logger, modules=('signals', 'effects'))
 
 running = True
 
@@ -88,7 +88,7 @@ class InputStreamer(object):
         data16 = np.frombuffer(data, settings.dtype_np)
         if args.channels == 2:
             data16l, data16r = audio.fromstereo(data16)
-            data16 = data16l - data16r
+            data16 = settings.in_channels_comination(data16l, data16r)
         data = util.int16_to_float(data16)
         data = hp.signals.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
@@ -213,6 +213,10 @@ think_t0 = None
 frozen = 0
 logmel_src = 'input'
 signals = dict(state=state.State())
+zeros = [
+    np.zeros(int(settings.out1_rate * settings.hop_secs)),
+    np.zeros(int(settings.out2_rate * settings.hop_secs))
+]
 while running:
 
     signalin = network.get_json(signalin_sock, {})
@@ -228,7 +232,7 @@ while running:
         input_streamer.freeze(frozen)
         if not frozen and args.reset_secs > 0:
             last_reset_t = 0  # Force reset (if enabled) after unfreeze.
-    if frozen and 'newstate' not in signalin:
+    if frozen and signalin.get('newstate', 'frozen') == 'frozen':
         time.sleep(settings.hop_secs)
         signals['t'] = time.time()
         send_signals(signals)
@@ -257,9 +261,11 @@ while running:
     signals = get_signals(feats, signalin, state=signals['state'])
     logmel_src = signalin.get('logmel_src', logmel_src)
     if logmel_src.startswith('output'):
-        channel = int(logmel_src[-1])
+        out_nr = int(logmel_src[-2:-1])
+        channel = dict(l=0, r=1)[logmel_src[-1]]
+        effector = getattr(hp.effects, 'effector%d' % out_nr)
         signals['logmel'] = features.wav2features(
-            hp.effects.effector.bufs[channel].buf).logmel
+            effector(zeros[out_nr - 1], signals)[channel]).logmel
 
     send_signals(signals)
     status_sender.send('running')

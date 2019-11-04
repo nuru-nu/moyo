@@ -7,16 +7,19 @@ import pyaudio
 
 
 is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
-is_blender = 'blenderplayer' in sys.argv[0]
 import __main__ as main  # noqa
 is_interactive = not hasattr(main, '__file__')
 
 # audio
 ###############################################################################
 
-# Recording sample rate
+# Recording mode & sample rate
+if is_osx:
+    in_channels = 1
+else:
+    in_channels = 2
+    in_channels_comination = lambda left, right: left - right
 rate = 16000
-in_channels = 2
 
 # Sample rate output 1
 out1_rate = 44100
@@ -87,6 +90,9 @@ dmx_port = 6104
 player_port = 6105
 player2_port = 6106
 status_port = 6107
+ws_address = '127.0.0.1'
+ws_signals_port = 6108
+ws_animation_port = 6109
 status_address = 'figur.li'
 
 # files
@@ -113,10 +119,11 @@ def get_model_path(model_name):
 # animation
 ###############################################################################
 
+# 2 in nuru, 2 for arms
+fadecandies = 4
 
-sphere_channel1 = 1
-sphere_channel2 = 2
-sphere_pixels = 600
+dg = np.pi / 180
+
 enttec_channel = 6
 
 SphereStrip = collections.namedtuple('SphereStrip', [
@@ -148,79 +155,72 @@ sphere_strips = [
     SphereStrip(2, 30, 2),  # F
 ]
 
+ArmSegment = collections.namedtuple('ArmSegmet', [
+    # distance from the rim, in meters
+    'distance',
+    # fadecandy channel (i.e. every fadecandy is on a separate channel)
+    'channel',
+    # position within the fadecandy (from 0..7 within every fadecandy)
+    'position',
+    # every position can be used front/back
+    'front',
+])
 
 ArmConfig = collections.namedtuple('ArmConfig', [
-    # the fade candy channel
-    'channel',
-    # list of lists : e.g. [[128, 192], [256, 320]] means that the first meter
-    # is connected 129..191, 192..255 (in parallel) and the second meter is
-    # connected 256..319, 320..385 (in parallel)
-    'offsets',
-    # matches phi of sphere
-    'phi'])
-dg = np.pi / 180
-arm_configs = [
-    ArmConfig(3, [[0 * 64, 1 * 64], [2 * 64, 3 * 64]], 90 * dg),
-    ArmConfig(3, [[4 * 64, 5 * 64]], 150 * dg),
-    # TODO dirty hack!
-    ArmConfig(3, [[6 * 64, 7 * 64], [8 * 64, 9 * 64]], 210 * dg),
-    ArmConfig(4, [[2 * 64, 3 * 64]], 260 * dg),
-    ArmConfig(4, [[4 * 64, 5 * 64]], 290 * dg),
-    ArmConfig(4, [[6 * 64, 7 * 64]], 0 * dg),
-]
-
-ArmSegment = collections.namedtuple('ArmSegment', [
-    # fadecandy channel
-    'channel',
-    # fadecandy output (0..7)
-    'output',
-    # matches phi of sphere
+    # attachement angle of the arm, in degrees, top=0
     'phi',
-    # start distance from border (meters)
-    'start',
-    # end distance from border (meters)
-    'stop',
+    # list of ArmSegment
+    'segments',
 ])
-arm_segments = [
-    # long arm left
-    ArmSegment(3, 0, 90 * dg, 0, 1),
-    ArmSegment(3, 1, 90 * dg, 0, 1),
-    ArmSegment(3, 2, 90 * dg, 1, 2),
-    ArmSegment(3, 3, 90 * dg, 1, 2),
-    # short arm left
-    ArmSegment(3, 4, 150 * dg, 0, 1),
-    ArmSegment(3, 5, 150 * dg, 0, 1),
-    # long arm right
-    ArmSegment(3, 6, 210 * dg, 0, 1),
-    ArmSegment(3, 7, 210 * dg, 0, 1),
-    ArmSegment(4, 0, 210 * dg, 1, 2),
-    ArmSegment(4, 1, 210 * dg, 1, 2),
-    # short arm right 1
-    ArmSegment(4, 2, 260 * dg, 0, 1),
-    ArmSegment(4, 3, 260 * dg, 0, 1),
-    # short arm right 2
-    ArmSegment(4, 4, 290 * dg, 0, 1),
-    ArmSegment(4, 5, 290 * dg, 0, 1),
-    # short arm bottom
-    ArmSegment(4, 6, 0 * dg, 0, 1),
-    ArmSegment(4, 7, 0 * dg, 0, 1),
+
+arm_configs = [
+    ArmConfig(
+        phi=-90,
+        segments=[
+            ArmSegment(distance=0, channel=2, position=0, front=True),
+            ArmSegment(distance=0, channel=2, position=1, front=False),
+            ArmSegment(distance=1, channel=2, position=2, front=True),
+            ArmSegment(distance=1, channel=2, position=3, front=False),
+        ],
+    ),
+    ArmConfig(
+        phi=-45,
+        segments=[
+            ArmSegment(distance=0, channel=2, position=4, front=True),
+            ArmSegment(distance=0, channel=2, position=5, front=False),
+        ],
+    ),
+    ArmConfig(
+        phi=45,
+        segments=[
+            ArmSegment(distance=0, channel=2, position=6, front=True),
+            ArmSegment(distance=0, channel=2, position=7, front=False),
+            ArmSegment(distance=1, channel=3, position=0, front=True),
+            ArmSegment(distance=1, channel=3, position=1, front=False),
+        ],
+    ),
+    ArmConfig(
+        phi=90,
+        segments=[
+            ArmSegment(distance=0, channel=3, position=2, front=True),
+            ArmSegment(distance=0, channel=3, position=3, front=False),
+        ],
+    ),
+    ArmConfig(
+        phi=135,
+        segments=[
+            ArmSegment(distance=0, channel=3, position=4, front=True),
+            ArmSegment(distance=0, channel=3, position=5, front=False),
+        ],
+    ),
+    ArmConfig(
+        phi=180,
+        segments=[
+            ArmSegment(distance=0, channel=3, position=6, front=True),
+            ArmSegment(distance=0, channel=3, position=7, front=False),
+        ],
+    ),
 ]
-
-blender_arm_configs = [
-    ArmConfig('pixel_arm_06.', [[0], [60]], 1.70411),
-    ArmConfig('pixel_arm_02.', [[0]], -0.4700),
-    ArmConfig('pixel_arm_03.', [[0]], 2.8928),
-    ArmConfig('pixel_arm_04.', [[0]], 0.59689),
-    ArmConfig('pixel_arm_05.', [[0], [60]], -2.3322),
-    ArmConfig('pixel_arm_01.', [[0]], -1.4178),
-]
-
-
-def get_mapping_path():
-    return os.path.join(
-        os.path.dirname(__file__),
-        '../data',
-        'blender_polar.json' if is_blender else 'rec_2_polar.json')
 
 
 # Arduino

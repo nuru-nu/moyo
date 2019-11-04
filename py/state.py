@@ -1,6 +1,6 @@
 
 class State:
-    """A hot mess of state."""
+    """For (de)serializing S.State."""
 
     def __init__(self, serialized=''):
         parts = {}

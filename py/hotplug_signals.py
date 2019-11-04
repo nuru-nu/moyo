@@ -54,6 +54,7 @@ def get_data():
         sonar_good=S.SonarGood(),
 
         state=S.State(),
+        fc=L.Constant(0),
 
         drone1=(
             S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])

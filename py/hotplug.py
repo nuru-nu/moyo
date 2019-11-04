@@ -10,13 +10,17 @@ import util
 # last module is the one with `.get_data()`
 FileModules = collections.namedtuple('FileModules', ['files', 'modules'])
 _MODULES = dict(
-    effects=FileModules(['hotplug_effects.py', 'effects.py'],
-                        ['effects', 'hotplug_effects']),
-    animations=FileModules(['hotplug_animations.py', 'animations.py', 'pixel_functions.py', 'signals.py', 'logic.py', 'settings.py'],
-                           ['pixel_functions', 'animations', 'signals', 'logic', 'settings',
-                            'hotplug_animations']),
-    signals=FileModules(['hotplug_signals.py', 'signals.py', 'logic.py'],
-                        ['logic', 'signals', 'hotplug_signals']),
+    effects=FileModules(
+        ['hotplug_effects.py', 'effects.py'],
+        ['effects', 'hotplug_effects']),
+    animations=FileModules(
+        ['hotplug_animations.py', 'animations.py', 'pixel_functions.py',
+         'signals.py', 'logic.py', 'settings.py'],
+        ['pixel_functions', 'colors', 'palette', 'animations',
+         'signals', 'logic', 'settings', 'hotplug_animations']),
+    signals=FileModules(
+        ['hotplug_signals.py', 'signals.py', 'logic.py'],
+        ['logic', 'signals', 'hotplug_signals']),
 )
 
 
