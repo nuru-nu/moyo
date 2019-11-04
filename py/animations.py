@@ -9,7 +9,8 @@ import logic as L, mapping, pixel_functions as pf, settings, util
 ###############################################################################
 
 phi_r_mapping = mapping.generate_arm_configs(settings.arm_configs)
-phi_r_mapping[:2*8*60, :] = mapping.generate_sphere_mapping(settings.sphere_strips)
+phi_r_mapping[:2*8*60, :] = mapping.generate_sphere_mapping(
+    settings.sphere_strips, phi0=settings.phi0)
 
 
 # LEGACY

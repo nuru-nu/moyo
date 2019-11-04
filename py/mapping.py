@@ -1,5 +1,7 @@
 import numpy as np
 
+import settings
+
 
 def generate_sphere_mapping(sphere_strips, r=lambda x: x, phi0=0):
     """Returns a (nx60)x2 mapping from spherical LED index to (phi, r).

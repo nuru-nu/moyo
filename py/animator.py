@@ -242,7 +242,7 @@ async def render_loop(animator, client, fps, stats, global_state):
                     fc_data = pad_fadecandy(data)
                     ok = True
                     for channel, i0 in enumerate(range(0, fc_data.shape[0], 512)):
-                        ok &= client.put_pixels(fc_data[i0: i0 + 512], channel)
+                        ok &= client.put_pixels(fc_data[i0: i0 + 512], channel + 1)
                     if ok:
                         stats('fc_animation', fc_data)
             except e:

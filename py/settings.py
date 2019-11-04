@@ -127,6 +127,8 @@ dg = np.pi / 180
 
 enttec_channel = 6
 
+phi0 = -30
+
 SphereStrip = collections.namedtuple('SphereStrip', [
     # Number of LEDs that would fit between the first LED of the stripe
     # and the theta=0 point.
@@ -231,5 +233,6 @@ arm_configs = [
 arduino_ports = [
     "/dev/ttyACM0",
     "/dev/ttyACM1",
+    "/dev/tty.usbmodem14344201",
 ]
 sonar_hz = 4
