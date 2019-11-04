@@ -1,6 +1,6 @@
 
 const Network = (output) => {
-  const host = 'localhost'
+  const host = window.location.hostname
   const signals_port = 6108
   const animation_port = 6109
 
@@ -35,7 +35,7 @@ const Network = (output) => {
 
   socks.animation.addEventListener('message', function (e) {
     if ('size' in e.data) {
-      e.data.arrayBuffer().then(function(data) {
+      new Response(e.data).arrayBuffer().then(function(data) {
         let view = new Uint8Array(data)
         listeners.animation.forEach(listener => listener(view))
       })

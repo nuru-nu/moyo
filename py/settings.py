@@ -91,6 +91,7 @@ player_port = 6105
 player2_port = 6106
 status_port = 6107
 ws_address = '127.0.0.1'
+ws_address = '0.0.0.0'
 ws_signals_port = 6108
 ws_animation_port = 6109
 status_address = 'figur.li'
