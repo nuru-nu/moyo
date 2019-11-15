@@ -11,9 +11,12 @@ def get_data():
         rawloud=S.Louder(n=3) | S.Lin(mult=2),
         overdrive=S.Overdrive(0.8),
         peak=S.Max(),
-        tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
-        tf2=ml.KerasDetector(model='s2_linear_wp_10_10'),
-        tf3=ml.KerasDetector(model='s2_linear_wp_20_20'),
+        # tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
+        # tf2=ml.KerasDetector(model='s2_linear_wp_10_10'),
+        # tf3=ml.KerasDetector(model='s2_linear_wp_20_20'),
+        tf=L.Constant(0),
+        tf2=L.Constant(0),
+        tf3=L.Constant(0),
         iso=(
             L.Named('tf') |
             S.Median(n=10, threshold=0.7)
