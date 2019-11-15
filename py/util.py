@@ -1,5 +1,5 @@
 
-import collections, json, logging, os, sys, time, traceback
+import collections, json, logging, os, socket, sys, time, traceback
 
 import numpy as np
 
@@ -221,3 +221,26 @@ def except_kill(func):
             traceback.print_exception(*sys.exc_info())
             os._exit(-999)
     return wrapper
+
+
+def machine_name():
+    return socket.gethostname()
+
+class Timetracer:
+    """Traces time [ms] in text file."""
+
+    def __init__(self, name, flush_secs=5):
+        path = '{}/{}/{}.txt'.format(
+            settings.timetraces_dir, machine_name(), name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self.f = open(path, 'w')
+        self.t0 = int(time.time() * 1e3)
+        self.flush_secs = flush_secs
+
+    def __call__(self):
+        t = int(time.time() * 1e3)
+        self.f.write('{}\n'.format(t))
+        if t - self.t0 > self.flush_secs * 1e3:
+            self.f.flush()
+            self.t0 = t
+

@@ -35,6 +35,7 @@ assert not args.output_dir or os.path.isdir(args.output_dir), (
     'output_dir="%s" not found' % args.output_dir)
 
 logger = util.createLogger('recorder')
+tt = util.Timetracer('recorder')
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
@@ -268,6 +269,7 @@ while running:
             effector(zeros[out_nr - 1], signals)[channel]).logmel
 
     send_signals(signals)
+    tt()
     status_sender.send('running')
 
 

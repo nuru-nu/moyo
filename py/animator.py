@@ -25,12 +25,14 @@ parser.add_argument('--debug', type=bool, default=False,
 
 parser.add_argument('--fps', type=int, default=60,
                     help='Frames per second for animation streaming.')
-parser.add_argument('--fadecandy', type=bool, default=False,
+parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
 
 args = parser.parse_args()
 
 logger = util.createLogger('animator')
+tt_in = util.Timetracer('animator_in')
+tt_out = util.Timetracer('animator_out')
 hp = hotplug.HotPlug(logger, modules=('animations',))
 if args.debug:
     logger.setLevel(logging.DEBUG)
@@ -91,7 +93,8 @@ class StreamingStats:
         if dt * self.hz > 1:
             self.dump()
             self.t0 = t
-            self.n[name] = self.total[name] = 0
+            for nn in self.n:
+                self.n[nn] = self.total[nn] = 0
 
 
 class SignalsUdpProtocol(asyncio.DatagramProtocol):
@@ -109,11 +112,13 @@ class SignalsUdpProtocol(asyncio.DatagramProtocol):
 
     def datagram_received(self, data, addr):
         global signals
+        tt_in()
         self.stats('signals_udp', data)
         signals = json.loads(data.decode('utf8'))
         signals['state'] = state.State(signals['state'])
         self.global_state.signals = signals
         if isOpen(self.global_state.signals_ws_proto):
+            tt_out()
             self.global_state.signals_ws_proto.sendMessage(
                 data, isBinary=False)
 
