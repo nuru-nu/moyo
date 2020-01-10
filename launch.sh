@@ -12,29 +12,41 @@ tmux new-session -d -s "$SESSION" -n prod
 CM='C-m'
 # CM=
 
+MACHINE="${MACHINE:-$(uname -n)}"
+
+FADECANDY='--fadecandy'
+
+case "$MACHINE" in
+cervelat*)
+  FADECANDY=
+  ;;
+esac
+
 # create columns
 tmux selectp -t 1
 tmux splitw -h
 
 # column 1 : recorder, http & players
 tmux selectp -t 1
-tmux send-keys ". env/bin/activate && cd py" C-m 'python restarter.py $(which python3.6) recorder2.py' $CM
+tmux send-keys ". env/bin/activate && cd py" C-m 'python restarter.py $(which python) recorder2.py' $CM
 tmux splitw -v -p 66
-tmux send-keys "cd js" C-M "python -m http.server" $CM
+tmux send-keys ". env/bin/activate && cd py" C-m "cd js" C-M "python -m http.server" $CM
 tmux splitw -v
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) player.py out1' $CM
+tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) player.py out1' $CM
 tmux splitw -h
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) player.py out2' $CM
+tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) player.py out2' $CM
 
 # column 2 : fc server, animator & dmx
 tmux selectp -t 5
-tmux send-keys ". env/bin/activate && cd fadecandy" C-M "python ../py/restarter.py ./fcserver config.json" $CM
+if [ -n -z "$FADECANDY" ]; then
+  tmux send-keys ". env/bin/activate && cd fadecandy" C-M "python ../py/restarter.py ./fcserver config.json" $CM
+fi
 tmux splitw -v -p 66
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) animator.py --fadecandy=true' $CM
+tmux send-keys ". env/bin/activate && cd py" C-M "python restarter.py $(which python) animator.py $FADECANDY" $CM
 tmux splitw -v
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) dmx.py' $CM
+tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) dmx.py' $CM
 tmux splitw -v
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python3.6) arduino_signals.py' $CM
+tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) arduino_signals.py' $CM
 
 # # window 2 : git, jupyter
 # tmux new-window -t "$SESSION":1 -n dev
