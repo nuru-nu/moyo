@@ -34,7 +34,7 @@ const Monitor = (output) => {
       ))
     ),
     ' overrides: ',
-    h.input('overrides', {type: 'text', value: JSON.stringify(overrides)}),
+    h.input('overrides', {type: 'text', value: JSON.stringify(overrides)}), h.br(),
     h.canvas('graph', {width, height}),
     h.br(),
     h.div('text_sigs'),

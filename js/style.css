@@ -21,8 +21,17 @@ button {
 #console {
   margin-top: 1rem;
   border: 1px solid #0f0;
-  height: 3rem;
-  overflow: scroll;
+  height: 5rem;
+}
+
+.hide-scroll {
+  overflow: hidden;
+}
+.hide-scroll div {
+  overflow: auto;
+  max-height: 100%;
+  margin-right: -77px;
+  padding-right: 77px;
 }
 
 .console-debug { color: #080; }
