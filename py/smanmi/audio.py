@@ -2,7 +2,12 @@
 import numpy as np
 import pyaudio
 
-import settings, util
+from . import util
+
+settings = None
+def init(settings_):
+    global settings
+    settings = settings_
 
 
 class AudioInterface:
@@ -20,8 +25,10 @@ class AudioInterface:
     CHUNK = 1024
 
     def __init__(self, input=0, output=0, device_index=None,
-                 rate=settings.rate, stream_callback=None,
-                 frames_per_buffer=settings.hop_size):
+                 rate=None, stream_callback=None,
+                 frames_per_buffer=None):
+        if rate is None: rate = settings.rate
+        if frames_per_buffer is None: frames_per_buffer = settings.hop_size
         self.p = pyaudio.PyAudio()
         # (for compatibility)
         input = int(input)

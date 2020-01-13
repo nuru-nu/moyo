@@ -12,7 +12,13 @@ import collections, hashlib, os, pickle, random, struct, time
 import pandas
 import scipy.io.wavfile
 
-import audio, settings, util
+from . import audio, util
+
+
+settings = None
+def init(settings_):
+    global settings
+    settings = settings_
 
 
 def rand_stable(s):

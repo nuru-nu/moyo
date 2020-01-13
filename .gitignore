@@ -1,8 +1,6 @@
 .ipynb_checkpoints
 __pycache__
-/env
-/tmp
-/gjpeng
-/py/alive
-/py/*.log
 /.abase_cache
+/env
+/logs
+/tmp

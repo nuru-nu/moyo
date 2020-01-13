@@ -1,6 +1,13 @@
+import importlib
+
 import numpy as np
-import animations as A, colors as C, logic as L, palette as P, signals as S
-import settings
+
+from smanmi import colors as C, logic as L, signals as S
+from .. import animations as A, palette as P, settings
+
+
+importlib.reload(S)
+S.init(settings)
 
 
 ooo_hue = S.SinT(hz=L.Named('ooo_intensity')
@@ -110,37 +117,13 @@ def flash():
     )
 
 
-def get_data():
-
-    # sphere_arms_by_state = get_sphere_arms_by_state()
-
-    return dict(
-        pixels=A.Mixer(dict(
-            std=std(),
-            std2=std2(),
-            std3=std3(),
-            test=test(),
-            frozen=frozen(),
-            into=into(),
-            ooo=ooo(),
-            flash=flash(),
-        )),
-    )
-
-    # return dict(
-    #     sphere=A.Mixer({
-    #         state: sphere_arms[0]
-    #         for state, sphere_arms in sphere_arms_by_state.items()
-    #     }),
-    #     arms=[
-    #         A.Mixer({
-    #             state: sphere_arms[1](i, arm_config)
-    #             for state, sphere_arms in sphere_arms_by_state.items()
-    #         })
-    #         for i, arm_config in enumerate(settings.arm_configs)
-    #     ],
-    #     # sphere=get_sphere(),
-    #     # arms=[get_arm(arm_config, i)
-    #     #       for i, arm_config in enumerate(arm_configs)],
-    #     # beamz=L.Named('flash_pulse', 0),
-    # )
+pixels=A.Mixer(dict(
+    std=std(),
+    std2=std2(),
+    std3=std3(),
+    test=test(),
+    frozen=frozen(),
+    into=into(),
+    ooo=ooo(),
+    flash=flash(),
+))

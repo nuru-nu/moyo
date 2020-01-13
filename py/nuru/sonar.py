@@ -3,7 +3,8 @@ import sys, time
 import serial
 import PyCmdMessenger
 
-import network, settings, util
+from smanmi import network, util
+from . import settings
 
 
 logger = util.createLogger('arduino_signals')
@@ -27,10 +28,9 @@ arduino = PyCmdMessenger.CmdMessenger(arduino, commands)
 
 logger.info("Connected to Arduino on port " + arduino_port)
 
-if '--debug' in sys.argv:
-    signalin_sender = network.SignalinSender(logger)
-else:
-    signalin_sender = network.SignalinSender()
+signalin_sender = network.SignalinSender(
+    settings.signalin_port,
+    logger=logger if '--debug' in sys.argv else util.NoLogger())
 
 def read_sonar(): 
     arduino.send("get_sonar")

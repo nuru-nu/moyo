@@ -1,0 +1,2 @@
+The file `ongoing.json` contains some stats about currently running system. Upon
+every restart, the latest `ongoing.json` is copied to a timestamped version.

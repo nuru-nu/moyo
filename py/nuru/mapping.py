@@ -1,6 +1,6 @@
 import numpy as np
 
-import settings
+from . import settings
 
 
 def generate_sphere_mapping(sphere_strips, r=lambda x: x, phi0=0):

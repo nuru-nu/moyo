@@ -1,5 +1,5 @@
 
-import colors as C
+from smanmi import colors as C
 
 
 funny_rainbow = C.parse_colors_co_scss('''

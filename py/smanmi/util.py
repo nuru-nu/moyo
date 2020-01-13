@@ -3,28 +3,56 @@ import collections, json, logging, os, socket, sys, time, traceback
 
 import numpy as np
 
-import features, logic as L, settings, state
+from . import logic as L, state
+
 
 FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+LOGDIR = './logs'
 
 
 # Fail if not initialized ...
 logger = None
 
 
-def createLogger(name, stderr=True, logfile=True):
+class Colorize:
+    # https://stackoverflow.com/questions/4842424
+    ANSI_RESET = '\033[0m'
+    ANSI_MAP = {
+        logging.DEBUG: '\033[90m',  # bright black
+        logging.WARNING: '\033[33m',  # yellow
+        logging.ERROR: '\033[91m',  # bright red
+        logging.FATAL: '\033[30;101m',  # black on bright red
+    }
+
+    def __init__(self, formatter):
+        self.formatter = formatter
+
+    def format(self, record):
+        return ''.join([
+            self.ANSI_MAP.get(record.levelno, self.ANSI_RESET),
+            self.formatter.format(record),
+            self.ANSI_RESET
+        ])
+
+    def __getattr__(self, name):
+        return getattr(self.formatter, name)
+
+
+def createLogger(name, stderr=True, logfile=True, colored=True, debug=True):
     """Also updates module `logger` to newly initialized logger."""
     global logger
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG if debug else logging.INFO)
     formatter = logging.Formatter(FORMAT)
     if stderr:
         handler = logging.StreamHandler(sys.stderr)
-        handler.setFormatter(formatter)
+        handler.setFormatter(Colorize(formatter) if colored else formatter)
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
     if logfile:
-        handler = logging.FileHandler(name + '.log')
+        path = os.path.join(LOGDIR, name + '.log')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handler = logging.FileHandler(path)
         handler.setFormatter(formatter)
         handler.setLevel(logging.DEBUG)
         logger.addHandler(handler)
@@ -90,30 +118,6 @@ def float_to_int16(a):
     return a
 
 
-def plot_logmel(logmel, ax=None, rate=settings.rate, hzmax=None,
-                hop_secs=settings.hop_secs, **matshow_kw):
-    if len(logmel.shape) == 1:
-        logmel = features.log_mel_spectrogram(logmel)
-    from matplotlib import pyplot as plt
-    f2hz = rate / logmel.shape[1] / np.pi
-    if ax is None:
-        plt.figure(figsize=(12, 4))
-        ax = plt.subplot(111)
-    if hzmax:
-        logmel = logmel[:, :int(hzmax / f2hz)]
-    ax.matshow(logmel.T, cmap='jet', **matshow_kw)
-    ax.set_xticklabels([
-        '%.1f' % (frame * hop_secs)
-        for frame in ax.get_xticks()
-    ])
-    ax.set_yticklabels([
-        '{:,}'.format(int(f * f2hz))
-        for f in ax.get_yticks()
-    ])
-    ax.set_xlabel('t [s]')
-    ax.set_ylabel('f [Hz]')
-
-
 def pythonize(d):
     """Transforms numpy arrays, float32, int64 to native Python dtypes."""
     if isinstance(d, dict):
@@ -132,8 +136,7 @@ def pythonize(d):
 class Streamer:
     """Access array in buf_size-sized chunks hop_size apart."""
 
-    def __init__(self, data, buf_size=settings.buf_size,
-                 hop_size=settings.hop_size):
+    def __init__(self, data, buf_size, hop_size):
         self.i = 0
         self.data = data
         self.buf_size = buf_size
@@ -152,7 +155,7 @@ class Streamer:
         return ret
 
 
-def apply_effect(wav, effect, hop_size=settings.hop_size):
+def apply_effect(wav, effect, hop_size):
     """Applies `effect()` to `wav`, hop by hop."""
     ret = np.zeros(len(wav), dtype=wav.dtype)
     i1 = 0
@@ -163,18 +166,18 @@ def apply_effect(wav, effect, hop_size=settings.hop_size):
     return ret
 
 
-def get_signals(wav, signals):
+def get_signals(wav, signals, hop_secs, wav2features):
     """Iterates through `wav` and computes values for `signals`."""
     runner = L.SignalRunner(signals, ('features', 't', 'signalin', 'state'))
     values = collections.defaultdict(lambda: [])
     t = 0
     st = state.State()
     for buf in Streamer(wav):
-        feats = features.wav2features(buf)
+        feats = wav2features(buf)
         sigs = runner(features=feats, t=t, signalin={}, state=st)
         for name, value in sigs.items():
             values[name].append(value)
-        t += settings.hop_secs
+        t += hop_secs
     return dict(**values)
 
 
@@ -229,9 +232,9 @@ def machine_name():
 class Timetracer:
     """Traces time [ms] in text file."""
 
-    def __init__(self, name, flush_secs=5):
+    def __init__(self, name, timetraces_dir, flush_secs=5):
         path = '{}/{}/{}.txt'.format(
-            settings.timetraces_dir, machine_name(), name)
+            timetraces_dir, machine_name(), name)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         self.f = open(path, 'w')
         self.t0 = int(time.time() * 1e3)

@@ -2,7 +2,7 @@
 
 import subprocess, sys, time
 
-import network, util
+from . import network, util
 
 waits_i = 0
 waits_secs = [2, 4, 10, 10, 10, 60]

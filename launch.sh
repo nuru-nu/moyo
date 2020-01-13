@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 
 
-SESSION='rizhom'
+SESSION=nuru
 
 tmux start-server
 
@@ -14,15 +14,17 @@ CM='C-m'
 
 MACHINE="${MACHINE:-$(uname -n)}"
 
-FADECANDY='--fadecandy'
+FCSERVER='fcserver'
 ARDUINO=yes
 DMX=yes
+OUT2=yes
 
 case "$MACHINE" in
 cervelat*)
-  FADECANDY=
   ARDUINO=
   DMX=
+  FCSERVER='fcserver-osx'
+  OUT2=
   ;;
 esac
 
@@ -30,30 +32,40 @@ esac
 tmux selectp -t 1
 tmux splitw -h
 
+function restarting_cmd() {
+  tmux send-keys '. env/bin/activate' C-M "PYTHONPATH=py python -m smanmi.restarter $*" $CM
+}
+
+function restarting_py() {
+  restarting_cmd "\$(which python) -m $*"
+}
+
 # column 1 : recorder, http & players
 tmux selectp -t 1
-tmux send-keys ". env/bin/activate && cd py" C-m 'python restarter.py $(which python) recorder2.py' $CM
+restarting_py nuru.recorder2
 tmux splitw -v -p 66
-tmux send-keys ". env/bin/activate && cd js" C-m "cd js" C-M "python -m http.server" $CM
+tmux send-keys '. ./env/bin/activate' C-M 'cd js && python -m http.server' $CM
 tmux splitw -v
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) player.py out1' $CM
+restarting_py nuru.player out1
 tmux splitw -h
-tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) player.py out2' $CM
+if [ ! -z "$OUT2" ]; then
+  restarting_py nuru.player out2
+fi
 
 # column 2 : fc server, animator & dmx
 tmux selectp -t 5
-if [ -n -z "$FADECANDY" ]; then
-  tmux send-keys ". env/bin/activate && cd fadecandy" C-M "python ../py/restarter.py ./fcserver config.json" $CM
+if [ ! -z "$FADECANDY" ]; then
+  restarting_cmd "$FCSERVER" fadecandy/config.json
   tmux splitw -v -p 66
 fi
-tmux send-keys ". env/bin/activate && cd py" C-M "python restarter.py $(which python) animator.py $FADECANDY" $CM
-if [ -n -z "$DMX" ]; then
+restarting_py nuru.animator
+if [ ! -z "$DMX" ]; then
   tmux splitw -v
-  tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) dmx.py' $CM
+  restarting_py nuru.dmx
 fi
-if [ -n -z "$ARDUINO" ]; then
+if [ ! -z "$ARDUINO" ]; then
   tmux splitw -v
-  tmux send-keys ". env/bin/activate && cd py" C-M 'python restarter.py $(which python) arduino_signals.py' $CM
+  restarting_py nuru.sonar
 fi
 
 # # window 2 : git, jupyter
@@ -63,4 +75,3 @@ fi
 # tmux send-keys "git status" C-m
 
 tmux attach-session -t "$SESSION"
-

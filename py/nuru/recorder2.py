@@ -5,11 +5,13 @@ import argparse, json, logging, os, signal as pysig, socket, time, wave
 import numpy as np
 import scipy.io.wavfile
 
-import audio, features, hotplug, network, perf, settings, state, util
+from smanmi import audio, hotplug, network, perf, state, util
+from . import features, settings
 
 
-ALIVE_PATH = 'alive/ongoing.json'
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '../recordings/recorder2')
+ALIVE_PATH = 'logs/alive/ongoing.json'
+OUTPUT_DIR = os.path.join(
+    os.path.dirname(__file__), '../../recordings/recorder2')
 
 parser = argparse.ArgumentParser(
     description='Records audio and transforms the signal.')
@@ -35,11 +37,12 @@ assert not args.output_dir or os.path.isdir(args.output_dir), (
     'output_dir="%s" not found' % args.output_dir)
 
 logger = util.createLogger('recorder')
-tt = util.Timetracer('recorder')
+tt = util.Timetracer('recorder', settings.timetraces_dir)
 if args.debug:
     logger.setLevel(logging.DEBUG)
 
-hp = hotplug.HotPlug(logger, modules=('signals', 'effects'))
+effects = hotplug.HotPlug('.hotplug.effects', logger)
+lib_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 running = True
 
@@ -91,7 +94,7 @@ class InputStreamer(object):
             data16l, data16r = audio.fromstereo(data16)
             data16 = settings.in_channels_comination(data16l, data16r)
         data = util.int16_to_float(data16)
-        data = hp.signals.microphone_effect(data, signals)
+        data = lib_signals.microphone_effect(data, signals)
         self.t += float(len(data)) / settings.rate
         if self.wav_path and self.wav:
             self.wav.writeframesraw(data16)
@@ -156,7 +159,7 @@ def is_over(x):
 
 @perf.measure('get_signals')
 def get_signals(feats, signalin, state):
-    signals = hp.signals.runner(
+    signals = lib_signals.runner(
         features=feats, t=time.time(), signalin=signalin, state=state)
     signals['mfccs'] = feats.mfccs
     signals['logmel'] = feats.logmel
@@ -173,9 +176,9 @@ def send_signals(data):
     sock.sendto(msg, (settings.address, settings.player2_port))
     sock.sendto(msg, (settings.address, settings.fadecandy_port))
     sock.sendto(msg, (settings.address, settings.dmx_port))
-    monitor_address = hp.signals.additional_monitor_address
+    monitor_address = lib_signals.additional_monitor_address
     if monitor_address:
-        if not hp.signals.additional_monitor_logmel:
+        if not lib_signals.additional_monitor_logmel:
             msg = util.pythonize({
                 k: v for k, v in data.items()
                 if k not in ('logmel', 'mfccs')
@@ -203,6 +206,7 @@ if os.path.exists(ALIVE_PATH):
 
 logger.info('Start recording.')
 logger.info('Using in_channels={}'.format(args.channels))
+audio.init(settings)
 ai0 = audio.AudioInterface(input=args.channels)
 input_streamer = InputStreamer(ai0, output_dir=args.output_dir)
 last_reset_t = time.time()
@@ -264,13 +268,13 @@ while running:
     if logmel_src.startswith('output'):
         out_nr = int(logmel_src[-2:-1])
         channel = dict(l=0, r=1)[logmel_src[-1]]
-        effector = getattr(hp.effects, 'effector%d' % out_nr)
+        effector = getattr(effects, 'effector%d' % out_nr)
         signals['logmel'] = features.wav2features(
             effector(zeros[out_nr - 1], signals)[channel]).logmel
 
     send_signals(signals)
     tt()
-    status_sender.send('running')
+    status_sender.send('running', settings.address)
 
 
 logger.info('Stop recording.')
