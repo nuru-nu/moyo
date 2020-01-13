@@ -4,7 +4,7 @@ import numpy as np
 import PIL
 import tensorflow as tf
 
-import logic as L, settings
+from . import logic as L
 
 
 class WithPrevious:
@@ -37,11 +37,11 @@ class KerasDetector(L.Signal):
         'wp_20_50': WithPrevious(n=20, d=50),
     }
 
-    def init(self, model):
-        preprocessor = json.load(open(settings.get_model_path(
+    def init(self, model, model_path):
+        preprocessor = json.load(open(os.path.join(model_path,
             model + '_conf.json')))['preprocessor']
         self._model = tf.keras.models.load_model(
-            settings.get_model_path(model + '.h5'))
+            os.path.join(get_model_path, model + '.h5'))
         self._preprocessor = self.PREPROCESSORS[preprocessor]
         self.lastv = self.lastlm = None
 

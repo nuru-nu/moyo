@@ -1,9 +1,8 @@
-import collections
+import collections, colorsys
 
-import colorsys
 import numpy as np
 
-import logic as L
+from . import logic as L
 
 
 # color

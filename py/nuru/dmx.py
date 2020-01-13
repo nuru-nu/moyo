@@ -30,7 +30,8 @@ import sys
 
 import numpy as np
 
-import dmx_devices, hotplug, network, settings, util
+from smanmi import dmx_devices, hotplug, network, util
+from . import settings
 
 
 # dirty hack to fix includes
@@ -63,9 +64,10 @@ dmx_controller.update()
 if __name__ == '__main__':
 
     logger = util.createLogger('dmx')
-    sock = network.create_udp_socket(settings.dmx_port, timeout=None)
+    sock = network.create_udp_socket(
+        settings.dmx_port, settings.address, timeout=None)
 
-    hp = hotplug.HotPlug()
+    effects = hotplug.HotPlug('.hotplug.effects', logger)
     status_sender = network.StatusSender(name='dmx', logger=logger)
 
     beamz_volumes = np.zeros(int(10 / settings.hop_secs))
@@ -78,7 +80,7 @@ if __name__ == '__main__':
         # stage2.blue = int(data.get('low', 0) * 255)
         # stage2.red = int(data.get('high', 0) * 255)
 
-        zbeam.volume = int(hp.effects.beamz(**signals)['value'] * 255)
+        zbeam.volume = int(effects.beamz(**signals)['value'] * 255)
         if zbeam.volume:
             logger.info(zbeam.volume)
 

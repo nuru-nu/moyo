@@ -4,7 +4,13 @@ import random, time
 import numpy as np
 import scipy, scipy.io.wavfile
 
-import perf, settings, util
+from . import perf, util
+
+
+settings = None
+def init(settings_):
+    global settings
+    settings = settings_
 
 
 class Effector:
@@ -179,7 +185,8 @@ class SilenceOrPlaying(Silence):
 
 
 class Sinusoidal(Effect):
-    def __init__(self, hz, A=0.2, rate=settings.out1_rate):
+    def __init__(self, hz, A=0.2, rate=None):
+        if rate is None: rate = settings.out1_rate
         T = int(rate / hz)
         n = np.ceil(settings.hop_size / T)
         self.buf = A * np.sin(np.linspace(0, n * 2 * np.pi, n * T))
@@ -190,7 +197,8 @@ class Sinusoidal(Effect):
 
 
 class Square(Effect):
-    def __init__(self, hz, A=0.2, rate=settings.out1_rate):
+    def __init__(self, hz, A=0.2, rate=None):
+        if rate is None: rate = settings.out1_rate
         T = int(rate / hz)
         n = np.ceil(settings.hop_size / T)
         self.buf = A * np.sin(np.linspace(0, n * 2 * np.pi, n * T))
@@ -242,24 +250,28 @@ class Iir(Effect):
 
 
 class Notch(Iir):
-    def __init__(self, hz, Q, rate=settings.out1_rate):
+    def __init__(self, hz, Q, rate=None):
+        if rate is None: rate = settings.out1_rate
         super().__init__(*scipy.signal.iirnotch(hz, Q, rate))
 
 
 class LowPass(Iir):
-    def __init__(self, hz, order, rate=settings.out1_rate):
+    def __init__(self, hz, order, rate=None):
+        if rate is None: rate = settings.out1_rate
         b, a = scipy.signal.butter(order, hz, btype='low', fs=rate)
         super().__init__(b, a)
 
 
 class HighPass(Iir):
-    def __init__(self, hz, order, rate=settings.out1_rate):
+    def __init__(self, hz, order, rate=None):
+        if rate is None: rate = settings.out1_rate
         b, a = scipy.signal.butter(order, hz, btype='high', fs=rate)
         super().__init__(b, a)
 
 
 class BandPass(Iir):
-    def __init__(self, hz1, hz2, order, rate=settings.out1_rate):
+    def __init__(self, hz1, hz2, order, rate=None):
+        if rate is None: rate = settings.out1_rate
         b, a = scipy.signal.butter(
             order, [hz1, hz2], btype='band', fs=rate)
         super().__init__(b, a)
@@ -269,7 +281,8 @@ class RndSub(Effect):
     """Randomly plays subsamples from provided sample."""
 
     def __init__(self, wav, sample_minmax, break_minmax,
-                 ramp_minmax=(0.5, 0.5), rate=settings.out1_rate):
+                 ramp_minmax=(0.5, 0.5), rate=None):
+        if rate is None: rate = settings.out1_rate
         self.rate = rate
         self.wav = wav
         self.sample_minmax = sample_minmax
@@ -317,7 +330,8 @@ class RndSub(Effect):
 
 class RndPlay(Effect):
 
-    def __init__(self, wav, signal, rate=settings.out1_rate):
+    def __init__(self, wav, signal, rate=None):
+        if rate is None: rate = settings.out1_rate
         self.rate = rate
         self.wav = wav
         self.signal = signal

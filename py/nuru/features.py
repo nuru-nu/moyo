@@ -4,7 +4,8 @@ import collections
 import scipy.fftpack
 
 from audioset import vggish_params, mel_features
-import perf, settings
+from smanmi import perf
+from . import settings
 
 
 Features = collections.namedtuple('Features', [

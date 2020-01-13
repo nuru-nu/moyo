@@ -1,3 +1,6 @@
 #!/bin/bash
 
-tmux kill-session -t rizhom
+if [ "$(uname -s)" == 'Darwin' ]; then
+  echo '### THIS WILL PROBABLY NOT WORK FOR YOU ###'
+fi
+tmux kill-session -t nuru

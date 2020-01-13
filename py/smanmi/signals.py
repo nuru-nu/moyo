@@ -5,7 +5,13 @@ import random
 # import aubio
 import numpy as np
 
-import logic as L, settings, util
+from . import logic as L, util
+
+
+settings = None
+def init(settings_):
+    global settings
+    settings = settings_
 
 
 # state
@@ -259,14 +265,16 @@ class FreqBreadth(L.Signal):
         return breadth
 
 
-def hz2f(hz, n, rate=settings.rate):
-    return hz * np.pi * n / settings.rate
+def hz2f(hz, n, rate=None):
+    if rate is None: rate = settings.rate
+    return hz * np.pi * n / rate
 
 
 class FreqBand(L.Signal):
     """Frequency band with cosine slope. Values not normalized."""
 
-    def init(self, hzmin, hzmax, hzslope=1, n=settings.num_mel_bins):
+    def init(self, hzmin, hzmax, hzslope=1, n=None):
+        if n is None: n = settings.num_mel_bins
         fmin, fmax, df = hz2f(hzmin, n), hz2f(hzmax, n), hz2f(hzslope, n)
         self.kernel = np.array([
             self.f01((f + df - fmin) / df) * self.f01((fmax + df - f) / df)

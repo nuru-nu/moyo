@@ -1,6 +1,6 @@
-import io, json, socket
+import io, json, socket, time
 
-import perf, settings, state, time, util
+from . import perf, state, settings, util
 
 
 logger = util.NoLogger()
@@ -9,20 +9,21 @@ logger = util.NoLogger()
 class SignalinSender:
     """Sends messages to recorder2's signalin port."""
 
-    def __init__(self, logger=util.NoLogger()):
+    def __init__(self, signalin_port, logger):
+        self.signalin_port = signalin_port
         self.logger = logger
         self.signalin_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def send(self, d, address=settings.address):
+    def send(self, d, address):
         self.logger.info('sending {} to {}'.format(d, address))
         msg = json.dumps(d).encode('utf8')
-        self.signalin_sock.sendto(msg, (address, settings.signalin_port))
+        self.signalin_sock.sendto(msg, (address, self.signalin_port))
 
 
 class StatusSender:
     """Sends changes and periodic confirmations of updates."""
 
-    def __init__(self, name, repeat_secs=10, logger=util.NoLogger()):
+    def __init__(self, name, logger, repeat_secs=10):
         self.name = name
         self.repeat_secs = repeat_secs
         self.logger = logger
@@ -30,7 +31,7 @@ class StatusSender:
         self.last_status = None
         self.last_t = 0
 
-    def send(self, status, address=settings.status_address, log_send=True):
+    def send(self, status, log_send=True):
         assert isinstance(status, str), '{} should be string'.format(status)
         t = time.time()
         if self.last_status == status and t - self.last_t < self.repeat_secs:
@@ -46,7 +47,7 @@ class StatusSender:
         if log_send:
             self.logger.info('sending {}'.format(d))
         msg = json.dumps(d).encode('utf8')
-        status_address = (address, settings.status_port)
+        status_address = (settings.address, settings.status_port)
         try:
             self.status_sock.sendto(msg, status_address)
         except socket.gaierror as e:
@@ -55,7 +56,7 @@ class StatusSender:
             logger.error('Could not send socket error : {}'.format(e))
 
 
-def create_udp_socket(port, timeout=0, address=settings.address):
+def create_udp_socket(port, address, timeout=0):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.settimeout(timeout)
     # sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)

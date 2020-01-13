@@ -2,7 +2,7 @@
 ignore =
   # Multiple imports per line
   E401
-  # We use "|" to chain signals in hotplug_signals.py
+  # We use "|" to chain signals in hotplug/signals.py
   W504
   W503
 

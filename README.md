@@ -1,4 +1,4 @@
-# Installation Rizhom 2019
+# NURU SHIMONI
 
 Shared doc : https://docs.google.com/document/d/1DKIEItOe5IRh6JfeMJ1ERkpSYmWZ7JRlewwfzYGTmkQ
 
@@ -12,55 +12,24 @@ Note that you also need to check out submodules:
 
 ### Python packages
 
-virtualenv env
+```
+python3 -m virtualenv env
 . env/bin/activate
 pip install -r requirements.txt
-./env/bin/jupyter notebook
+```
 
-OS X
+note that on OS X you have to install portaudio & specify some extra parameters:
+
+```
 brew install portaudio
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
+```
 
 ## Running
 
-analysis:
-
-- `notebooks/audio.ipynb` : record (into `./recordings` repo), analyze, effects
-- `notebooks/dmx.ipynb` : install, develop
-
-modules:
-
-- `py/features.py` : extract logmel, ceps
-- `py/settings.py` : shared constants
-- `py/streaming.py` : continuously calculate & keep state
-- `py/util.py` : logging & more
-- `py/logic.py` : computes signals in DAG
-- `py/hotplug_signals.py` : defines how to compute signals from audio features
-- `py/hotplug_effects.py` : defines how to compute sound effects from audio
-  input & signals
-- `py/hotplug_animatinos.py` : defines how to compute visual effects from
-  audio input & signals
-
-programs - start these separately (or use `./launch.sh`), they communicate on
-localhost over UDP;
-
-- `py/recorder2.py` : records, plays audio + sends UDP
-- `py/animator.py` : runs animations, duplex websocket communication with
-   webapp and optionally streams pixels to fadecandy server
-- `cd js && python -m http.server` : serves files for the webapp
-- `py/player.py` : listens UDP, plays sound on a single sound card (start 
-  twice for two soundcards)
-- `py/dmx.py` : listens + controls DMX devices - needs
-- (to simulate neopixels in Blender)
-  `blender/sphere_animation_interface.blend` :
-  use Blender to start this (see below for how to set up Blender)
-  -> run `blender/py/run_blender_animations.py` INSIDE Blender
-
-deprecated programs:
-
-- `py/monitor.py` : listens UDP, plots + sends commands
-- (needs a running fadecandy server) `py/run_fadecandy_animations.py` :
-  runs the fadecandy animations
+The sript `./launch.sh` starts a couple of programs that constitute the
+different components of the installation. See the package pydoc for additional
+information. Then go to <http://localhost:8000>.
 
 ### Communication between programs
 
@@ -116,7 +85,7 @@ then there are two standalone programs to be run on the remote server:
 
 ### Open ligthning architecture
 
-See instructions in `notebooks/dmx.ipynb` and `py/dmx.py`.
+See instructions in `notebooks/dmx.ipynb` and `py/nuru/dmx.py`.
 
 ### Blender
 
@@ -143,13 +112,21 @@ set cc=80
 
 ### Jupyter
 
+
+Jupyter is part of the requirements installed above under "Python packages". It
+can be run via `jupyter notbook`. The notebooks are stored in the `notebooks/`.
+
+Additional useful extensions:
+
+```
 jupyter nbextension install --user https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.js
 curl -L https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.css > $(jupyter --data-dir)/nbextensions/toc.css
 jupyter nbextension enable toc
+```
 
 ### 360 images
 
-view with w.g. Google Cardboard:
+View with w.g. Google Cardboard:
 
 - https://play.google.com/store/apps/details?id=com.xojot.vrplayer
 

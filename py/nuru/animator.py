@@ -13,9 +13,10 @@ from autobahn.asyncio.websocket import WebSocketServerProtocol
 from autobahn.websocket.protocol import WebSocketProtocol
 
 import numpy as np
-import opc
 
-import hotplug, network, settings, state, util
+from smanmi import hotplug, network, state, util
+from openpixelcontrol import opc
+from . import settings
 
 
 parser = argparse.ArgumentParser(
@@ -31,9 +32,9 @@ parser.add_argument('--fadecandy', action='store_true',
 args = parser.parse_args()
 
 logger = util.createLogger('animator')
-tt_in = util.Timetracer('animator_in')
-tt_out = util.Timetracer('animator_out')
-hp = hotplug.HotPlug(logger, modules=('animations',))
+tt_in = util.Timetracer('animator_in', timetraces_dir=settings.timetraces_dir)
+tt_out = util.Timetracer('animator_out', timetraces_dir=settings.timetraces_dir)
+animations = hotplug.HotPlug('.hotplug.animations', logger)
 if args.debug:
     logger.setLevel(logging.DEBUG)
 logger.info('starting animator')
@@ -178,7 +179,7 @@ class Animator:
     """Transforms `signals` to pixels."""
 
     def __call__(self, signals):
-        return hp.animations.pixels(**signals)['value']
+        return animations.pixels(**signals)['value']
 
     # def __init__(self):
     #     arm_channels = set(
@@ -193,8 +194,8 @@ class Animator:
     #     }
 
     # def __call__(self, signals):
-    #     sphere_pixels = hp.animations.sphere(**signals)['value']
-    #     for arm_config, arm in zip(settings.arm_configs, hp.animations.arms):
+    #     sphere_pixels = animations.sphere(**signals)['value']
+    #     for arm_config, arm in zip(settings.arm_configs, animations.arms):
     #         arm_pixels = arm(**signals)['value']
     #         i = 0
     #         for offsets in arm_config.offsets:

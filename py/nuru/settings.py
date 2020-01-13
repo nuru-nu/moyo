@@ -10,6 +10,7 @@ is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
 import __main__ as main  # noqa
 is_interactive = not hasattr(main, '__file__')
 
+
 # audio
 ###############################################################################
 
@@ -84,12 +85,10 @@ signalin_address = '0.0.0.0'  # TODO remove ?
 monitor_listen_address = '0.0.0.0'
 monitor_port = 6100
 signalin_port = 6101
-lighter_port = 6102
 fadecandy_port = 6103
 dmx_port = 6104
 player_port = 6105
 player2_port = 6106
-status_port = 6107
 ws_address = '127.0.0.1'
 ws_address = '0.0.0.0'
 ws_signals_port = 6108
@@ -99,12 +98,13 @@ status_address = 'figur.li'
 # files
 ###############################################################################
 
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+root_dir = '.'
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
 recorder2_dir = os.path.join(recordings_dir, 'recorder2')
 recorder2_index = os.path.join(recorder2_dir, 'index.csv')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
+samples_dir = os.path.join(root_dir, 'data', 'samples')
 
 
 def get_recordings():
@@ -113,10 +113,7 @@ def get_recordings():
         for path in glob.glob(os.path.join(recordings_dir, '*.wav'))
     }
 
-
-def get_model_path(model_name):
-    return os.path.join(
-        os.path.dirname(__file__), '../data/models', model_name)
+model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
 
 # animation
 ###############################################################################

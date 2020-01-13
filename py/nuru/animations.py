@@ -1,114 +1,19 @@
 import collections, functools, json, time
 
-import colorsys
 import numpy as np
 
-import logic as L, mapping, pixel_functions as pf, settings, util
+from smanmi import logic as L, util
+from . import mapping, pixel_functions as pf, settings
+
 
 # mapping
 ###############################################################################
+
 
 phi_r_mapping = mapping.generate_arm_configs(settings.arm_configs)
 phi_r_mapping[:2*8*60, :] = mapping.generate_sphere_mapping(
     settings.sphere_strips, phi0=settings.phi0)
 
-
-# LEGACY
-def load_mapping():
-    mapping = np.zeros((settings.sphere_pixels, 2))
-    with open(settings.get_mapping_path()) as json_file:
-        data = json.load(json_file)
-        for coord_data in data:
-            idx = int(coord_data['idx'])
-            phi = float(coord_data['phi'])
-            theta = float(coord_data['theta'])
-            # phi: -pi - pi, theta 0 - pi
-            mapping[idx - 1] = np.array([phi, theta])
-    return mapping
-
-
-def generate_sphere_mapping(phi0):
-    mapping = np.zeros((64 * len(settings.sphere_strips), 2))
-    dphi = 2 * np.pi / len(settings.sphere_strips)
-    for led, sphere_strip in enumerate(settings.sphere_strips):
-        dtheta = np.pi / 2 / (sphere_strip.led0 + sphere_strip.led1)
-        phi1 = phi0 + led * dphi
-        phi2 = phi1 + dphi / 2
-        # going outward
-        values = [
-            [phi1, i * dtheta]
-            for i in range(sphere_strip.led0,
-                           sphere_strip.led0 + sphere_strip.led1)
-        ]
-        # border
-        values += [
-            [phi1 + i * dphi / 2 / sphere_strip.border_leds, np.pi / 2]
-            for i in range(sphere_strip.border_leds)
-        ]
-        # going inward
-        values += [
-            [phi2, np.pi / 2 - i * dtheta]
-            for i in range(
-                0, 60 - sphere_strip.led1 - sphere_strip.border_leds)
-        ]
-        assert len(values) == 60, len(values)
-        mapping[led * 64: led * 64 + 60, :] = np.array(values)
-    return mapping
-
-
-def arm_dists(arm_config):
-    length = len(arm_config.offsets)
-    return np.concatenate([
-        np.tile(np.concatenate([
-            np.linspace(meter, meter + 1, 60) / length,
-            [0.0] * 4,
-        ]), len(offsets))
-        for meter, offsets in enumerate(arm_config.offsets)
-    ])
-
-
-def generate_arm_mapping():
-    mapping_by_channel = {}
-    for arm_segment in settings.arm_segments:
-        if arm_segment.channel not in mapping_by_channel:
-            mapping_by_channel[arm_segment.channel] = np.zeros((512, 2))
-        pixels = mapping_by_channel[arm_segment.channel]
-        i0 = 64 * arm_segment.output
-        pixels[i0: i0 + 60, 0] = arm_segment.phi
-        pixels[i0: i0 + 60, 1] = np.linspace(
-            arm_segment.start, arm_segment.stop, 60)
-    return mapping_by_channel
-
-
-def generate_total_mapping(phi0):
-    """Returns is_sphere, mapping [(phi, theta), ...] for sphere & all arms.
-
-    The pixels in the sphere have phi 0..2pi and theta 0..pi/2, while the
-    pixels of the arms have phi 0..2pi and "theta" 0..1 (for short arms) or
-    0..2 (for long arms).
-    """
-    sc1 = settings.sphere_channel1
-    sc2 = settings.sphere_channel2
-    channel_max = max(
-        sc1, sc2,
-        *[segment.channel for segment in settings.arm_segments])
-    total_mapping = np.zeros((512 * channel_max, 2))
-    is_sphere = np.zeros(total_mapping.shape[0])
-    sphere_mapping = generate_sphere_mapping(phi0)
-    total_mapping[(sc1 - 1) * 512: sc1 * 512] = sphere_mapping[:512]
-    total_mapping[(sc2 - 1) * 512: sc2 * 512] = sphere_mapping[512:]
-    is_sphere[(sc1 - 1) * 512: sc1 * 512] = 1.0
-    is_sphere[(sc2 - 1) * 512: sc2 * 512] = 1.0
-    for channel, segment_mapping in generate_arm_mapping().items():
-        total_mapping[(channel - 1) * 512: channel * 512] = segment_mapping
-    return is_sphere, total_mapping
-
-
-# if settings.is_blender:
-#     sphere_mapping = load_mapping()
-# else:
-#     sphere_mapping = generate_sphere_mapping(phi0=122 * settings.dg)
-#     is_sphere, total_mapping = generate_total_mapping(phi0=122 * settings.dg)
 
 # utils
 ###############################################################################
@@ -190,6 +95,7 @@ class Add:
 # simple animations
 ###############################################################################
 
+
 class FullOn(L.Signal):
     def init(self, color):
         pass
@@ -222,6 +128,7 @@ class PhiPalette(L.Signal):
 
 # gaussians
 ###############################################################################
+
 
 class GaussianDroplet(L.Signal):
 
@@ -276,6 +183,7 @@ class GaussianRain(L.Signal):
 
 # debug
 ###############################################################################
+
 
 class PositionIdentify(L.Signal):
 
