@@ -63,41 +63,6 @@ class GlobalState:
     frozen = False
 
 
-class StreamingStats:
-    """Helper class to periodically show stats."""
-
-    def __init__(self, hz=0.1, delay0=1.0):
-        self.t0 = time.time() - 1 / hz + delay0
-        self.total = {}
-        self.totaltotal = {}
-        self.n = {}
-        self.hz = hz
-
-    def dump(self):
-        """Dumps stats to logger.info()."""
-        dt = time.time() - self.t0
-        for name in sorted(self.total):
-            logger.info('stats[%s] : %.1f fps %.1f kps (sum %.1fM)',
-                        name, self.n[name]/dt, self.total[name]/dt/1e3,
-                        self.totaltotal[name]/1e6)
-
-    def __call__(self, name, s):
-        """"Adds `s` to stats and calls dump() every 1/hz seconds."""
-        if name not in self.n:
-            self.n[name] = self.total[name] = self.totaltotal[name] = 0
-        self.n[name] += 1
-        if s is not None:
-            self.total[name] += len(s)
-            self.totaltotal[name] += len(s)
-        t = time.time()
-        dt = t - self.t0
-        if dt * self.hz > 1:
-            self.dump()
-            self.t0 = t
-            for nn in self.n:
-                self.n[nn] = self.total[nn] = 0
-
-
 class SignalsUdpProtocol(asyncio.DatagramProtocol):
     """Stores signals in `global_state.signals` and forwards to ws."""
 
@@ -116,7 +81,8 @@ class SignalsUdpProtocol(asyncio.DatagramProtocol):
         tt_in()
         self.stats('signals_udp', data)
         signals = json.loads(data.decode('utf8'))
-        signals['state'] = state.State(signals['state'])
+        if 'state' in signals:
+            signals['state'] = state.State(signals['state'])
         self.global_state.signals = signals
         if isOpen(self.global_state.signals_ws_proto):
             tt_out()
@@ -271,7 +237,7 @@ def main():
         client = opc.Client('localhost:7890')
         assert client.can_connect()
         client.set_interpolation(False)
-    stats = StreamingStats()
+    stats = util.StreamingStats(logger)
     animator = Animator()
     global_state = GlobalState()
     global_state.signalin_sock = socket.socket(
@@ -285,18 +251,20 @@ def main():
     animation_factory.protocol = AnimationWsProtocol
     animation_server = loop.run_until_complete(
         loop.create_server(
-            animation_factory, settings.ws_address, settings.ws_animation_port))
+            animation_factory, settings.server_address,
+            settings.ws_animation_port))
 
     signals_factory = SingleConnectionWsFactory(
         global_state, 'signals_ws_proto')
     signals_factory.protocol = SignalsWsProtocol
     signals_server = loop.run_until_complete(
         loop.create_server(
-            signals_factory, settings.ws_address, settings.ws_signals_port))
+            signals_factory, settings.server_address,
+            settings.ws_signals_port))
 
     transport = loop.create_datagram_endpoint(
         lambda: SignalsUdpProtocol(stats, global_state),
-        local_addr=('127.0.0.1', settings.fadecandy_port))
+        local_addr=(settings.address, settings.server_port))
     loop.run_until_complete(transport)
 
     render_task = asyncio.ensure_future(render_loop(

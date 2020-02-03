@@ -6,8 +6,14 @@ from . import perf, state, settings, util
 logger = util.NoLogger()
 
 
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def send(port, data, address=settings.address, sock=sock):
+    msg = json.dumps(util.pythonize(data)).encode('utf8')
+    sock.sendto(msg + b'\n', (address, port))
+
+
 class SignalinSender:
-    """Sends messages to recorder2's signalin port."""
+    """Sends messages to integrator's signalin port."""
 
     def __init__(self, signalin_port, logger):
         self.signalin_port = signalin_port
@@ -31,7 +37,7 @@ class StatusSender:
         self.last_status = None
         self.last_t = 0
 
-    def send(self, status, log_send=True):
+    def send(self, status, log_send=False):
         assert isinstance(status, str), '{} should be string'.format(status)
         t = time.time()
         if self.last_status == status and t - self.last_t < self.repeat_secs:
@@ -45,7 +51,7 @@ class StatusSender:
             ip=get_ip(),
         )
         if log_send:
-            self.logger.info('sending {}'.format(d))
+            self.logger.debug('sending {}'.format(d))
         msg = json.dumps(d).encode('utf8')
         status_address = (settings.address, settings.status_port)
         try:

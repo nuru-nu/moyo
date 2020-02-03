@@ -116,5 +116,5 @@ effector2=E.Effector(settings.out2_rate, [
 ])
 
 
-beamz=L.Named('flash_pulse', 0)
-
+beamz = L.Named('flash_pulse', 0)
+microphone = E.Compressor(2) #| E.Recording('play')

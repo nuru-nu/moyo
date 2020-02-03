@@ -1,5 +1,5 @@
 
-import collections, json, logging, os, socket, sys, time, traceback
+import collections, json, logging, os, signal, socket, sys, time, traceback
 
 import numpy as np
 
@@ -246,4 +246,57 @@ class Timetracer:
         if t - self.t0 > self.flush_secs * 1e3:
             self.f.flush()
             self.t0 = t
+
+
+class StreamingStats:
+    """Helper class to periodically show stats."""
+
+    def __init__(self, logger, hz=0.1, delay0=1.0):
+        self.logger = logger
+        self.t0 = time.time() - 1 / hz + delay0
+        self.total = {}
+        self.totaltotal = {}
+        self.n = {}
+        self.hz = hz
+
+    def catch_ctrlc(self, shutdown_callback):
+        self.last_ctrlc = 0
+        self.shutdown_callback = shutdown_callback
+        signal.signal(signal.SIGINT, self.sigint_handler)
+
+    def sigint_handler(self, *_):
+        print()
+        if time.time() - self.last_ctrlc < 1:
+            self.shutdown_callback()
+            self.logger.warning(
+                '### caught CTRL-C twice within a second => shutdown ###')
+            return
+        self.dump_reset()
+        self.last_ctrlc = time.time()
+
+    def dump(self):
+        """Dumps stats to logger.info()."""
+        dt = time.time() - self.t0
+        for name in sorted(self.total):
+            self.logger.debug('stats[%s] : %.1f fps %.1f kps (sum %.1fM)',
+                              name, self.n[name]/dt, self.total[name]/dt/1e3,
+                              self.totaltotal[name]/1e6)
+
+    def dump_reset(self):
+        self.dump()
+        self.t0 = time.time()
+        for name in self.n:
+          self.n[name] = self.total[name] = 0
+
+    def __call__(self, name, s):
+        """"Adds `s` to stats and calls dump() every 1/hz seconds."""
+        if name not in self.n:
+            self.n[name] = self.total[name] = self.totaltotal[name] = 0
+        self.n[name] += 1
+        if s is not None:
+            self.total[name] += len(s)
+            self.totaltotal[name] += len(s)
+        dt = time.time() - self.t0
+        if dt * self.hz > 1:
+            self.dump_reset()
 

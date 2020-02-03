@@ -65,7 +65,7 @@ def main_loop():
         try:
             signals = network.get_json(sock, signals)
         except socket.timeout:
-            logger.warning('timeout get_json from recorder2')
+            logger.warning('timeout get_json from integrator')
 
 
 audio_thread = threading.Thread(target=play_audio)

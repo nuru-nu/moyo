@@ -10,18 +10,21 @@ E.init(settings)
 S.init(settings)
 
 
-_signals = dict(
-    # _pitch=(
-    #     S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
-    #     S.Exponential(alpha=0.8)
-    # ),
+audio_runner = L.SignalRunner(dict(
+    # raw audio
+    #_pitch=(
+    #    S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
+    #    S.Exponential(alpha=0.8)
+    #),
     loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
     rawloud=S.Louder(n=3) | S.Lin(mult=2),
     overdrive=S.Overdrive(0.8),
     peak=S.Max(),
-    # tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
-    # tf2=ml.KerasDetector(model='s2_linear_wp_10_10'),
-    # tf3=ml.KerasDetector(model='s2_linear_wp_20_20'),
+
+    # tf
+    #tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
+    #tf2=ml.KerasDetector(model='s2_linear_wp_10_10'),
+    #tf3=ml.KerasDetector(model='s2_linear_wp_20_20'),
     tf=L.Constant(0),
     tf2=L.Constant(0),
     tf3=L.Constant(0),
@@ -39,6 +42,8 @@ _signals = dict(
         L.Named('tf') |
         S.Median(n=10, threshold=0.7)
     ),
+
+    # logmel
     breadth=(
         S.FreqBreadth(threshold=-1) | S.Lin(mult=1 / 20) |
         S.Clip(0, 1) | S.MovingAverage(n=5)
@@ -55,19 +60,19 @@ _signals = dict(
         S.FreqBand(hzmin=2500, hzmax=1e10, hzslope=500) |
         S.Lin(shift=3 / 5, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
     ),
-    ooo=(
-        L.Named('iso') |
-        S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
-        S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
-    ) | S.InState('ooo'),
 
-    sonar=S.Sonar(),
-    sonar_good=S.SonarGood(),
-    kinect=S.SignalIn(name='kinect', min_value=0, max_value=1000),
+    #fc=L.Constant(0),
+    #std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
+))
 
+integrator_runner = L.SignalRunner(dict(
+    # state
     state=S.State(),
-    fc=L.Constant(0),
 
+    # generated
+    std2=S.Saw(hz=0.5, dt=0),
+    std22=S.Saw(hz=1.0, dt=0),
+    std3=S.Saw(hz=0.5, dt=0),
     drone1=(
         S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
         | S.InState('std') | S.MovingAverage(secs=0.5)
@@ -78,23 +83,23 @@ _signals = dict(
     ),
     drone3=S.RndRamp(),
 
-    into=S.TriggerPulse('into', 2) | S.MovingAverage(secs=2),
+    # non-audio input
+    sonar=S.Sonar(),
+    sonar_good=S.SonarGood(),
+    kinect=S.SignalIn(name='kinect', min_value=0, max_value=1000),
 
+    # derived
+    ooo=(
+        L.Named('iso') |
+        S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
+        S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
+    ) | S.InState('ooo'),
     bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
     ooo_intensity=(
         L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
+    into=S.TriggerPulse('into', 2) | S.MovingAverage(secs=2),
+    #flash_pulse=S.TriggerPulse(state='flash', secs=3),
 
-    std2=S.Saw(hz=0.5, dt=0),
-    std22=S.Saw(hz=1.0, dt=0),
-    std3=S.Saw(hz=0.5, dt=0),
-    # std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
-
-    # flash_pulse=S.TriggerPulse(state='flash', secs=3),
+    # output
     flash_pulse=L.Named('rawloud') | S.Smoke(0.5, 2, 40),
-)
-
-# additional_monitor_address=('192.168.43.33', settings.monitor_port),
-additional_monitor_address=None
-additional_monitor_logmel=False
-microphone_effect=E.Compressor(2) | E.Recording('play')
-runner=L.SignalRunner(_signals, ('features', 't', 'signalin', 'state'))
+))

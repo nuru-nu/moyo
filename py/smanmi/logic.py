@@ -19,7 +19,7 @@ Synoposis:
   print(values['a'])
 """
 
-import inspect, random, time
+import functools, inspect, random, time
 
 # utils
 ###############################################################################
@@ -213,6 +213,11 @@ class Named(Signal):
 ###############################################################################
 
 
+class ConstraintException(Exception):
+    """Thrown by SignalRunner if DAG cannot be computed."""
+    pass
+
+
 def make_order(signals, provided):
     """Returns ordered keys of `signals` satisfying their wants."""
     ordered = []
@@ -224,12 +229,13 @@ def make_order(signals, provided):
             signal = signals[name]
             if len(provided.intersection(signal.wants)) == len(signal.wants):
                 done.add(name)
-        assert done, 'could not satisfy ANY of {}'.format(
-            ', '.join([
-                '{}->{}'.format(signals[name], signals[name].wants)
-                for name in names
-            ])
-        )
+        if not done:
+            raise ConstraintException('could not satisfy ANY of {}'.format(
+                ', '.join([
+                    '{}->{}'.format(signals[name], signals[name].wants)
+                    for name in names
+                ])
+            ))
         names = names.difference(done)
         provided = provided.union(done)
         ordered += list(done)
@@ -239,14 +245,31 @@ def make_order(signals, provided):
 class SignalRunner:
     """Runs signals DAG."""
 
-    def __init__(self, signals, provided):
+    def __init__(self, signals, provided=None, extra=()):
+        """Constructs the SignalRunner.
+
+        Args:
+          signals: Dictionary mapping signal name to `L.Signal`
+          provided: Optional list of signals to be provided to `__call__()` -
+              autocomputed if not specified.
+        """
         self.signals = signals
-        self.provided = provided
-        self.ordered = make_order(signals, provided)
+        if provided is None:
+            provided = functools.reduce(
+                lambda acc, sig: acc.union(sig.wants), signals.values(), set()
+            ).difference((
+                name for name, signal in signals.items()
+                if name not in signal.wants
+            ))
+        self.provided = set(provided)
+        self.ordered = make_order(signals, self.provided)
         self.overrides = {}
 
     def __call__(self, **kw):
         """Note that signalin['override'] is treated specially."""
+        missing = self.provided.difference(kw.keys())
+        if missing:
+            raise ConstraintException(f'Missing provided : {missing}')
         self.overrides = kw.get('signalin', {}).get('overrides', self.overrides)
         values = dict(**kw)
         for name in self.ordered:
