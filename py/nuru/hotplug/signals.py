@@ -63,6 +63,7 @@ _signals = dict(
 
     sonar=S.Sonar(),
     sonar_good=S.SonarGood(),
+    kinect=S.SignalIn(name='kinect', min_value=0, max_value=1000),
 
     state=S.State(),
     fc=L.Constant(0),
