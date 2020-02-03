@@ -225,7 +225,7 @@ zeros = [
 while running:
 
     signalin = network.get_json(signalin_sock, {})
-    if signalin and set(signalin.keys()) != {'sonar'}:
+    if set(signalin.keys()).difference({'sonar', 'kinect'}):
         logger.info('signalin={!r}'.format(signalin))
 
     new_frozen = signals['state'].state == 'frozen'

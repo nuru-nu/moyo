@@ -153,6 +153,21 @@ class RndRamp(L.Signal):
         return 1 - (t - self.t2) / (self.t3 - self.t2)
 
 
+class SignalIn(L.Signal):
+    """Retrieves from signalin by name, using last value."""
+
+    def init(self, name, min_value=0, max_value=1):
+        self.last_value = None
+
+    def call(self, signalin, t):
+        if self.name in signalin:
+            value = signalin[self.name]
+            value = max(self.min_value, min(self.max_value, value))
+            value = (value - self.min_value) / (self.max_value - self.min_value)
+            self.last_value = value
+        return self.last_value
+
+
 class Sonar(L.Signal):
     """Normalized sonar distance signal, ignores invalid."""
 
