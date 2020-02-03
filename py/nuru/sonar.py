@@ -41,5 +41,5 @@ def read_sonar():
         return msg[1][0]
 
 while True:
-    signalin_sender.send(dict(sonar=read_sonar()))
+    signalin_sender.send(dict(sonar=read_sonar()), settings.signalin_address)
     time.sleep(1 / settings.sonar_hz)

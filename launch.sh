@@ -18,13 +18,19 @@ FCSERVER='fcserver'
 ARDUINO=yes
 DMX=yes
 OUT2=yes
+FADECANDY=--fadecandy
 
 case "$MACHINE" in
+cervelat-nuru)
+  FCSERVER='fcserver-osx'
+  DMX=
+  ;;
 cervelat*)
+  FCSERVER=
+  OUT2=
   ARDUINO=
   DMX=
-  FCSERVER='fcserver-osx'
-  OUT2=
+  FADECANDY=
   ;;
 esac
 
@@ -54,11 +60,11 @@ fi
 
 # column 2 : fc server, animator & dmx
 tmux selectp -t 5
-if [ ! -z "$FADECANDY" ]; then
+if [ ! -z "$FCSERVER" ]; then
   restarting_cmd "$FCSERVER" fadecandy/config.json
   tmux splitw -v -p 66
 fi
-restarting_py nuru.animator
+restarting_py nuru.animator "$FADECANDY"
 if [ ! -z "$DMX" ]; then
   tmux splitw -v
   restarting_py nuru.dmx
