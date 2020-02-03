@@ -40,13 +40,13 @@ def bass_loops(gs):
         # gs('brook-1'),
         # gs('brook-3'),
         # gs('birds'),
-        # gs('lush-drone'),
-        # gs('single-string'),
+        gs('lush-drone'),
+        gs('single-string'),
         # gs('water-running'),
-        # gs('muffled-thunderstorm'),
-        # gs('dark-sound'),
-        # gs('cruel'),
-        # gs('guitar-'),
+        gs('muffled-thunderstorm'),
+        gs('dark-sound'),
+        gs('cruel'),
+        gs('guitar-'),
     ])
 
 
