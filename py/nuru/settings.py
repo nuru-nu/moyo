@@ -11,6 +11,10 @@ import __main__ as main  # noqa
 is_interactive = not hasattr(main, '__file__')
 
 
+timetracing = False
+log_debug = False
+
+
 # audio
 ###############################################################################
 
@@ -64,7 +68,7 @@ upper_edge_hertz = 7500
 num_mel_bins2 = 256
 f2hz2 = rate / num_mel_bins2 / np.pi
 
-alive_secs = 10
+reset_secs = 0
 
 
 def to_string():
@@ -80,20 +84,19 @@ def to_string():
 ###############################################################################
 
 
-address = 'localhost'
-signalin_address = '0.0.0.0'  # TODO remove ?
-monitor_listen_address = '0.0.0.0'
+address = server_address = status_address = '127.0.0.1'
+#status_address = 'figur.li'
+#server_address = '0.0.0.0'
+
 monitor_port = 6100
 signalin_port = 6101
-fadecandy_port = 6103
+server_port = 6102
 dmx_port = 6104
 player_port = 6105
 player2_port = 6106
-ws_address = '127.0.0.1'
-ws_address = '0.0.0.0'
+
 ws_signals_port = 6108
 ws_animation_port = 6109
-status_address = 'figur.li'
 
 # files
 ###############################################################################
@@ -101,7 +104,8 @@ status_address = 'figur.li'
 root_dir = '.'
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
-recorder2_dir = os.path.join(recordings_dir, 'recorder2')
+recorder_dir = os.path.join(recordings_dir, 'recorder')
+signalin_dir = os.path.join(recordings_dir, 'signalin')
 recorder2_index = os.path.join(recorder2_dir, 'index.csv')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
 samples_dir = os.path.join(root_dir, 'data', 'samples')

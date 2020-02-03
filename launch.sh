@@ -13,6 +13,7 @@ CM='C-m'
 # CM=
 
 MACHINE="${MACHINE:-$(uname -n)}"
+INDEX0="${INDEX0:-1}"
 
 FCSERVER='fcserver'
 ARDUINO=yes
@@ -35,7 +36,7 @@ cervelat*)
 esac
 
 # create columns
-tmux selectp -t 1
+tmux selectp -t $INDEX0
 tmux splitw -h
 
 function restarting_cmd() {
@@ -46,33 +47,44 @@ function restarting_py() {
   restarting_cmd "\$(which python) -m $*"
 }
 
-# column 1 : recorder, http & players
-tmux selectp -t 1
-restarting_py nuru.recorder2
+
+# column 1 : recorder, arduino, integrator, http
+tmux selectp -t $INDEX0
+restarting_py nuru.recorder
+
+if [ ! -z "$ARDUINO" ]; then
+  tmux splitw -v -p 75
+  restarting_py nuru.sonar
+fi
+
 tmux splitw -v -p 66
+restarting_py nuru.integrator
+
+tmux splitw -v
 tmux send-keys '. ./env/bin/activate' C-M 'cd js && python -m http.server' $CM
+
+
+# column 2 : animator, fc server, dmx, players
+tmux selectp -R
+restarting_py nuru.animator "$FADECANDY"
+
+if [ ! -z "$FCSERVER" ]; then
+  restarting_cmd "$FCSERVER" fadecandy/config.json
+  tmux splitw -v -p 75
+fi
+
+if [ ! -z "$DMX" ]; then
+  tmux splitw -v -p 66
+  restarting_py nuru.dmx
+fi
+
 tmux splitw -v
 restarting_py nuru.player out1
-tmux splitw -h
 if [ ! -z "$OUT2" ]; then
+  tmux splitw -h
   restarting_py nuru.player out2
 fi
 
-# column 2 : fc server, animator & dmx
-tmux selectp -t 5
-if [ ! -z "$FCSERVER" ]; then
-  restarting_cmd "$FCSERVER" fadecandy/config.json
-  tmux splitw -v -p 66
-fi
-restarting_py nuru.animator "$FADECANDY"
-if [ ! -z "$DMX" ]; then
-  tmux splitw -v
-  restarting_py nuru.dmx
-fi
-if [ ! -z "$ARDUINO" ]; then
-  tmux splitw -v
-  restarting_py nuru.sonar
-fi
 
 # # window 2 : git, jupyter
 # tmux new-window -t "$SESSION":1 -n dev
