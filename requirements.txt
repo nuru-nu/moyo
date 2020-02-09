@@ -1,4 +1,4 @@
-autobahn==19.10.1
+aiohttp-3.6.2
 jupyter==1.0.0
 matplotlib==3.0.3
 numpy==1.16.2
