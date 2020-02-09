@@ -9,8 +9,8 @@ const Network = (output, options) => {
   const timestamps = { animation: [], signals: [] }
 
   const socks = {
-    animation: new WebSocket(`ws://${host}:${animation_port}`),
-    signals: new WebSocket(`ws://${host}:${signals_port}`),
+    animation: new WebSocket(`ws://${window.location.host}/+animation`),
+    signals: new WebSocket(`ws://${window.location.host}/+signals`),
   }
 
   const disp = h.div().of(
@@ -41,7 +41,7 @@ const Network = (output, options) => {
     if (record_timestamps) {
       timestamps.animation.push(new Date().getTime())
     }
-    if ('size' in e.data) {
+    if (e.data instanceof Blob) {
       new Response(e.data).arrayBuffer().then(function(data) {
         let view = new Uint8Array(data)
         listeners.animation.forEach(listener => listener(view))
@@ -55,7 +55,14 @@ const Network = (output, options) => {
     if (record_timestamps) {
       timestamps.signals.push(new Date().getTime())
     }
-    listeners.signals.forEach(listener => listener(e.data))
+    if (e.data instanceof Blob) {
+      new Response(e.data).text().then(function(data) {
+        listeners.signals.forEach(listener => listener(data))
+      })
+      return
+    }
+    console.log('unexpected data type', e.data)
+    throw 'unexpected data type'
   })
 
   function listen(key, listener) {

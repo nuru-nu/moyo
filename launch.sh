@@ -48,25 +48,22 @@ function restarting_py() {
 }
 
 
-# column 1 : recorder, arduino, integrator, http
+# column 1 : recorder, arduino, integrator
 tmux selectp -t $INDEX0
 restarting_py nuru.recorder
 
 if [ ! -z "$ARDUINO" ]; then
-  tmux splitw -v -p 75
+  tmux splitw -v -p 66
   restarting_py nuru.sonar
 fi
 
-tmux splitw -v -p 66
+tmux splitw -v
 restarting_py nuru.integrator
 
-tmux splitw -v
-tmux send-keys '. ./env/bin/activate' C-M 'cd js && python -m http.server' $CM
 
-
-# column 2 : animator, fc server, dmx, players
+# column 2 : server, fc server, dmx, players
 tmux selectp -R
-restarting_py nuru.animator "$FADECANDY"
+restarting_py nuru.server "$FADECANDY"
 
 if [ ! -z "$FCSERVER" ]; then
   restarting_cmd "$FCSERVER" fadecandy/config.json

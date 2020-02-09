@@ -106,7 +106,6 @@ recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
 recorder_dir = os.path.join(recordings_dir, 'recorder')
 signalin_dir = os.path.join(recordings_dir, 'signalin')
-recorder2_index = os.path.join(recorder2_dir, 'index.csv')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
 samples_dir = os.path.join(root_dir, 'data', 'samples')
 
