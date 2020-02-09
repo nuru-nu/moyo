@@ -1,6 +1,6 @@
 """Restarts programs & reports status."""
 
-import subprocess, sys, time
+import signal, subprocess, sys, time
 
 from . import network, util
 
@@ -33,6 +33,7 @@ stats = 'initial'
 name = 'restarter_{}'.format(' '.join(argv[1:]))
 status_sender = network.StatusSender(name, logger=logger)
 
+signal.signal(signal.SIGINT, signal.SIG_IGN)
 counter = 0
 times_log = []
 waits_log = []
