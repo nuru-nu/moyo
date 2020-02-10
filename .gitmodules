@@ -1,9 +1,9 @@
 [submodule "recordings"]
 	path = recordings
-	url = rizhom@figur.li:recordings.git
+	url = smanmi@figur.li:nuru_recordings.git
 [submodule "data"]
 	path = data
-	url = rizhom@figur.li:data.git
+	url = smanmi@figur.li:nuru_data.git
 [submodule "smanmi"]
 	path = smanmi
-	url = rizhom@figur.li:smanmi.git
+	url = smanmi@figur.li:smanmi.git
