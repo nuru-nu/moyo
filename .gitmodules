@@ -4,3 +4,6 @@
 [submodule "data"]
 	path = data
 	url = rizhom@figur.li:data.git
+[submodule "smanmi"]
+	path = smanmi
+	url = rizhom@figur.li:smanmi.git

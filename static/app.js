@@ -1,4 +1,10 @@
 
+import { Console, h, Stats } from './smanmi/util.js'
+import { Network } from './smanmi/network.js'
+import { Monitor } from './smanmi/monitor.js'
+
+import { Leds } from './leds.js'
+
 window.console = Console('#console')
 
 let monitor = Monitor('#monitor')
