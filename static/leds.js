@@ -1,6 +1,6 @@
+import { h } from './smanmi/util.js'
 
-
-const Leds = (output) => {
+export const Leds = (output) => {
 
   let mapping = null
   fetch('/mapping').then(res => res.json()).then(json => mapping = json)

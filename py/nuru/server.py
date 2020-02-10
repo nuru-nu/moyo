@@ -1,4 +1,5 @@
-import argparse, json
+import argparse
+import json
 
 from aiohttp import web
 import numpy as np
@@ -21,24 +22,13 @@ parser.add_argument('--fadecandy', action='store_true',
 args = parser.parse_args()
 
 
-def pad_fadecandy(values):
-    """Adds 4 zero RGBs after every 60 values."""
-    zeros = np.zeros((4, 3), 'uint8')
-    return np.concatenate([
-        np.concatenate([
-            values[i0: i0 + 60],
-            zeros
-        ])
-        for i0 in range(0, values.shape[0], 60)
-    ])
-
-
 class Animator:
 
     def __init__(self, client, logger):
         self.client = client
         self.hp_animations = hotplug.HotPlug('.hotplug.animations', logger)
         self.signals = None
+        self.stats = None
 
     def received_signals(self, data):
         self.signals = json.loads(data.decode('utf8'))
@@ -52,7 +42,7 @@ class Animator:
         data = np.clip((255 * data).astype('uint8'), 0, 255)
 
         if self.client:
-            fc_data = pad_fadecandy(data)
+            fc_data = util.pad_fadecandy(data)
             ok = True
             for channel, i0 in enumerate(range(0, fc_data.shape[0], 512)):
                 ok &= client.put_pixels(fc_data[i0: i0 + 512], channel + 1)
@@ -80,7 +70,7 @@ if args.fadecandy:
     client.set_interpolation(False)
 animator = Animator(client, logger)
 
-server = Server(static_path='js', logger=logger)
+server = Server(static_dir='static', logger=logger)
 animator.stats = server.stats
 server.forward_udp(UdpForwarding(
     '/+signals',

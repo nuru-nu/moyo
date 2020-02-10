@@ -9,10 +9,10 @@ tmux start-server
 
 tmux new-session -d -s "$SESSION" -n prod
 
-CM='C-m'
-# CM=
+CM="${CM:-C-m}"
 
 MACHINE="${MACHINE:-$(uname -n)}"
+RESTARTER="python -m smanmi.restarter"
 INDEX0="${INDEX0:-1}"
 
 FCSERVER='fcserver'
@@ -32,6 +32,7 @@ cervelat*)
   ARDUINO=
   DMX=
   FADECANDY=
+  RESTARTER=
   ;;
 esac
 
@@ -40,7 +41,7 @@ tmux selectp -t $INDEX0
 tmux splitw -h
 
 function restarting_cmd() {
-  tmux send-keys '. env/bin/activate' C-M "PYTHONPATH=py python -m smanmi.restarter $*" $CM
+  tmux send-keys '. env/bin/activate' C-M "PYTHONPATH=py $RESTARTER $*" $CM
 }
 
 function restarting_py() {
@@ -82,11 +83,5 @@ if [ ! -z "$OUT2" ]; then
   restarting_py nuru.player out2
 fi
 
-
-# # window 2 : git, jupyter
-# tmux new-window -t "$SESSION":1 -n dev
-# tmux send-keys "echo WOULD RUN JUPYTER HERE..." C-m
-# tmux splitw -v -p 80
-# tmux send-keys "git status" C-m
 
 tmux attach-session -t "$SESSION"
