@@ -1,4 +1,4 @@
-import { h } from './smanmi/util.js'
+import { h, colors } from './smanmi/util.js'
 
 export const Leds = (output) => {
 
