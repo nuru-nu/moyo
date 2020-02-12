@@ -1,0 +1,104 @@
+#include "viewer.h"
+
+#include "util.h"
+
+namespace {
+
+const float kHzSlow = 1;
+const float kHzFast = 30;
+const int kGraphDy = 2;
+const cv::Scalar kOriginCol4(255, 0, 0, 255);
+const cv::Scalar kPresenceCol4(0, 0, 255, 255);
+const cv::Scalar kTextCol(0, 255, 0);
+
+void apply_overlay(const cv::Mat& overlay, cv::Mat* const image) {
+  std::vector<cv::Mat> brga;
+  cv::split(overlay, brga);
+  cv::Mat overlay_brg;
+  cv::cvtColor(overlay, overlay_brg, CV_RGBA2RGB);
+  // cv::add(*image, overlay_brg, *image);
+  overlay_brg.copyTo(*image, brga[3]);
+}
+
+}  // namespace
+
+Viewer::Viewer() : hz_(kHzSlow ) {
+  cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
+  last_t_ = t0_ = std::chrono::high_resolution_clock::now();
+}
+
+void Viewer::draw_process_key() {
+  const int key = cv::waitKey(1);
+  if (key == (int) 'q') {
+    should_quit_ = true;
+  }
+  if (key == (int) '\t') {
+    hz_ = hz_ == kHzSlow ? kHzFast : kHzSlow;
+  }
+  should_reset_ = key == (int) ' ';
+}
+
+void Viewer::update_graphs(const cv::Mat& img, const Features& features) {
+  if (graphs_.empty()) {
+    graphs_ = cv::Mat::zeros(img.rows, img.cols, CV_8UC4);
+  }
+  cv::Mat graphs_copy = graphs_.clone();
+  graphs_copy(
+      cv::Rect(0, kGraphDy, graphs_.cols, graphs_.rows - kGraphDy))
+    .copyTo(
+        graphs_(
+          cv::Rect(0, 0, graphs_.cols, graphs_.rows - kGraphDy)));
+  cv::rectangle(
+    graphs_,
+    cv::Point(0, graphs_.rows - kGraphDy - 1),
+    cv::Point(graphs_.cols - 1, graphs_.rows - 1),
+    cv::Scalar(0, 0, 0, 0),
+    /*thickness=fill=*/-1);
+
+  const int presence_x = graphs_.cols / 2 + static_cast<int>(
+      features.presence() * graphs_.cols / 2);
+  cv::line(
+      graphs_, cv::Point(graphs_.cols / 2, graphs_.rows - 1),
+      cv::Point(graphs_.cols / 2, graphs_.rows - 1 - kGraphDy), kOriginCol4);
+  cv::line(
+      graphs_,
+      cv::Point(presence_x, graphs_.rows - 1),
+      cv::Point(last_presence_x_, graphs_.rows - 1 - kGraphDy),
+      kPresenceCol4);
+  last_presence_x_ = presence_x;
+}
+
+void Viewer::update(const cv::Mat& img, const Features& features) {
+  // Performs actual drawing. Read key every cycle for better ui.
+  draw_process_key();
+  update_graphs(img, features);
+
+  const auto t = std::chrono::high_resolution_clock::now();
+  const long long microseconds =
+    std::chrono::duration_cast<std::chrono::microseconds>(t - last_t_).count();
+  last_t_ = t;
+  const long long t0_microseconds =
+    std::chrono::duration_cast<std::chrono::microseconds>(t - t0_).count();
+  if (t0_microseconds < 1e6 / hz_) {
+    return;
+  }
+  t0_ = t;
+
+  double min, max;
+  cv::Point minloc, maxloc;
+  cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
+  cv::Mat img_brg;
+  cv::cvtColor((img - min) / (max - min), img_brg, CV_GRAY2RGB);
+  img_brg.convertTo(img_brg, CV_8UC3, /*alpha=*/255.0);
+
+  cv::putText(
+      img_brg, string_format("presence=%.2f", features.presence()),
+      cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+  const double fps = 1e6 / static_cast<double>(microseconds);
+  cv::putText(
+      img_brg, string_format("fps=%.2f display_fps=%.2f", fps, hz_),
+      cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+
+  apply_overlay(graphs_, &img_brg);
+  cv::imshow("viewer", img_brg);
+}
