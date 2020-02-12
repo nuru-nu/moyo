@@ -1,4 +1,4 @@
-aiohttp-3.6.2
+aiohttp==3.6.2
 jupyter==1.0.0
 matplotlib==3.0.3
 numpy==1.16.2
@@ -8,3 +8,4 @@ PyAudio==0.2.11
 PyCmdMessenger==0.2.4
 scipy==1.4.1
 tensorflow==2.1.0
+Pillow==7.0.0
