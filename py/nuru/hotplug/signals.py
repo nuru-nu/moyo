@@ -86,7 +86,7 @@ integrator_runner = L.SignalRunner(dict(
     # non-audio input
     sonar=S.Sonar(),
     sonar_good=S.SonarGood(),
-    kinect=S.SignalIn(name='kinect', min_value=0, max_value=1000),
+    presence=S.SignalIn(name='presence', min_value=0, max_value=1),
 
     # derived
     ooo=(
