@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <sstream>
+#include <strings.h>
 
 SignalSender::SignalSender(const int port, const char* const ip) : port_(port) {
   sock_ = socket(AF_INET,SOCK_DGRAM,0);
