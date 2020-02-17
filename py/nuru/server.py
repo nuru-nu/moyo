@@ -77,7 +77,7 @@ server.forward_udp(UdpForwarding(
     in_udp=UdpEndpoint('127.0.0.1', settings.server_port),
     out_udp=UdpEndpoint('127.0.0.1', settings.signalin_port),
 ).with_callbacks(animator.received_signals))
-server.run_periodically(PeriodicCallback('/+animation', animator, fps=args.fps))
+server.run_periodically(
+    PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/mapping', send_mapping))
 server.run(address=settings.server_address)
-

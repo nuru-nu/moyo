@@ -1,13 +1,7 @@
-import argparse
-
-import numpy as np
-
 from smanmi import hotplug
 from smanmi import integrator
-from smanmi import logic as L
 from smanmi import state
 from smanmi import util
-from . import features
 from . import settings
 
 
@@ -15,7 +9,7 @@ class Integrator(integrator.Integrator):
 
     def __init__(self, logger):
         super().__init__(
-            logger, fps=0,
+            logger, fps=20,
             address=settings.address,
             signalin_ports=[settings.signalin_port],
             signals_ports=[
@@ -27,9 +21,12 @@ class Integrator(integrator.Integrator):
             recordings_path=settings.signalin_dir,
         )
         self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
-        self.state = state.State()
         self.signalin = {}
-        self.signals = {}
+        self.signals = dict(
+            state=state.State(),
+            rawloud=0.,
+            iso=0.,
+        )
 
     def integrate(self, signalin):
         if 'state' in signalin:
@@ -41,12 +38,12 @@ class Integrator(integrator.Integrator):
         self.signalin.update(signalin)
 
     def compute(self):
-        if not self.signals: return {}
+        if not self.signals:
+            return {}
         return self.hp_signals.integrator_runner(
-            t=self.t, state=self.state, signalin=self.signalin, **self.signals)
+            t=self.t, signalin=self.signalin, **self.signals)
 
 
 logger = util.createLogger('integrator')
 integrator = Integrator(logger)
 integrator.start()
-
