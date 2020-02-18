@@ -7,5 +7,4 @@ Pillow==6.0.0
 PyAudio==0.2.11
 PyCmdMessenger==0.2.4
 scipy==1.4.1
-tensorflow==2.1.0
-Pillow==7.0.0
+#tensorflow==2.1.0
