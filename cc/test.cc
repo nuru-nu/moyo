@@ -13,7 +13,7 @@ void mix(const cv::Mat& overlay, cv::Mat* img) {
   std::vector<cv::Mat> rgba;
   cv::split(overlay, rgba);
   cv::Mat rgb;
-  cv::cvtColor(overlay, rgb, CV_RGBA2RGB);
+  cv::cvtColor(overlay, rgb, cv::COLOR_RGBA2RGB);
   // img->setTo(cv::Scalar(0, 0, 0), rgba[3]);
   rgb.copyTo(*img, rgba[3]);
 }
@@ -22,7 +22,7 @@ void mix2(const cv::Mat& overlay, cv::Mat* img) {
   std::vector<cv::Mat> rgba;
   cv::split(overlay, rgba);
   cv::Mat rgb;
-  cv::cvtColor(overlay, rgb, CV_RGBA2RGB);
+  cv::cvtColor(overlay, rgb, cv::COLOR_RGBA2RGB);
 
   cv::Mat alpha = cv::Mat(rgb.rows, rgb.cols, CV_8UC1, 255);
   cv::subtract(alpha, rgba[3], alpha);
@@ -36,7 +36,7 @@ void add(const cv::Mat& overlay, cv::Mat* img) {
   std::vector<cv::Mat> rgba;
   cv::split(overlay, rgba);
   cv::Mat rgb;
-  cv::cvtColor(overlay, rgb, CV_RGBA2RGB);
+  cv::cvtColor(overlay, rgb, cv::COLOR_RGBA2RGB);
   cv::add(*img, rgb, *img);
 }
 
