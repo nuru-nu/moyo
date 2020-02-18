@@ -15,7 +15,7 @@ void apply_overlay(const cv::Mat& overlay, cv::Mat* const image) {
   std::vector<cv::Mat> brga;
   cv::split(overlay, brga);
   cv::Mat overlay_brg;
-  cv::cvtColor(overlay, overlay_brg, CV_RGBA2RGB);
+  cv::cvtColor(overlay, overlay_brg, cv::COLOR_RGBA2RGB);
   // cv::add(*image, overlay_brg, *image);
   overlay_brg.copyTo(*image, brga[3]);
 }
@@ -88,7 +88,7 @@ void Viewer::update(const cv::Mat& img, const Features& features) {
   cv::Point minloc, maxloc;
   cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
   cv::Mat img_brg;
-  cv::cvtColor((img - min) / (max - min), img_brg, CV_GRAY2RGB);
+  cv::cvtColor((img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
   img_brg.convertTo(img_brg, CV_8UC3, /*alpha=*/255.0);
 
   cv::putText(
