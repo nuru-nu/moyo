@@ -34,6 +34,14 @@ cervelat*)
   FADECANDY=
   RESTARTER=
   ;;
+gabriel*)
+  FCSERVER=
+  OUT2=
+  ARDUINO=
+  DMX=
+  FADECANDY=
+  RESTARTER=
+  ;;
 esac
 
 # create columns
