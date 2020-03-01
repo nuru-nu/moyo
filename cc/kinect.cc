@@ -20,7 +20,7 @@ void sigint_handler(int s) {
 int main() {
   const int signalin_port = 6101;
 
-  Hardware hardware;
+  Hardware hardware(/*rgb=*/true);
 
   Features features;
   Viewer viewer;
@@ -34,6 +34,7 @@ int main() {
     }
 
     const cv::Mat depth = hardware.depth();
+    const cv::Mat rgb = hardware.rgb();
 
     features.process(depth);
     const int bytes_sent = sender.send({

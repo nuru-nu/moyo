@@ -3,6 +3,13 @@
 #include <iostream>
 #include <string>
 
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
+#include <pcl/console/print.h>
+#include <pcl/console/parse.h>
+#include <pcl/console/time.h>
+#include <pcl/point_types.h>
+
 namespace {
 
 const bool kEnableDepth = true;
@@ -74,6 +81,22 @@ cv::Mat Hardware::ir() {
   const libfreenect2::Frame* const ir = frames_[libfreenect2::Frame::Ir];
   return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
 }
+
+void Hardware::pcl(){  
+// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
+
+  const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
+  cv::Mat depth_mat = cv::Mat(depth->height, depth->width, CV_32FC1, depth->data).clone();
+
+  const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
+  cv::Mat rgb_mat = cv::Mat(rgb->height, rgb->width, CV_32FC1, rgb->data).clone();
+
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+
+  // openni::CoordinateConverter::convertDepthToWorld(depth, i, j, (openni::DepthPixel) depth_mat.at<unsigned short>(j,i), &x, &y,&z );
+  // return pointcloud;
+}
+
 
 void Hardware::close() {
   dev_->stop();

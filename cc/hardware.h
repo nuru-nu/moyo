@@ -9,6 +9,15 @@
 #include <libfreenect2/packet_pipeline.h>
 #include <libfreenect2/logger.h>
 
+// #include <pcl/io/pcd_io.h>
+// #include <pcl/io/ply_io.h>
+// #include <pcl/console/print.h>
+// #include <pcl/console/parse.h>
+// #include <pcl/console/time.h>
+// #include <pcl/point_types.h>
+
+#include <OpenNI.h>
+
 #include <opencv2/opencv.hpp>
 
 class Hardware {
@@ -23,8 +32,13 @@ class Hardware {
     cv::Mat depth();
     // Returns IR data. Invalidated when `next()` is called.
     cv::Mat ir();
-    // Returns RGB data. Invalidated when `next()` is called.
+    // Returns rgb data. Invalidated when `next()` is called.
     cv::Mat rgb();
+    // Returns a RGB point cloud. Invalidated when `next()` is called.
+    // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcl();  
+    void pcl();  
+
+
 
     // Shuts down the device, irreversibly.
     void close();
