@@ -14,6 +14,9 @@ class Viewer {
     bool should_quit() const { return should_quit_; }
     bool should_store() const { return should_store_; }
     bool should_reset() const { return should_reset_; }
+    void clear_quit() { should_quit_ = false; }
+    void clear_store() { should_store_ = false; }
+    void clear_reset() { should_reset_ = false; }
 
   private:
     void draw_process_key();

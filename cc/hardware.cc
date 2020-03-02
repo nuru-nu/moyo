@@ -2,13 +2,14 @@
 
 #include <iostream>
 #include <string>
+#include <stdio.h>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
-#include <pcl/point_types.h>
+// #include <pcl/point_types.h>
 
 namespace {
 
@@ -54,10 +55,10 @@ Hardware::Hardware(const bool rgb) : rgb_(rgb) {
     exit(-1);
   }
 
-  // libfreenect2::Registration* registration =
-  //   new libfreenect2::Registration(
-  //       dev_->getIrCameraParams(), dev_->getColorCameraParams());
-  // libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
+  registration =
+    new libfreenect2::Registration(
+        dev_->getIrCameraParams(), dev_->getColorCameraParams());
+  libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
 }
 
 bool Hardware::next() {
@@ -74,7 +75,7 @@ cv::Mat Hardware::depth() {
 
 cv::Mat Hardware::rgb() {
   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  return cv::Mat(rgb->height, rgb->width, CV_32FC1, rgb->data).clone();
+  return cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
 }
 
 cv::Mat Hardware::ir() {
@@ -86,14 +87,42 @@ void Hardware::pcl(){
 // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
 
   const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
-  cv::Mat depth_mat = cv::Mat(depth->height, depth->width, CV_32FC1, depth->data).clone();
-
   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  cv::Mat rgb_mat = cv::Mat(rgb->height, rgb->width, CV_32FC1, rgb->data).clone();
+  cv::Mat rgb_mat = cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
+  cv::imshow("rgb", rgb_mat);
 
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-  // openni::CoordinateConverter::convertDepthToWorld(depth, i, j, (openni::DepthPixel) depth_mat.at<unsigned short>(j,i), &x, &y,&z );
+  float x,y,z,rgb_value;
+
+  pointcloud->width = depth->width; //Dimensions must be initialized to use 2-D indexing 
+  pointcloud->height = depth->height;
+
+  for (int i = 0; i< depth->height; i++){
+    for(int j = 0; j < depth->width; j++){
+      registration->getPointXYZRGB(depth, rgb, i, j, x, y, z, rgb_value);
+      // registration->getPointXYZ(depth, i, j, x, y, z);
+
+
+      pcl::PointXYZRGBA vertex;
+      vertex.x   = (float) x;
+      vertex.y   = (float) y;
+      vertex.z   = (float) z;
+      vertex.b = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[0];
+      vertex.g = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[1];
+      vertex.r = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[2];
+      vertex.a = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[3];
+      // const uint8_t *p = reinterpret_cast<uint8_t*> (&rgb_value);
+      // vertex.b = p[0]; 
+      // vertex.g = p[1]; 
+      // vertex.r = p[2]; 
+
+      // the point is pushed back in the cloud
+      pointcloud->points.push_back( vertex );
+    }  
+  }
+  pcl::PLYWriter writer;
+  writer.write("../data/test.ply", *pointcloud, false, false);
   // return pointcloud;
 }
 
