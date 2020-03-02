@@ -86,38 +86,36 @@ cv::Mat Hardware::ir() {
 void Hardware::pcl(){  
 // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
 
-  const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  cv::Mat rgb_mat = cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
-  cv::imshow("rgb", rgb_mat);
+  const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
+
+  // Regester color frame to depth frame
+  libfreenect2::Frame undistorted(depth->width, depth->height, 4);
+  libfreenect2::Frame registered(depth->width, depth->height, 4);
+  libfreenect2::Frame depth2rgb(rgb->width, rgb->height + 2, 4);
+  registration->apply(rgb, depth, &undistorted, &registered, true, &depth2rgb);
 
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
 
-  float x,y,z,rgb_value;
+  float x,y,z,rgb_values;
 
   pointcloud->width = depth->width; //Dimensions must be initialized to use 2-D indexing 
   pointcloud->height = depth->height;
 
   for (int i = 0; i< depth->height; i++){
     for(int j = 0; j < depth->width; j++){
-      registration->getPointXYZRGB(depth, rgb, i, j, x, y, z, rgb_value);
-      // registration->getPointXYZ(depth, i, j, x, y, z);
-
+      registration->getPointXYZRGB(&undistorted, &registered, i, j, x, y, z, rgb_values);
 
       pcl::PointXYZRGBA vertex;
       vertex.x   = (float) x;
       vertex.y   = (float) y;
       vertex.z   = (float) z;
-      vertex.b = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[0];
-      vertex.g = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[1];
-      vertex.r = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[2];
-      vertex.a = rgb_mat.at<cv::Vec4b>(cv::Point(j*(rgb->width/depth->width), i*(rgb->height/depth->height)))[3];
-      // const uint8_t *p = reinterpret_cast<uint8_t*> (&rgb_value);
-      // vertex.b = p[0]; 
-      // vertex.g = p[1]; 
-      // vertex.r = p[2]; 
+      const uint8_t *p = reinterpret_cast<uint8_t*> (&rgb_values);
+      vertex.b = p[0]; 
+      vertex.g = p[1]; 
+      vertex.r = p[2];
+      vertex.a = p[3];  
 
-      // the point is pushed back in the cloud
       pointcloud->points.push_back( vertex );
     }  
   }
