@@ -1,6 +1,6 @@
 import importlib
 
-from smanmi import effects as E, logic as L, ml, signals as S
+from smanmi import effects as E, logic as L, signals as S
 from .. import settings
 
 
@@ -8,7 +8,6 @@ importlib.reload(E)
 importlib.reload(S)
 E.init(settings)
 S.init(settings)
-
 
 audio_runner = L.SignalRunner(dict(
     # raw audio
@@ -61,13 +60,13 @@ audio_runner = L.SignalRunner(dict(
         S.Lin(shift=3 / 5, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
     ),
 
-    #fc=L.Constant(0),
     #std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 ))
 
 integrator_runner = L.SignalRunner(dict(
     # state
     state=S.State(),
+    fc=L.Constant(0),
 
     # generated
     std2=S.Saw(hz=0.5, dt=0),

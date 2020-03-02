@@ -1,4 +1,6 @@
 [flake8]
+# E265 : auto-commented code parts don't have space after `#`
+# W503, W504 : we break lines before, after `|` operator (e.g. signals.py)
 # N812 : e.g. import logic as L
-ignore = N812
+ignore = E265, W503, W504, N812
 

@@ -22,7 +22,7 @@ ooo_color = C.HSV(
 )
 
 
-def get_state_colors(StatePaletteOrStateColorPalette):
+def get_state_colors(StatePaletteOrStateColorPalette):  # noqa: N803
     return StatePaletteOrStateColorPalette(
         C.Palette(P.brownish_palette),
         dict(
@@ -82,7 +82,8 @@ def std3():
 
 
 def test():
-    return A.PositionIdentify()
+    return A.CalibrationPattern()
+    # return A.PositionIdentify()
 
 
 def frozen():
@@ -117,7 +118,7 @@ def flash():
     )
 
 
-pixels=A.Mixer(dict(
+pixels = A.Mixer(dict(
     std=std(),
     std2=std2(),
     std3=std3(),

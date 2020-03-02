@@ -1,4 +1,4 @@
-import collections, functools, json, time
+import time
 
 import numpy as np
 
@@ -11,8 +11,9 @@ from . import mapping, pixel_functions as pf, settings
 
 
 phi_r_mapping = mapping.generate_arm_configs(settings.arm_configs)
-phi_r_mapping[:2*8*60, :] = mapping.generate_sphere_mapping(
-    settings.sphere_strips, phi0=settings.phi0)
+sphere_mapping = phi_r_mapping[: 2 * 8 * 60, :] = (
+    mapping.generate_sphere_mapping(settings.sphere_strips, phi0=settings.phi0)
+)
 
 
 # utils
@@ -27,7 +28,7 @@ def linear(x):
     return x
 
 
-def r_piecewise(r, inner_mult=np.pi/2, outer_mult=0.5):
+def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
     """Multiplies r with different factors for inner/outer area."""
     return np.piecewise(
         r,
@@ -36,11 +37,13 @@ def r_piecewise(r, inner_mult=np.pi/2, outer_mult=0.5):
     )
 
 
-def phi_r_transform(r_phi_mapping, inner_mult=np.pi/2, outer_mult=0.5):
+def phi_r_transform(r_phi_mapping, inner_mult=np.pi / 2, outer_mult=0.5):
     """Transforms both r & phi."""
     return np.hstack([
         r_phi_mapping[:, 0:1],
-        r_piecewise(r_phi_mapping[:, 1:2], inner_mult=inner_mult, outer_mult=outer_mult),
+        r_piecewise(
+            r_phi_mapping[:, 1:2], inner_mult=inner_mult,
+            outer_mult=outer_mult),
     ])
 
 
@@ -132,7 +135,7 @@ class PhiPalette(L.Signal):
 
 class GaussianDroplet(L.Signal):
 
-    def init(self, sigma, color, phi, r, inner_mult=np.pi/2):
+    def init(self, sigma, color, phi, r, inner_mult=np.pi / 2):
         self.spherical_mask = phi_r_mapping[:, 1:2] < 1
 
     def call(self):
@@ -157,7 +160,6 @@ class GaussianRain(L.Signal):
             for _ in range(int(self.nr_droplets))
         ]
         self.colors = [[0, 0, 0] for _ in range(int(self.nr_droplets))]
-
 
     def call(self):
         def rand_range(lims):
@@ -189,7 +191,7 @@ class PositionIdentify(L.Signal):
 
     """Color cycle for each of the 8 positions of a given fadecandy."""
 
-    ZEROS = np.zeros((8*60, 3), dtype='uint8')
+    ZEROS = np.zeros((8 * 60, 3), dtype='uint8')
     COLORS = np.concatenate([
         np.zeros((60, 3), dtype='uint8') + col
         for col in (
@@ -207,6 +209,33 @@ class PositionIdentify(L.Signal):
     def call(self, fc=None):
         """Shows color cycle on fadecandy specified by `fc`."""
         return np.concatenate([
-            self.COLORS if i==fc else self.ZEROS
+            self.COLORS if i == fc else self.ZEROS
             for i in range(settings.fadecandies)
         ])
+
+
+class CalibrationPattern(L.Signal):
+    """Color cycle for reference points to identify NURU layout."""
+
+    def init(self):
+        colors = [
+            col for col in (
+                (1, 0, 0),
+                (0, 1, 0),
+                (0, 0, 1),
+                (1, 1, 0),
+                (1, 0, 1),
+                (0, 1, 1),
+                (1, 1, 1),
+                (0.3, 0.3, 0.3),
+            )
+        ]
+        self.pixels = np.array([
+            colors[int(np.floor((i / 60) % 8))]
+            if i % 30 == 0 else [0, 0, 0]
+            for i in range(2 * 16 * 60)
+        ])
+
+    def call(self):
+        """Shows color cycle on NURU."""
+        return self.pixels
