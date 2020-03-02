@@ -47,6 +47,11 @@ int main() {
     if (viewer.should_reset()) {
       features.reset();
     }
+
+    if (viewer.should_store()) {
+      hardware.pcl();
+      viewer.clear_store();
+    }
   }
 
   hardware.close();

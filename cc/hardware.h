@@ -1,6 +1,18 @@
 #ifndef SMANMI_HARDWARE_H
 #define SMANMI_HARDWARE_H
 
+// #include <pcl/io/pcd_io.h>
+// #include <pcl/io/ply_io.h>
+// #include <pcl/console/print.h>
+// #include <pcl/console/parse.h>
+// #include <pcl/console/time.h>
+ // #include <pcl/point_types.h>
+
+
+// #include <pcl/common/projection_matrix.h>
+// #include <pcl/impl/point_types.hpp>
+
+
 #include <memory>
 
 #include <libfreenect2/libfreenect2.hpp>
@@ -8,15 +20,6 @@
 #include <libfreenect2/registration.h>
 #include <libfreenect2/packet_pipeline.h>
 #include <libfreenect2/logger.h>
-
-// #include <pcl/io/pcd_io.h>
-// #include <pcl/io/ply_io.h>
-// #include <pcl/console/print.h>
-// #include <pcl/console/parse.h>
-// #include <pcl/console/time.h>
-// #include <pcl/point_types.h>
-
-#include <OpenNI.h>
 
 #include <opencv2/opencv.hpp>
 
@@ -38,8 +41,6 @@ class Hardware {
     // pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcl();  
     void pcl();  
 
-
-
     // Shuts down the device, irreversibly.
     void close();
 
@@ -50,6 +51,7 @@ class Hardware {
     std::unique_ptr<libfreenect2::Freenect2> freenect2_;
     std::unique_ptr<libfreenect2::SyncMultiFrameListener> listener_;
     std::unique_ptr<libfreenect2::Freenect2Device> dev_;
+    libfreenect2::Registration* registration;
 };
 
 #endif
