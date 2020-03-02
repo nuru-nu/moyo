@@ -1,0 +1,4 @@
+[flake8]
+# N812 : e.g. import logic as L
+ignore = N812
+
