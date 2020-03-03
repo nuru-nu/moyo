@@ -29,7 +29,7 @@ class Hardware {
     // Returns rgb data. Invalidated when `next()` is called.
     cv::Mat rgb();
     // Returns a RGB point cloud. Invalidated when `next()` is called.
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcl();  
+    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcl();
     
     void write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud);
 

@@ -19,6 +19,11 @@
 
 const int kSignalinPort = 6101;
 bool running = true;
+const int nr_frames = 30;
+int frame_count = 0;
+
+pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointclouds [nr_frames];
+std::string paths [nr_frames];
 
 void sigint_handler(int s) {
   std::cerr << "Caught CTRL-C : Shutting down..." << std::endl;
@@ -43,7 +48,7 @@ std::string datetime_str(){
 
   strftime(buffer, 26, "%Y:%m:%d_%H:%M:%S", tm_info);
   std::string dt_string = buffer;
-  std::cout << dt_string << std::endl;
+
   return dt_string + ":" + std::to_string(millisec);
 }
 
@@ -81,7 +86,20 @@ int main() {
     if (viewer.should_store()) {
       pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud = hardware.pcl();
       hardware.write_pcl("../../data/pcls/pcl_" + datetime_str() + ".ply", pointcloud);
-      viewer.clear_store();
+    }
+
+    if (viewer.should_record() || frame_count != 0) {
+      if(frame_count == nr_frames){
+        for(int i = 0; i < nr_frames; i++) {
+          hardware.write_pcl(paths[i], pointclouds[i]);
+        }
+        frame_count = 0;
+      } else {
+        paths[frame_count] = "../../data/pcls/pcl_" + datetime_str() + ".ply";
+        pointclouds[frame_count] = hardware.pcl();
+        std::cout << paths[frame_count] << std::endl;
+        frame_count++;
+      }
     }
   }
 
