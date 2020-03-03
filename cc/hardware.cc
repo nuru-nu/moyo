@@ -9,7 +9,6 @@
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
-// #include <pcl/point_types.h>
 
 namespace {
 
@@ -83,8 +82,7 @@ cv::Mat Hardware::ir() {
   return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
 }
 
-void Hardware::pcl(){  
-// pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
+pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
 
   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
   const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
@@ -119,9 +117,14 @@ void Hardware::pcl(){
       pointcloud->points.push_back( vertex );
     }  
   }
-  pcl::PLYWriter writer;
-  writer.write("../data/test.ply", *pointcloud, false, false);
-  // return pointcloud;
+  
+  return pointcloud;
+}
+
+void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud){
+
+    pcl::PLYWriter writer;
+    writer.write(path, *pointcloud, false, false);
 }
 
 
