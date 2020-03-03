@@ -13,6 +13,10 @@
 #include "util.h"
 #include "viewer.h"
 
+#include "NiTE.h"
+
+#include <NiteSampleUtilities.h>
+
 const int kSignalinPort = 6101;
 bool running = true;
 
