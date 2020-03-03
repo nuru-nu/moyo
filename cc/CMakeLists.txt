@@ -33,6 +33,8 @@ FIND_PATH( OPENNI2_INCLUDE_DIR OpenNI.h
              /usr/include/openni2 /usr/include/ni2
              PATHS "$ENV{PROGRAMFILES}/OpenNI2/include" "$ENV{PROGRAMW6432}/OpenNI2/include"
 )
+LIST(APPEND EXTRA_LIBS  ${OPENNI2_LIBRARY})
+
 
 FIND_LIBRARY( NITE2_LIBRARY
              NAMES NiTE2
@@ -44,29 +46,8 @@ FIND_PATH( NITE2_INCLUDE_DIR NiTE.h
       HINTS ${HOME}/git/NiTE-Linux-x64-2.2/Include
       PATHS "${HOME}/git/NiTE-Linux-x64-2.2/Include"
 )
+LIST(APPEND EXTRA_LIBS  ${NITE2_LIBRARY} )
 ENDIF( ENABLE_OPENNI2_NITE2 )
-
-# *************************************
-# PCL
-
-find_package(PCL 1.8 REQUIRED)
-
-if( PCL_FOUND )
-  # [C/C++]>[General]>[Additional Include Directories]
-  include_directories( ${PCL_INCLUDE_DIRS} )
-
-  # [C/C++]>[Preprocessor]>[Preprocessor Definitions]
-  add_definitions( ${PCL_DEFINITIONS} )
-  
-  # For Use Not PreCompiled Features 
-  #add_definitions( -DPCL_NO_PRECOMPILE )
-
-  # [Linker]>[General]>[Additional Library Directories]
-  link_directories( ${PCL_LIBRARY_DIRS} )
-
-#   # [Linker]>[Input]>[Additional Dependencies]
-#   target_link_libraries( project ${PCL_LIBRARIES} )
-endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenNI2 DEFAULT_MSG
@@ -75,13 +56,24 @@ find_package_handle_standard_args(OpenNI2 DEFAULT_MSG
 mark_as_advanced(OPENNI2_LIBRARY OPENNI2_INCLUDE_DIR)
 
 if (OPENNI2_FOUND)
-    INCLUDE_DIRECTORIES( ${OPENNI2_INCLUDE_DIR} ${NITE2_INCLUDE_DIR}  ${FREENECT2_INCLUDE_DIR} )
+    INCLUDE_DIRECTORIES( ${OPENNI2_INCLUDE_DIR} ${NITE2_INCLUDE_DIR} )
     message (STATUS "OpenNI2 found (include: ${OPENNI2_INCLUDE_DIR}, lib: ${OPENNI2_LIBRARY})")
-link_directories( ${OPENNI2_LIBRARY} ${NITE2_LIBRARY} ${FREENECT2_LIBRARY} ${PCL_LIBRARIES})
+link_directories( ${OPENNI2_LIBRARY} ${NITE2_LIBRARY})
 endif (OPENNI2_FOUND)
+
 # *************************************
+# PCL
 
+find_package(PCL 1.8 REQUIRED COMPONENTS common io)
 
+if( PCL_FOUND )
+  include_directories( ${PCL_INCLUDE_DIRS} )
+  link_directories( ${PCL_LIBRARY_DIRS} )
+  add_definitions( ${PCL_DEFINITIONS} )
+endif()
+
+LIST(APPEND EXTRA_LIBS  ${PCL_LIBRARIES} )
+# *************************************
 
 
 ADD_EXECUTABLE(kinect features.cc hardware.cc kinect.cc network.cc util.cc viewer.cc)

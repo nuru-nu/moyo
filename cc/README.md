@@ -2,7 +2,7 @@
 
 Build like this:
 
-`mkdir build && cd build && cmake .. && make`
+`mkdir build && cd build && cmake .. && make -j`
 
 Then the executable `kinect` shows images from Kinect and sends signals to
 signalin port.
