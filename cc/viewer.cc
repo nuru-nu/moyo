@@ -36,6 +36,7 @@ void Viewer::draw_process_key() {
     hz_ = hz_ == kHzSlow ? kHzFast : kHzSlow;
   }
   should_store_ = key == (int) 's';
+  should_record_ = key == (int) 'r';
   should_reset_ = key == (int) ' ';
 }
 

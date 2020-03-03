@@ -13,11 +13,9 @@ class Viewer {
     void update(const cv::Mat& img, const Features& features);
     bool should_quit() const { return should_quit_; }
     bool should_store() const { return should_store_; }
+    bool should_record() const { return should_record_; }
     bool should_reset() const { return should_reset_; }
-    void clear_quit() { should_quit_ = false; }
-    void clear_store() { should_store_ = false; }
-    void clear_reset() { should_reset_ = false; }
-
+    
   private:
     void draw_process_key();
     void update_graphs(const cv::Mat& img, const Features& features);
@@ -26,6 +24,7 @@ class Viewer {
     std::chrono::high_resolution_clock::time_point t0_, last_t_;
     bool should_quit_ = false;
     bool should_store_ = false;
+    bool should_record_ = false;
     bool should_reset_ = false;
     float last_presence_x_ = 0;
     cv::Mat graphs_;
