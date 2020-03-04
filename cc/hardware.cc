@@ -10,11 +10,35 @@
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
 
+#include "util.h"
+
 namespace {
 
 const bool kEnableDepth = true;
 
 }  // namespace
+
+std::string datetime_str(){
+  char buffer[26];
+  int millisec;
+  struct tm* tm_info;
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+
+  millisec = lrint(tv.tv_usec/1000.0); // Round to nearest millisec
+  if (millisec>=1000) { // Allow for rounding up to nearest second
+    millisec -=1000;
+    tv.tv_sec++;
+  }
+
+  tm_info = localtime(&tv.tv_sec);
+
+  strftime(buffer, 26, "%Y:%m:%d_%H:%M:%S", tm_info);
+  std::string dt_string = buffer;
+
+  return dt_string + ":" + std::to_string(millisec);
+}
 
 Hardware::Hardware(const bool rgb) : rgb_(rgb) {
   freenect2_ = std::unique_ptr<libfreenect2::Freenect2>(
@@ -62,6 +86,23 @@ Hardware::Hardware(const bool rgb) : rgb_(rgb) {
 
 bool Hardware::next() {
   if (++frame_) {
+
+    if(recording){
+      pointclouds_.push_back(pcl());
+      rec_names_.push_back(datetime_str());
+    } 
+
+    if (int(rec_names_.size()) == nr_rec_frames_){
+      for(int i = 0; i < int(rec_names_.size()); i++){
+        std::cout << "pcl_" + rec_names_[i] << std::endl;
+        pcl::PLYWriter writer;
+        writer.write(rec_path + "/pcl_" + rec_names_[i] + ".ply", *pointclouds_[i], false, false);
+      }
+      pointclouds_.clear();
+      rec_names_.clear();
+      recording = false;
+    }
+
     listener_->release(frames_);
   }
   return listener_->waitForNewFrame(frames_, 10 * 1000);
@@ -121,15 +162,18 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){
   return pointcloud;
 }
 
-void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud){
-
-    pcl::PLYWriter writer;
-    writer.write(path, *pointcloud, false, false);
+void Hardware::record_pcl(const std::string path, const int nr_frames){
+  recording = true;
+  nr_rec_frames_ = nr_frames;
+  rec_path = path;
 }
 
+void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud){
+  pcl::PLYWriter writer;
+  writer.write(path + "/pcl_" + datetime_str() + ".ply", *pointcloud, false, false);
+}
 
 void Hardware::close() {
   dev_->stop();
   dev_->close();
 }
-
