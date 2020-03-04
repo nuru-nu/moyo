@@ -18,6 +18,8 @@ std::string string_format( const std::string& format, Args ... args )
   return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
 }
 
+std::string datetime_str();
+
 // std::string datetime_str(){
 //   char buffer[26];
 //   int millisec;
