@@ -1,0 +1,7 @@
+*.jpg
+*.mp4
+# https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/ply/binary/Lucy100k.ply
+Lucy100k.ply
+# https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/ply/ascii/dolphins.ply
+dolphins.ply
+/orig
