@@ -15,7 +15,7 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="texh_schematic.svg">
+   sodipodi:docname="tech_schematic.svg">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568543"
-     inkscape:cx="69.085884"
-     inkscape:cy="317.59696"
+     inkscape:zoom="2"
+     inkscape:cx="393.72798"
+     inkscape:cy="261.43959"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -49,7 +49,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -60,7 +60,7 @@
      transform="translate(-110.16387,28.492651)">
     <g
        id="g6524"
-       transform="translate(35.851039,1.0583333)">
+       transform="translate(35.149458,10.225677)">
       <g
          id="g5669">
         <rect
@@ -170,7 +170,7 @@
            height="35.292206"
            x="488.53503"
            y="370.83994" /></flowRegion><flowPara
-         id="flowPara1392"></flowPara></flowRoot>    <flowRoot
+         id="flowPara1392" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot1394"
        style="font-style:normal;font-weight:normal;font-size:6.66666651px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
@@ -181,7 +181,7 @@
            height="141.78572"
            x="448.57144"
            y="321.80539" /></flowRegion><flowPara
-         id="flowPara1400"></flowPara></flowRoot>    <g
+         id="flowPara1400" /></flowRoot>    <g
        id="g6580"
        transform="translate(-1.3229167,-73.421875)">
       <g
@@ -267,7 +267,7 @@
            height="17.5"
            x="451.42856"
            y="292.34113" /></flowRegion><flowPara
-         id="flowPara1523"></flowPara></flowRoot>    <g
+         id="flowPara1523" /></flowRoot>    <g
        id="g6470"
        transform="translate(33.926974,-20.498365)">
       <rect
@@ -808,7 +808,7 @@
            height="19.79899"
            width="51.79557"
            id="rect6900" /></flowRegion><flowPara
-         id="flowPara6902"></flowPara></flowRoot>    <g
+         id="flowPara6902" /></flowRoot>    <g
        id="g6415"
        transform="translate(-0.13229171,18.653125)">
       <rect
@@ -1801,7 +1801,7 @@
            height="54"
            width="105.125"
            id="rect7517" /></flowRegion><flowPara
-         id="flowPara7519"></flowPara></flowRoot>    <flowRoot
+         id="flowPara7519" /></flowRoot>    <flowRoot
        transform="matrix(0.26458333,0,0,0.26458333,90.921273,-1.174421)"
        style="font-style:normal;font-weight:normal;font-size:6.66666651px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
        id="flowRoot7586"
@@ -1812,7 +1812,7 @@
            height="120.20815"
            width="151.67441"
            id="rect7590" /></flowRegion><flowPara
-         id="flowPara7592"></flowPara></flowRoot>    <rect
+         id="flowPara7592" /></flowRoot>    <rect
        style="fill:#ff7f2a;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect852-2-8"
        width="17.773422"
@@ -2257,7 +2257,7 @@
              id="tspan966-7-5-32-0-0"
              x="170.65085"
              y="19.323755"
-             style="font-size:1.51694441px;stroke-width:0.26458332">5. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">5. USB 3.1</tspan></text>
       </g>
       <g
          transform="translate(-1.6551986,2.6846554)"
@@ -2277,7 +2277,7 @@
              id="tspan966-7-5-32-0-0-1"
              x="172.30605"
              y="24.63987"
-             style="font-size:1.51694441px;stroke-width:0.26458332">6. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">6. USB 3.1</tspan></text>
       </g>
       <g
          transform="translate(-0.92759852,2.2518329)"
@@ -2317,7 +2317,7 @@
              id="tspan966-7-5-32-0-0-16"
              x="160.37498"
              y="20.737267"
-             style="font-size:1.51694441px;stroke-width:0.26458332">1. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">1. USB 3.1</tspan></text>
       </g>
       <g
          transform="translate(-4.0679688,6.6203315)"
@@ -2337,7 +2337,7 @@
              id="tspan966-7-5-32-0-0-16-5"
              x="160.37498"
              y="20.737267"
-             style="font-size:1.51694441px;stroke-width:0.26458332">2. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">2. USB 3.1</tspan></text>
       </g>
       <g
          transform="translate(-4.0679688,10.420842)"
@@ -2357,7 +2357,7 @@
              id="tspan966-7-5-32-0-0-16-3"
              x="160.37498"
              y="20.737267"
-             style="font-size:1.51694441px;stroke-width:0.26458332">3. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">3. USB 3.1</tspan></text>
       </g>
       <g
          transform="translate(-4.0679688,14.221355)"
@@ -2377,7 +2377,7 @@
              id="tspan966-7-5-32-0-0-16-7"
              x="160.37498"
              y="20.737267"
-             style="font-size:1.51694441px;stroke-width:0.26458332">4. USB 3.0</tspan></text>
+             style="font-size:1.51694441px;stroke-width:0.26458332">4. USB 3.1</tspan></text>
       </g>
     </g>
     <g
@@ -2467,12 +2467,6 @@
        style="fill:none;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.26499999, 0.79499997;stroke-dashoffset:0;stroke-opacity:1"
        d="m 180.87791,66.989022 4.35001,-0.03749 0.0249,4.496899 h 4.49333"
        id="path6708-5"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccc" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.26499999, 0.79499998;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 129.72803,58.041822 8.0684,0.03267 -0.15759,8.978314 16.03421,-0.03071"
-       id="path6708-5-6"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
     <path
@@ -2607,5 +2601,10 @@
            id="tspan854-6-3-7-4"
            sodipodi:role="line">Shure</tspan></text>
     </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:0.26499999,0.79499996;stroke-dashoffset:0"
+       d="m 129.05945,67.209166 24.6136,-0.187073"
+       id="path1287"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>
