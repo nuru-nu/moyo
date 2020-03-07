@@ -1,0 +1,177 @@
+<!docytpe HTML>
+
+<head>
+  <title>Nuru - Smoke and Mirrors</title>
+  <link href="https://fonts.googleapis.com/css?family=Oxanium&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="glider.js"></script>
+  <link rel="stylesheet" type="text/css" href="glider.css">
+  <meta charset="utf-8">
+</head>
+
+<body class="nuru">
+
+  <!-- <video autoplay muted loop id="video"> -->
+  <!--   <source src="20190526_185356.mp4" type="video/mp4"></source> -->
+  <!-- </video> -->
+
+  <ul class="topmenu">
+    <li><a href="index.html">back</a></li>
+  </ul>
+
+  <h2>Nuru Shimoni</h2>
+
+  <p>
+  <span title="Swahili -> English : &quot;glowy hole&quot;">Nuru shimoni</span>
+  is an interactive installation designed for the 2019
+  <a target="_blank" href="http://rhizomfestival.com/">Rhizom</a>
+  festival in Zürich. It is meant to represent a portal like growth connecting its
+  participants to a seemingly extensive Mycelial network of roots. Sonar sensors
+  and Microphones were used to detect presence and communication. A smoke
+  machine, bass shaker, sound system and 1920 mapped leds to immerse people in
+  a responsive environment.
+  </p>
+
+  <!-- <p> -->
+  <!-- <span title="Swahili &#45;> English : &#38;quot;glowy hole&#38;quot;">Nuru shimoni</span> -->
+  <!-- is the visible part of the vast root network that powered the -->
+  <!-- <span title="2017 installation @Waking Life">mother plant</span> and still -->
+  <!-- active underground remain after it's destruction. -->
+  <!-- </p> -->
+
+  <img src="20190610_115541_.jpg" alt="Nuru dressed in red" id="nuru">
+  <script>
+    (function() {
+      const img = document.getElementById('nuru')
+      const src1 = img.src
+      const src2 = "20190607_183022__.jpg"
+      function do1() {
+        img.src = src1
+        window.setTimeout(do2, 1e2 + Math.random() * 2e3)
+      }
+      function do2() {
+        img.src = src2
+        window.setTimeout(do1, 300)
+      }
+      const img2 = new Image()
+      img2.src = src2
+      img2.addEventListener('load', do1)
+    })()
+  </script>
+
+  <h2>Making of</h2>
+
+  <div class="glider-contain">
+    <div class="glider">
+      <div class="wrapper">
+        <div class="imgwrapper">
+          <img src="20190530_172411.jpg" alt="" style="transform: rotate(90deg)">
+        </div>
+        <p class="alt">Original drawing</p>
+      </div>
+      <div class="wrapper">
+        <video controls><source src="20190419_175412.mp4"></source></video>
+        <p class="alt">In a small plastic box</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190427_195504.jpg" alt="">
+        <p class="alt">In the heavy pot</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190517_210734.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Moving to the PVC</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190601_210535.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Adding the bass shakers</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190602_231030.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Lots of cables...</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190603_003113.jpg" alt="">
+        <p class="alt">...for lots of LEDS</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190604_230724.jpg" alt="">
+        <p class="alt">Adding smoke</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190603_004515.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Adding diffusion</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190605_140427.jpg" alt="">
+        <p class="alt">Preparing the move</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190605_181720.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Moving to Rote Fabrik</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190605_213618.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">Every installation starts with a couple of holes</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190606_021152.jpg" alt="">
+        <p class="alt">And it works!</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190606_135358.jpg" alt="">
+        <p class="alt">Draatmaakers at work</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190607_130801.jpg" alt="">
+        <p class="alt">Installing the arms</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190607_143250.jpg" alt="" style="transform: rotate(90deg)">
+        <p class="alt">The panda must go!</p>
+      </div>
+      <div class="wrapper">
+        <video controls><source src="20190607_185853.mp4"></source></video>
+        <p class="alt">Smoke man</p>
+      </div>
+      <div class="wrapper">
+        <video controls><source src="20190610_084440.mp4"></source></video>
+        <p class="alt">Nuru Shimoni in her red dress</p>
+      </div>
+      <div class="wrapper">
+        <img src="IMG_2221.JPG" alt="" style="transform: rotate(180deg)">
+        <p class="alt">In another dress</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190611_190243.jpg" alt="">
+        <p class="alt">Throwing everything into the bus</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190611_212036.jpg" alt="">
+        <p class="alt">Carelessly dumped to the attic</p>
+      </div>
+      <div class="wrapper">
+        <img src="20190913_003931.jpg" alt="">
+        <p class="alt">Nuru resurrected</p>
+      </div>
+    </div>
+
+    <button role="button" aria-label="Previous" class="glider-prev">«</button>
+    <button role="button" aria-label="Next" class="glider-next">»</button>
+    <div role="tablist" class="dots"></div>
+  </div>
+  <script>
+    window.addEventListener('load', function(){
+      new Glider(document.querySelector('.glider'), {
+        dots: '.dots',
+        arrows: {
+          prev: '.glider-prev',
+          next: '.glider-next'
+        }
+      })
+    })
+  </script>
+
+  <h2>Technical</h2>
+
+</body>
+
