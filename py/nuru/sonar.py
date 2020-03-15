@@ -16,6 +16,7 @@ commands = [["get_sonar",""],
             ["error","s"]]
 
 connected = False
+arduino = None
 for arduino_port in settings.arduino_ports:
     try:
         arduino = PyCmdMessenger.ArduinoBoard(
@@ -28,10 +29,6 @@ arduino = PyCmdMessenger.CmdMessenger(arduino, commands)
 
 logger.info("Connected to Arduino on port " + arduino_port)
 
-signalin_sender = network.SignalinSender(
-    settings.signalin_port,
-    logger=logger if '--debug' in sys.argv else util.NoLogger())
-
 def read_sonar(): 
     arduino.send("get_sonar")
     msg = arduino.receive()
@@ -41,5 +38,5 @@ def read_sonar():
         return msg[1][0]
 
 while True:
-    signalin_sender.send(dict(sonar=read_sonar()), settings.signalin_address)
+    network.send(settings.signalin_port, dict(sonar=read_sonar()))
     time.sleep(1 / settings.sonar_hz)
