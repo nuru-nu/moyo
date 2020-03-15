@@ -23,8 +23,9 @@ FADECANDY=--fadecandy
 
 case "$MACHINE" in
 cervelat-nuru)
-  FCSERVER='fcserver-osx'
+  FCSERVER='./fadecandy/fcserver-osx'
   DMX=
+  RESTARTER=
   ;;
 cervelat*)
   FCSERVER=
