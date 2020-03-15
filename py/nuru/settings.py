@@ -235,5 +235,6 @@ arduino_ports = [
     "/dev/ttyACM0",
     "/dev/ttyACM1",
     "/dev/cu.usbmodem14344201",
+    "/dev/tty.usbmodem143344201",
 ]
 sonar_hz = 4
