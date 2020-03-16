@@ -1,5 +1,6 @@
 from smanmi import hotplug
 from smanmi import integrator
+from smanmi import logic as L
 from smanmi import state
 from smanmi import util
 from . import settings
@@ -11,14 +12,18 @@ class Integrator(integrator.Integrator):
         super().__init__(
             logger, fps=20,
             address=settings.address,
-            signalin_ports=[settings.signalin_port],
-            signals_ports=[
-                settings.server_port,
-                settings.player_port,
-                settings.player2_port,
-                settings.dmx_port,
-            ],
-            recordings_path=settings.signalin_dir,
+            sig_in_ports=(settings.integrator_sig_port,),
+            sig_out_ports=(
+                settings.server_sig_port,
+                settings.player_sig_port,
+                settings.player2_sig_port,
+                settings.dmx_sig_port,
+            ),
+            cmd_in_ports=(settings.integrator_cmd_port,),
+            cmd_out_ports=(
+                settings.recorder_cmd_port,
+                settings.sonar_cmd_port,
+            ),
         )
         self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
         self.signalin = {}
@@ -27,21 +32,24 @@ class Integrator(integrator.Integrator):
             rawloud=0.,
             iso=0.,
         )
+        self.last_missing = None
 
-    def integrate(self, signalin):
-        if 'state' in signalin:
-            self.state = state.State(signalin['state'])
-        if 'signals' in signalin:
-            signals = signalin.pop('signals')
-            self.signals.update(signals)
-            self.event.set()
-        self.signalin.update(signalin)
+    def should_send_now(self, signals):
+        return 'loud' in signals
 
-    def compute(self):
-        if not self.signals:
+    def __call__(self):
+        try:
+            signals = self.hp_signals.integrator_runner(**self.signals)
+            if self.last_missing:
+                self.logger.info('Got complete signals')
+            self.last_missing = None
+            return signals
+        except L.MissingInputsException as e:
+            e = str(e)
+            if self.last_missing != e:
+                self.logger.warning('Incomplete signals : %s', e)
+            self.last_missing = e
             return {}
-        return self.hp_signals.integrator_runner(
-            t=self.t, signalin=self.signalin, **self.signals)
 
 
 logger = util.createLogger('integrator')

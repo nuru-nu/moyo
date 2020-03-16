@@ -51,12 +51,13 @@ def phi_r_transform(r_phi_mapping, inner_mult=np.pi / 2, outer_mult=0.5):
 ###############################################################################
 
 
-# TODO subclass L.Signal
+# Note: This cannot be implemented as a `L.Signal()` because we don't want to
+# run the animations that are currently not shown.
 class Mixer:
     """Mixes signals by state.state with some interpolation."""
 
-    def __init__(self, d, default_dt=1, dt_by_state={}):
-        self.d = d
+    def __init__(self, animations, default_dt=1, dt_by_state={}):
+        self.animations = animations
         self.t0 = 0
         self.default_dt = default_dt
         self.dt_by_state = dt_by_state
@@ -69,11 +70,11 @@ class Mixer:
             self.last = self.current
             self.current = state
             self.t0 = t
-        pixels = self.d[state](**signals)['value']
+        pixels = self.animations[state](**signals)['value']
         dt = self.dt_by_state.get(state, self.default_dt)
         if t - self.t0 < dt:
             v = (t - self.t0) / dt
-            last_pixels = self.d[self.last](**signals)['value']
+            last_pixels = self.animations[self.last](**signals)['value']
             pixels = v * pixels + (1 - v) * last_pixels
         return dict(value=pixels)
 
@@ -209,7 +210,7 @@ class PositionIdentify(L.Signal):
     def call(self, fc=None):
         """Shows color cycle on fadecandy specified by `fc`."""
         return np.concatenate([
-            self.COLORS if i == fc else self.ZEROS
+            self.COLORS if True or i == fc else self.ZEROS
             for i in range(settings.fadecandies)
         ])
 

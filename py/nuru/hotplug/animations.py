@@ -82,8 +82,8 @@ def std3():
 
 
 def test():
-    return A.CalibrationPattern()
-    # return A.PositionIdentify()
+    # return A.CalibrationPattern()
+    return A.PositionIdentify()
 
 
 def frozen():
@@ -108,14 +108,12 @@ def ooo():
 
 
 def flash():
-    return (
-        A.FullOn(color=C.HSV(
-            value=S.SinT(
-                hz=L.Named('loud') | S.Lin(shift=0, mult=8)
-            ) | S.Lin(shift=0.5, mult=0.5),
-            saturation=0,
-        ))
-    )
+    return A.FullOn(color=C.HSV(
+        value=S.SinT(
+            hz=L.Named('loud') | S.Lin(shift=0, mult=8)
+        ) | S.Lin(shift=0.5, mult=0.5),
+        saturation=0,
+    ))
 
 
 pixels = A.Mixer(dict(

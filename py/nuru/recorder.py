@@ -1,12 +1,11 @@
 """Records audio & extracts FFT."""
 
 
-import argparse, json, logging, os, signal as pysig, socket, time, wave
+import logging, os, signal as pysig, time, wave
 
 import numpy as np
-import scipy.io.wavfile
 
-from smanmi import audio, hotplug, network, perf, state, util
+from smanmi import audio, hotplug, network, perf, util
 from . import features, settings
 
 
@@ -121,7 +120,8 @@ status_sender = network.StatusSender(name='recorder', logger=logger)
 
 while running:
 
-    if settings.reset_secs and time.time() - last_reset_t > settings.reset_secs:
+    if (settings.reset_secs
+            and time.time() - last_reset_t > settings.reset_secs):
         logger.info('Re-initializing input_streamer.')
         del ai0
         ai0 = audio.AudioInterface(input=1)
@@ -135,8 +135,9 @@ while running:
     signals['mfccs'] = list(feats.mfccs)
     i += 1
 
-    network.send(settings.signalin_port, dict(signals=signals))
-    if settings.timetracing: tt()
+    network.send(settings.integrator_sig_port, signals)
+    if settings.timetracing:
+        tt()
     status_sender.send('running', settings.address)
 
 
