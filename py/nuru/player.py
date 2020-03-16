@@ -19,7 +19,9 @@ out_names = (
     else settings.out2_names
 )
 out_rate = settings.out1_rate if sys.argv[1] == 'out1' else settings.out2_rate
-port = settings.player_port if sys.argv[1] == 'out1' else settings.player2_port
+port = (
+    settings.player_sig_port if sys.argv[1] == 'out1'
+    else settings.player2_sig_port)
 effector = 'effector1' if sys.argv[1] == 'out1' else 'effector2'
 audio.init(settings)
 ai1 = audio.make_ai(out_names,  # stream_callback=stream_callback1,

@@ -64,6 +64,9 @@ audio_runner = L.SignalRunner(dict(
 ))
 
 integrator_runner = L.SignalRunner(dict(
+    # only compute if we have `audio_runner` input signals
+    loud_=L.Named('loud'),
+
     # state
     state=S.State(),
     fc=L.Constant(0),
@@ -83,9 +86,7 @@ integrator_runner = L.SignalRunner(dict(
     drone3=S.RndRamp(),
 
     # non-audio input
-    sonar=S.Sonar(),
-    sonar_good=S.SonarGood(),
-    presence=S.SignalIn(name='presence', min_value=0, max_value=1),
+    into=S.Into(),
 
     # derived
     ooo=(
@@ -96,7 +97,6 @@ integrator_runner = L.SignalRunner(dict(
     bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
     ooo_intensity=(
         L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
-    into=S.TriggerPulse('into', 2) | S.MovingAverage(secs=2),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
 
     # output

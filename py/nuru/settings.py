@@ -80,23 +80,23 @@ def to_string():
              buf_secs=buf_secs, buf_size=buf_size,
              hop_secs=hop_secs, hop_size=hop_size)
 
+
 # network
 ###############################################################################
-
 
 address = server_address = status_address = '127.0.0.1'
 #status_address = 'figur.li'
 #server_address = '0.0.0.0'
 
-monitor_port = 6100
-signalin_port = 6101
-server_port = 6102
-dmx_port = 6104
-player_port = 6105
-player2_port = 6106
+integrator_sig_port = 6100
+integrator_cmd_port = 6101
+server_sig_port = 6102
+dmx_sig_port = 6103
+player_sig_port = 6104
+player2_sig_port = 6105
+sonar_cmd_port = 6106
+recorder_cmd_port = 6107
 
-ws_signals_port = 6108
-ws_animation_port = 6109
 
 # files
 ###############################################################################
@@ -117,6 +117,7 @@ def get_recordings():
     }
 
 model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
+
 
 # animation
 ###############################################################################
@@ -229,7 +230,6 @@ arm_configs = [
 
 # Arduino
 ###############################################################################
-
 
 arduino_ports = [
     "/dev/ttyACM0",
