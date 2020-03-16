@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor } from './smanmi/monitor.js'
 
-import { Sonar, Debug } from './widgets.js'
+import { Sonar, Debug, Cmd } from './widgets.js'
 import { Leds } from './leds.js'
 
 window.console = Console('#console')
@@ -18,6 +18,7 @@ let leds = Leds('#leds')
 
 const record_timestamps = true
 
+let cmd = Cmd('#controls')
 let sonar = Sonar('#controls')
 
 let network = Network('#connection_state', { record_timestamps })
@@ -28,5 +29,5 @@ let network = Network('#connection_state', { record_timestamps })
 .listen('signals', sonar.listener)
 
 Debug('#controls', { network, record_timestamps })
-monitor.sendto(network.sender)
 sonar.sendto(network.sender)
+cmd.sendto(network.sender)

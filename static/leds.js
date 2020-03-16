@@ -8,10 +8,9 @@ export const Leds = (output) => {
   const width=800, height=600
   const rows=32, cols=64, sz=10
 
-  const disp = h.div().of(
-    h.button('pause').of('pause'),
-    h.br(),
+  const disp = h.div({class: 'flex'}).of(
     h.canvas('leds', {width, height}),
+    h.button('pause').of('pause'),
   ).into(output).els
 
   let paused = false

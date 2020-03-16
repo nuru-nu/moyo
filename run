@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Utility to quickly start task, like `./run nuru.recorder`
+
+cd "$(dirname "$0")"
+PYTHONPATH=py ./env/bin/python -m "$@"
