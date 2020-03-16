@@ -7,6 +7,7 @@ import numpy as np
 from openpixelcontrol import opc
 from smanmi import hotplug
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
+from smanmi import signals
 from smanmi import state
 from smanmi import util
 from . import animations
@@ -61,6 +62,16 @@ async def send_mapping(request, digits=5):
         ])))
 
 
+async def send_setstate(request, digits=5):
+    del request
+    return web.Response(
+        content_type='Application/JSON',
+        text=json.dumps(dict(
+            colors=signals.State.COLORS,
+            states=signals.State.STATES,
+        )))
+
+
 logger = util.createLogger('server')
 
 client = None
@@ -80,4 +91,5 @@ server.forward_udp(UdpForwarding(
 server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/mapping', send_mapping))
+server.routes.append(web.get('/setstates', send_setstate))
 server.run(address=settings.server_address)

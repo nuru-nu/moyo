@@ -23,6 +23,7 @@ class Integrator(integrator.Integrator):
             cmd_out_ports=(
                 settings.recorder_cmd_port,
                 settings.sonar_cmd_port,
+                settings.cmd_cmd_port,
             ),
         )
         self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)

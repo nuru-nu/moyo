@@ -7,7 +7,7 @@ from smanmi import network, util
 from . import settings
 
 
-logger = util.createLogger('arduino_signals')
+logger = util.createLogger('sonar')
 
 # List of commands and their associated argument formats. These must be in the
 # same order as in the sketch.
@@ -48,8 +48,8 @@ sock = network.create_udp_socket(
 override = None
 while True:
     data = network.get_json(sock, None)
-    if data:
-        override = data.get('sonar')
+    if data and 'sonar' in data:
+        override = data['sonar']
         logger.info('override=%r', override)
     network.send(settings.integrator_sig_port, dict(
         sonar=override if override is not None else read_sonar(),

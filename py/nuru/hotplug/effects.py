@@ -50,7 +50,7 @@ def bass_loops(gs):
     ])
 
 
-effector1=E.Effector(settings.out1_rate, [
+effector1 = E.Effector(settings.out1_rate, [
     # E.Delay(1) | E.Echo(0.2, 0.9) | E.SigAmp('ios'),
     # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
     # E.SilenceOrPlaying(),
@@ -102,7 +102,7 @@ effector1=E.Effector(settings.out1_rate, [
 ])
 
 
-effector2=E.Effector(settings.out2_rate, [
+effector2 = E.Effector(settings.out2_rate, [
     # E.RndPlay(gs2('rain-and-thunderstorm'), 'left_drone'),
     # E.RndPlay(gs2('rain-and-thunderstorm'), 'right_drone'),
     # E.RndPlay(haunted2_wav, 'left_drone'),

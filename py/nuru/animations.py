@@ -210,7 +210,7 @@ class PositionIdentify(L.Signal):
     def call(self, fc=None):
         """Shows color cycle on fadecandy specified by `fc`."""
         return np.concatenate([
-            self.COLORS if True or i == fc else self.ZEROS
+            self.COLORS if i == fc else self.ZEROS
             for i in range(settings.fadecandies)
         ])
 

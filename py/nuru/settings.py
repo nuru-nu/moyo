@@ -38,6 +38,7 @@ out2_rate = 44100
 out2_names = (
     'default',  # Ubuntu - select "... - Audio Adapter"
     'C-Media USB Audio Device',  # Ubuntu
+    'Built-in Output',  # OS X
 )
 
 if rate == 16000:
@@ -96,6 +97,7 @@ player_sig_port = 6104
 player2_sig_port = 6105
 sonar_cmd_port = 6106
 recorder_cmd_port = 6107
+cmd_cmd_port = 6108
 
 
 # files
