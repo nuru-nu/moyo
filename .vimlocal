@@ -9,4 +9,5 @@ let g:syntastic_python_flake8_args='--config=.flake8'
 
 set cc=80
 autocmd FileType python setl cc=79
+nnoremap ,/ yaw :Ag <C-R>" py/<cr>
 
