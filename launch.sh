@@ -30,7 +30,6 @@ cervelat-nuru)
 cervelat*)
   FCSERVER=
   OUT2=
-  ARDUINO=
   DMX=
   FADECANDY=
   RESTARTER=
