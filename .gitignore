@@ -1,6 +1,8 @@
 .ipynb_checkpoints
 __pycache__
 /.abase_cache
+/.mypy_cache
+/blender/*.blend[1-9]*
 /env
 /logs
 /tmp
