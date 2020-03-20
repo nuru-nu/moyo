@@ -114,14 +114,13 @@ set cc=80
 
 
 Jupyter is part of the requirements installed above under "Python packages". It
-can be run via `jupyter notbook`. The notebooks are stored in the `notebooks/`.
+can be run via `jupyter lab`. The notebooks are stored in the `notebooks/`.
 
 Additional useful extensions:
 
 ```
-jupyter nbextension install --user https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.js
-curl -L https://rawgithub.com/minrk/ipython_extensions/master/nbextensions/toc.css > $(jupyter --data-dir)/nbextensions/toc.css
-jupyter nbextension enable toc
+nvm use current
+jupyter labextension install @jupyterlab/toc
 ```
 
 ### 360 images
