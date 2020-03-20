@@ -1,6 +1,6 @@
 import time
 
-import numpy as np
+import numpy as np  # type: ignore
 
 from smanmi import logic as L, util
 from . import mapping, pixel_functions as pf, settings

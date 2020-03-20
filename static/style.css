@@ -14,3 +14,12 @@
   width: 100px;
   text-decoration: underline;
 }
+
+.record.recording .start { display: none; }
+.record .stop { display: none; }
+.record.recording .stop { display: inline-block; }
+.record input[type=text] { width: 150px; }
+.record.recording input[type=text] { display: none; }
+.record .name { display: none; }
+.record.recording .name { display: inline-block; }
+

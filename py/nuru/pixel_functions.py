@@ -2,8 +2,8 @@
 
 import json, os, sys, time
 
-import numpy as np
-from scipy.stats import multivariate_normal, norm
+import numpy as np  # type: ignore
+from scipy.stats import multivariate_normal, norm  # type: ignore
 
 
 def spherical_gaussian_droplet(phi_r_mapping, pos, sigma, color):
