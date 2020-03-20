@@ -2,15 +2,15 @@ import argparse
 import json
 
 from aiohttp import web
-import numpy as np
+import numpy as np  # type: ignore
 
-from openpixelcontrol import opc
+from openpixelcontrol import opc  # type: ignore
 from smanmi import hotplug
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
-from smanmi import signals
 from smanmi import state
 from smanmi import util
 from . import animations
+from . import recording
 from . import settings
 
 
@@ -20,6 +20,10 @@ parser.add_argument('--fps', type=int, default=60,
                     help='Frames per second for animation streaming.')
 parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
+parser.add_argument('--port', type=int, default=8080,
+                    help='Port for HTTP server.')
+parser.add_argument('--address', type=str, default=settings.server_address,
+                    help='Network address for HTTP server.')
 args = parser.parse_args()
 
 
@@ -62,17 +66,34 @@ async def send_mapping(request, digits=5):
         ])))
 
 
-async def send_setstate(request, digits=5):
+async def send_setstate(request):
     del request
     return web.Response(
         content_type='Application/JSON',
         text=json.dumps(dict(
-            colors=signals.State.COLORS,
-            states=signals.State.STATES,
+            colors=hp_signals.State.COLORS,
+            states=hp_signals.State.STATES,
         )))
 
 
+recordings = {
+    rec.name: dict(
+        secs=rec.secs,
+        envelope=list(rec.envelope(100)),
+    )
+    for rec in recording.get_recordings()
+}
+
+
+async def get_recordings(request):
+    return web.Response(
+        content_type='Application/JSON',
+        text=json.dumps(recordings),
+    )
+
+
 logger = util.createLogger('server')
+hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 client = None
 if args.fadecandy:
@@ -92,4 +113,5 @@ server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/mapping', send_mapping))
 server.routes.append(web.get('/setstates', send_setstate))
-server.run(address=settings.server_address)
+server.routes.append(web.get('/recordings', get_recordings))
+server.run(address=args.address, port=args.port)

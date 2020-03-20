@@ -1,13 +1,14 @@
 # some constants shared between files
 
-import collections, glob, os, subprocess, sys
+import collections, glob, os, subprocess
+from dataclasses import dataclass
 
-import numpy as np
-import pyaudio
+import numpy as np  # type: ignore
+import pyaudio  # type: ignore
 
 
 is_osx = subprocess.check_output('uname').decode('utf8').startswith('Darwin')
-import __main__ as main  # noqa
+import __main__ as main  # type: ignore  # noqa
 is_interactive = not hasattr(main, '__file__')
 
 
@@ -18,12 +19,15 @@ log_debug = False
 # audio
 ###############################################################################
 
+def in_channel_combination(left, right):
+    return left - right
+
+
 # Recording mode & sample rate
 if is_osx:
     in_channels = 1
 else:
     in_channels = 2
-    in_channels_comination = lambda left, right: left - right
 rate = 16000
 
 # Sample rate output 1
@@ -52,12 +56,42 @@ elif rate == 44100:
     # 46ms
     hop_size = 2048
 else:
-    raise 'invalid rate={}'.format(rate)
+    raise Exception('invalid rate={}'.format(rate))
 buf_size = 2 * hop_size
 dtype = pyaudio.paInt16
 dtype_np = np.int16
 sampwidth = 2
 
+
+@dataclass
+class AudioSettings:
+    rate: int
+    hop_size: int
+    buf_size: int
+    dtype: int
+
+    @property
+    def buf_secs(self) -> float:
+        return self.buf_size / self.rate
+
+    @property
+    def hop_secs(self) -> float:
+        return self.hop_size / self.rate
+
+    @property
+    def dtype_np(self):
+        if self.dtype == pyaudio.paInt16:
+            return np.int16
+        raise ValueError(f'Invalid dtype={self.dtype}')
+
+    @property
+    def sampwidth(self) -> int:
+        if self.dtype == pyaudio.paInt16:
+            return 2
+        raise ValueError(f'Invalid dtype={self.dtype}')
+
+
+audio = AudioSettings(rate, hop_size, buf_size, dtype)
 buf_secs = buf_size / rate
 hop_secs = hop_size / rate
 
@@ -111,12 +145,6 @@ signalin_dir = os.path.join(recordings_dir, 'signalin')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
 samples_dir = os.path.join(root_dir, 'data', 'samples')
 
-
-def get_recordings():
-    return {
-        os.path.basename(path)[:-4]: path
-        for path in glob.glob(os.path.join(recordings_dir, '*.wav'))
-    }
 
 model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
 

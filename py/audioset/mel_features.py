@@ -15,7 +15,7 @@
 
 """Defines routines to compute mel spectrogram features from audio waveform."""
 
-import numpy as np
+import numpy as np  # type: ignore
 
 
 def frame(data, window_length, hop_length):

@@ -1,12 +1,12 @@
 """Records audio & extracts FFT."""
 
 
-import logging, os, signal as pysig, time, wave
+import logging, os, signal as pysig, time
 
-import numpy as np
+import numpy as np  # type: ignore
 
 from smanmi import audio, hotplug, network, perf, util
-from . import features, settings
+from . import features, recording, settings
 
 
 assert os.path.isdir(settings.recorder_dir), (
@@ -35,32 +35,23 @@ pysig.signal(pysig.SIGINT, signal_handler)
 
 class InputStreamer(object):
 
-    def __init__(self, audio_interface, output_dir=None):
+    def __init__(self, audio_interface):
         self.audio_interface = audio_interface
 
         # will be initialized when .freeze(false) is called the first time
-        self.wav = self.wav_path = None
         self.t = 0
         self.t0 = time.time()
         self.data = np.zeros(settings.buf_size, dtype=np.float32)
-        self.output_dir = output_dir
+        self.frozen = False
 
     def freeze(self, frozen):
+        if self.frozen == frozen:
+            return
         if frozen:
-            logger.info('...stop recording {}'.format(self.wav_path))
             self.audio_interface.input_stream.stop_stream()
-            self.close()
         else:
-            if self.output_dir:
-                now = int(time.time())
-                self.wav_path = os.path.join(
-                    self.output_dir, '{}.wav'.format(now))
-                logger.info('start recording {}...'.format(self.wav_path))
-                self.wav = wave.open(self.wav_path, 'wb')
-                self.wav.setnchannels(1)
-                self.wav.setframerate(settings.rate)
-                self.wav.setsampwidth(settings.sampwidth)
             self.audio_interface.input_stream.start_stream()
+        self.frozen = frozen
 
     @perf.measure('InputStreamer.read')
     def read(self, samples):
@@ -73,8 +64,6 @@ class InputStreamer(object):
         data = util.int16_to_float(data16)
         data = hp_effects.microphone(data)
         self.t += float(len(data)) / settings.rate
-        if self.wav_path and self.wav:
-            self.wav.writeframesraw(data16)
         return data
 
     def clear_buffers(self):
@@ -86,38 +75,31 @@ class InputStreamer(object):
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
-        return features.wav2features(self.data)
+        return features.wav2features(self.data, settings.hop_size)
 
     def get_dt(self):
         return time.time() - self.t0 - self.t
-
-    def close(self):
-        if self.wav:
-            logger.info('Recorded {} seconds to {}'.format(
-                int(self.t), self.wav_path))
-            self.wav.close()
-            self.wav = None
 
     def reset_audio_interface(self, audio_interface):
         self.audio_interface = audio_interface
         self.player.reset_audio_interface(audio_interface)
 
-    def __del__(self):
-        self.close()
-
 
 i = 0
 i_o = 0
 
-logger.info('Start recording.')
 logger.info('Using in_channels={}'.format(settings.in_channels))
 audio.init(settings)
-ai0 = audio.AudioInterface(input=settings.in_channels)
-input_streamer = InputStreamer(ai0, output_dir=settings.recorder_dir)
+ai0 = audio.AudioInterface(
+    input=settings.in_channels, output=1)
+input_streamer = InputStreamer(ai0)
 last_reset_t = time.time()
 
 status_sender = network.StatusSender(name='recorder', logger=logger)
 
+sock = network.create_udp_socket(settings.recorder_cmd_port, settings.address)
+loop = False
+record = playback = None
 while running:
 
     if (settings.reset_secs
@@ -128,8 +110,51 @@ while running:
         input_streamer.reset_audio_interface(ai0)
         last_reset_t = time.time()
 
-    feats = input_streamer.get()
+    data = network.get_json(sock, None)
+    if data and 'recorder' in data:
+        data = data['recorder']
+        logger.info('RECEIVED %s', data)
+        loop = data.get('loop', loop)
+        if 'playback' in data:
+            if data['playback']:
+                if record:
+                    record.close()
+                    record = None
+                input_streamer.freeze(True)
+                playback = recording.Recording.from_name(data['playback'])
+                logger.info('loaded %r path=%s', playback, playback.path)
+            else:
+                input_streamer.freeze(False)
+        if 'record' in data:
+            if data['record']:
+                record = recording.Recording.from_name(data['record'])
+                logger.info('recording %r path=%s', record, record.path)
+                playback = None
+                input_streamer.freeze(False)
+            else:
+                if record:
+                    record.close()
+                    logger.info('finished recording')
+                record = None
+        if playback and 't' in data:
+            playback.seek(data['t'])
+
+    feats = None
+    if playback:
+        feats = playback.read(loop=loop)
+        if feats:
+            ai0.play(feats.wav)
+        else:
+            playback = None
+            input_streamer.freeze(False)
+    if not feats:
+        feats = input_streamer.get()
+        if record:
+            record.append(feats)
+
     signals = hp_signals.audio_runner(features=feats)
+    if playback:
+        signals['t'] = playback.t
     del signals['features']
     signals['logmel'] = list(feats.logmel)
     signals['mfccs'] = list(feats.mfccs)
@@ -141,7 +166,6 @@ while running:
     status_sender.send('running', settings.address)
 
 
-logger.info('Stop recording.')
 del input_streamer
 del ai0
 

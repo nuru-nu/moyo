@@ -20,12 +20,10 @@ export const Sonar = (output) => {
   let sender
   function update() {
     if (!override) {
-      console.log('sonar', null)
       if (sender) sender({sonar: null})
       return
     }
     if (sender) sender({sonar: parseInt(disp.sonar.value)})
-    console.log('sonar', disp.sonar.value)
   }
   function listener(data) {
     if (override) return
@@ -51,14 +49,73 @@ export const Debug = (output, { network, record_timestamps }) => {
 
 export const Recorder = (output) => {
   const disp = h.div({class: 'flex'}).of(
-    'recorder',
-    h.div().of(
-      h.div('recording', {class: 'flex'}).of(
-      ),
-      h.div('playback', {class: 'flex'}).of(
+    h.div({class: 'flex widget'}).of(
+      h.div({class: 'header'}).of('recorder'),
+      h.div('cont').of(
+        h.div('record', {class: 'record'}).of(
+          h.input('input', {type: 'text'}),
+          h.span('name', {class: 'name'}),
+          h.button('start', {class: 'start'}).of('start'),
+          h.button('stop', {class: 'stop'}).of('stop'),
+        ),
+        h.div('playback', {class: 'playback'}).of(
+          h.select('sel').of(h.option({value: ''})),
+          h.input('loop', {id: 'loop', type: 'checkbox'}),
+          h.label({for: 'loop'}).of('loop'),
+        ),
       ),
     ),
   ).into(output).els
+
+  disp.input.addEventListener('change', e => {
+    disp.name.textContent = e.target.value
+  })
+  disp.input.addEventListener('keyup', e => {
+    if (e.keyCode === 13) {
+      disp.start.dispatchEvent(new Event('click'))
+    }
+  })
+  disp.start.addEventListener('click', () => {
+    const record = disp.input.value
+    if (!record) return
+    sender({recorder: { record } })
+    disp.sel.value = ''
+    disp.record.classList.toggle('recording')
+  })
+  disp.stop.addEventListener('click', () => {
+    sender({recorder: { record: null } })
+    disp.record.classList.toggle('recording')
+  })
+
+  let recs
+  fetch('/recordings').then(res => res.json()).then(recordings => {
+    recs = recordings
+    const names = Object.keys(recs)
+    names.sort()
+    names.reverse()
+    names.forEach(name => {
+      h.option({value: name}).of(name).into(disp.sel)
+    })
+  })
+  disp.sel.addEventListener('change', e => {
+    const playback = e.target.value || null
+    sender({recorder: { playback } })
+  })
+  disp.loop.addEventListener('change', e => {
+    const loop = e.target.checked
+    sender({recorder: { loop } })
+  })
+
+  function listener(signals) {
+  }
+  let sender
+  function sendto(sender_) {
+    sender = sender_
+  }
+  return {
+    sendto,
+    listener,
+  }
 }
 
 export const Cmd = (output) => {

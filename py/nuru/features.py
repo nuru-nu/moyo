@@ -1,13 +1,15 @@
 
 import collections
 
-import scipy.fftpack
+import numpy as np  # type: ignore
+import scipy.fftpack  # type: ignore
 
 from audioset import vggish_params, mel_features
 from smanmi import perf
 from . import settings
 
 
+# wav is expected in float format
 Features = collections.namedtuple('Features', [
     'wav', 'logmel', 'logmel2', 'mfccs'])
 
@@ -43,10 +45,16 @@ def mfccs(data, logmel=None, num_ceps=12, **kwargs):
 
 
 @perf.measure('wav2features')
-def wav2features(wav):
+def wav2features(wav, hop_size):
+    """Calculates audio features.
+
+    Args:
+      wav: ndarray of type float
+    """
+    assert wav.dtype == np.float32, wav.dtype
     logmel = log_mel_spectrogram(wav)
     return Features(
-        wav=wav,
+        wav=wav[:hop_size],
         logmel=logmel[0],
         # logmel2=log_mel_spectrogram2(wav)[0],
         logmel2=0,

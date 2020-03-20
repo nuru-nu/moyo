@@ -1,6 +1,4 @@
-import numpy as np
-
-from . import settings
+import numpy as np  # type: ignore
 
 
 def generate_sphere_mapping(sphere_strips, r=lambda x: x, phi0=0):

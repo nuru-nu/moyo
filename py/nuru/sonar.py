@@ -43,8 +43,7 @@ def read_sonar():
         return msg[1][0]
 
 
-sock = network.create_udp_socket(
-    settings.sonar_cmd_port, settings.address)
+sock = network.create_udp_socket(settings.sonar_cmd_port, settings.address)
 override = None
 while True:
     data = network.get_json(sock, None)
