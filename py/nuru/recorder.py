@@ -75,7 +75,7 @@ class InputStreamer(object):
     def get(self):
         self.data = np.roll(self.data, shift=-settings.hop_size, axis=0)
         self.data[-settings.hop_size:] = self.read(settings.hop_size)
-        return features.wav2features(self.data, settings.hop_size)
+        return self.data
 
     def get_dt(self):
         return time.time() - self.t0 - self.t
@@ -100,6 +100,8 @@ status_sender = network.StatusSender(name='recorder', logger=logger)
 sock = network.create_udp_socket(settings.recorder_cmd_port, settings.address)
 loop = False
 record = playback = None
+subsample = 1
+lfeats = None
 while running:
 
     if (settings.reset_secs
@@ -119,7 +121,11 @@ while running:
             playback = None
             input_streamer.freeze(False)
     if not feats:
-        feats = input_streamer.get()
+        data = input_streamer.get()
+        if feats or i % subsample == 0:
+            feats = features.wav2features(data, settings.hop_size)
+        else:
+            feats = lfeats
         if record:
             record.append(feats)
 
@@ -129,6 +135,7 @@ while running:
     del signals['features']
     signals['logmel'] = list(feats.logmel)
     signals['mfccs'] = list(feats.mfccs)
+    lfeats = feats
     i += 1
 
     network.send(settings.integrator_sig_port, signals)
@@ -143,6 +150,7 @@ while running:
     if not data:
         continue
     logger.info('RECEIVED %s', data)
+    subsample = data.get('subsample', subsample)
     loop = data.get('loop', loop)
     if 'playback' in data:
         if data['playback']:

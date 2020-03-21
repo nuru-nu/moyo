@@ -6,6 +6,7 @@ import numpy as np  # type: ignore
 
 from openpixelcontrol import opc  # type: ignore
 from smanmi import hotplug
+from smanmi import perf
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
 from smanmi import state
 from smanmi import util
@@ -34,14 +35,26 @@ class Animator:
         self.hp_animations = hotplug.HotPlug('.hotplug.animations', logger)
         self.signals = None
         self.stats = None
+        self.subsample = 1
+        self.i = 0
 
-    def received_signals(self, data):
+    def received_from_udp(self, data):
         self.signals = json.loads(data.decode('utf8'))
         if 'state' in self.signals:
             self.signals['state'] = state.State(self.signals['state'])
 
+    def received_from_ws(self, data):
+        signals = json.loads(data)
+        if 'animator' in signals and 'subsample' in signals['animator']:
+            self.subsample = signals['animator']['subsample']
+            util.logger.info('Subsampling at %d', self.subsample)
+
+    @perf.measure('Animator()')
     def __call__(self):
         if self.signals is None:
+            return
+        self.i += 1
+        if self.i % self.subsample != 0:
             return
         data = self.hp_animations.pixels(**self.signals)['value']
         data = np.clip((255 * data).astype('uint8'), 0, 255)
@@ -108,10 +121,14 @@ server.forward_udp(UdpForwarding(
     '/+signals',
     in_udp=UdpEndpoint('127.0.0.1', settings.server_sig_port),
     out_udp=UdpEndpoint('127.0.0.1', settings.integrator_cmd_port),
-).with_callbacks(animator.received_signals))
+).with_callbacks(
+    animator.received_from_udp,
+    animator.received_from_ws,
+))
 server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/mapping', send_mapping))
 server.routes.append(web.get('/setstates', send_setstate))
 server.routes.append(web.get('/recordings', get_recordings))
 server.run(address=args.address, port=args.port)
+print(perf.stats())
