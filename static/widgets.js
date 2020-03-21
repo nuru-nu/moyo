@@ -154,6 +154,50 @@ export const Recorder = (output) => {
   }
 }
 
+export const Subsample = output => {
+  const subsamples = [1, 2, 5, 10, 15, 20, 30]
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('subsample'),
+    h.div({class: 'flex'}).of(
+      h.button('full', {class: 'on'}).of('full on'),
+      h.div('controls', {style: 'display: none'}).of(
+        'recorder', h.select('recorder').of(subsamples.map(
+          value => h.option({value}).of(`1/${value}`))),
+        'animator', h.select('animator').of(subsamples.map(
+          value => h.option({value}).of(`1/${value}`))),
+      ),
+    ),
+  ).into(output).els
+
+  let full = true
+  disp.full.addEventListener('click', () => {
+    full = !full
+    disp.full.classList.toggle('on')
+    disp.controls.style.display = full ? 'none' : 'block'
+    update()
+  })
+  function update() {
+    sender({
+      'recorder': {
+        subsample: full ? 1 : parseInt(disp.recorder.value),
+      },
+      'animator': {
+        subsample: full ? 1 : parseInt(disp.animator.value),
+      },
+    })
+  }
+  disp.recorder.addEventListener('change', update)
+  disp.animator.addEventListener('change', update)
+
+  let sender
+  function sendto(sender_) {
+    sender = sender_
+  }
+  return {
+    sendto,
+  }
+}
+
 export const Cmd = (output) => {
   const cont = h.div().into(output).el
   fetch('/setstates').then(res => res.json()).then(setstates => {
