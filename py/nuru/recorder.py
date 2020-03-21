@@ -110,35 +110,6 @@ while running:
         input_streamer.reset_audio_interface(ai0)
         last_reset_t = time.time()
 
-    data = network.get_json(sock, None)
-    if data and 'recorder' in data:
-        data = data['recorder']
-        logger.info('RECEIVED %s', data)
-        loop = data.get('loop', loop)
-        if 'playback' in data:
-            if data['playback']:
-                if record:
-                    record.close()
-                    record = None
-                input_streamer.freeze(True)
-                playback = recording.Recording.from_name(data['playback'])
-                logger.info('loaded %r path=%s', playback, playback.path)
-            else:
-                input_streamer.freeze(False)
-        if 'record' in data:
-            if data['record']:
-                record = recording.Recording.from_name(data['record'])
-                logger.info('recording %r path=%s', record, record.path)
-                playback = None
-                input_streamer.freeze(False)
-            else:
-                if record:
-                    record.close()
-                    logger.info('finished recording')
-                record = None
-        if playback and 't' in data:
-            playback.seek(data['t'])
-
     feats = None
     if playback:
         feats = playback.read(loop=loop)
@@ -154,7 +125,7 @@ while running:
 
     signals = hp_signals.audio_runner(features=feats)
     if playback:
-        signals['t'] = playback.t
+        signals['playback_t'] = playback.t
     del signals['features']
     signals['logmel'] = list(feats.logmel)
     signals['mfccs'] = list(feats.mfccs)
@@ -164,6 +135,39 @@ while running:
     if settings.timetracing:
         tt()
     status_sender.send('running', settings.address)
+
+    data = network.get_json(sock, None)
+    if data is None:
+        continue
+    data = data.get('recorder', None)
+    if not data:
+        continue
+    logger.info('RECEIVED %s', data)
+    loop = data.get('loop', loop)
+    if 'playback' in data:
+        if data['playback']:
+            if record:
+                record.close()
+                record = None
+            input_streamer.freeze(True)
+            playback = recording.Recording.from_name(data['playback'])
+            logger.info('loaded %r path=%s', playback, playback.path)
+        else:
+            input_streamer.freeze(False)
+    if 'record' in data:
+        if data['record']:
+            record = recording.Recording.from_name(data['record'])
+            logger.info('recording %r path=%s', record, record.path)
+            playback = None
+            input_streamer.freeze(False)
+        else:
+            if record:
+                record.close()
+                logger.info('finished recording')
+            record = None
+    if playback and 't' in data:
+        playback.seek(data['t'])
+    continue
 
 
 del input_streamer

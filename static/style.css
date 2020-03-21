@@ -22,4 +22,19 @@
 .record.recording input[type=text] { display: none; }
 .record .name { display: none; }
 .record.recording .name { display: inline-block; }
-
+.playback .bars {
+  display: flex;
+  align-items: center;
+  height: 150px;
+}
+.playback .bars * {
+  border: 1px solid #0f0;
+  display: inline-block;
+  width: 2px;
+}
+.playback .bars .on {
+  background: #0f0;
+}
+.playback .dt {
+  text-align: right;
+}

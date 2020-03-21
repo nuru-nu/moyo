@@ -79,7 +79,7 @@ async def send_setstate(request):
 recordings = {
     rec.name: dict(
         secs=rec.secs,
-        envelope=list(rec.envelope(100)),
+        envelope=list(rec.envelope(min(200, rec.secs * 10))),
     )
     for rec in recording.get_recordings()
 }
