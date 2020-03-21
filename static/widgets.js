@@ -59,9 +59,15 @@ export const Recorder = (output) => {
           h.button('stop', {class: 'stop'}).of('stop'),
         ),
         h.div('playback', {class: 'playback'}).of(
-          h.select('sel').of(h.option({value: ''})),
-          h.input('loop', {id: 'loop', type: 'checkbox'}),
-          h.label({for: 'loop'}).of('loop'),
+          h.div().of(
+            h.select('sel').of(h.option({value: ''})),
+            h.input('loop', {id: 'loop', type: 'checkbox'}),
+            h.label({for: 'loop'}).of('loop'),
+          ),
+          h.div().of(
+            h.div('bars', {class: 'bars'}),
+            h.div('dt', {class: 'dt'}),
+          ),
         ),
       ),
     ),
@@ -87,7 +93,7 @@ export const Recorder = (output) => {
     disp.record.classList.toggle('recording')
   })
 
-  let recs
+  let recs, playback, bari
   fetch('/recordings').then(res => res.json()).then(recordings => {
     recs = recordings
     const names = Object.keys(recs)
@@ -98,15 +104,45 @@ export const Recorder = (output) => {
     })
   })
   disp.sel.addEventListener('change', e => {
-    const playback = e.target.value || null
+    playback = e.target.value || null
     sender({recorder: { playback } })
+    disp.bars.innerHTML = ''
+    bari = 0
+    if (!playback) return
+    recs[playback].envelope.forEach(value => {
+      const height = Math.max(2, Math.min(150, Math.floor(value**2 * 30)))
+      h.span({style: `height:${height}px`}
+      ).of(' ').into(disp.bars)
+    })
   })
   disp.loop.addEventListener('change', e => {
     const loop = e.target.checked
     sender({recorder: { loop } })
   })
 
+  function secsmin(secs) {
+    const min = Math.floor(secs / 60)
+    secs = Math.floor(secs) % 60
+    return `${min < 10 ? '0'+min : min}:${secs < 10 ? '0'+secs : secs}`
+  }
+  function update(fraction) {
+    const uptobar =  fraction * recs[playback].envelope.length
+    while (bari < uptobar) {
+      disp.bars.children[bari++].classList.add('on')
+    }
+    while (bari - 1 >= uptobar) {
+      disp.bars.children[--bari].classList.remove('on')
+    }
+    const secs = recs[playback].secs
+    disp.dt.textContent = `${secsmin(fraction*secs)}/${secsmin(secs)}`
+    const width = disp.playback.getBoundingClientRect().width
+    const left = Math.floor(fraction * width)
+  }
   function listener(signals) {
+    if (!playback) return
+    const t = signals.playback_t
+    if ('undefined' === typeof(t)) return
+    update(t / recs[playback].secs)
   }
   let sender
   function sendto(sender_) {
