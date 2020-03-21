@@ -110,7 +110,7 @@ export const Recorder = (output) => {
     bari = 0
     if (!playback) return
     recs[playback].envelope.forEach(value => {
-      const height = Math.max(2, Math.min(150, Math.floor(value**2 * 30)))
+      const height = Math.max(2, Math.min(150, Math.floor(value**2 * 20)))
       h.span({style: `height:${height}px`}
       ).of(' ').into(disp.bars)
     })
@@ -118,6 +118,12 @@ export const Recorder = (output) => {
   disp.loop.addEventListener('change', e => {
     const loop = e.target.checked
     sender({recorder: { loop } })
+  })
+  disp.bars.addEventListener('click', e => {
+    if (!playback) return
+    const rect = disp.bars.getBoundingClientRect()
+    const t = recs[playback].secs * ((e.pageX - rect.left) / rect.width)
+    sender({recorder: { t } })
   })
 
   function secsmin(secs) {
