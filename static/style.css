@@ -27,10 +27,14 @@
   align-items: center;
   height: 150px;
 }
-.playback .bars * {
+.playback .bars span {
   border: 1px solid #0f0;
   display: inline-block;
   width: 2px;
+}
+.playback .bars span:hover {
+  border: 1px solid #f00;
+  background: #f00;
 }
 .playback .bars .on {
   background: #0f0;
