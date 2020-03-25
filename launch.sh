@@ -40,6 +40,12 @@ gabriel*)
   FADECANDY=
   RESTARTER=
   ;;
+sanduku)
+  FADECANDY=
+  DMX=
+  RESTARTER=
+  OUT2=
+  ;;
 esac
 
 # create columns
