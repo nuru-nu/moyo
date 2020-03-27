@@ -206,6 +206,7 @@ export const Subsample = output => {
 
 export const Cmd = (output) => {
   const cont = h.div().into(output).el
+  const notes = ['C2', 'D2', 'E2', 'F2']
   fetch('/setstates').then(res => res.json()).then(setstates => {
     let {colors, states} = setstates
     colors.unshift('')
@@ -223,6 +224,8 @@ export const Cmd = (output) => {
         'state',
         h.select('state').of(states.map(value =>
           h.option({value}).of(value))),
+        'midi',
+        notes.map(note => h.button(note).of(note)),
       ),
     ).into(cont).els
 
@@ -236,6 +239,17 @@ export const Cmd = (output) => {
     disp.state.addEventListener('change', e => {
       const state = e.target.value === '' ? null : e.target.value
       sender({setstate: { state }})
+    })
+
+    notes.forEach(note => {
+      disp[note].addEventListener('mousedown', function() {
+        this.classList.add('on')
+        sender({midi: note})
+      })
+      disp[note].addEventListener('mouseup', function() {
+        this.classList.remove('on')
+        sender({midi: null})
+      })
     })
   })
 
