@@ -18,6 +18,7 @@ class Integrator(integrator.Integrator):
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,
+                settings.midi_port,
             ),
             cmd_in_ports=(settings.integrator_cmd_port,),
             cmd_out_ports=(
