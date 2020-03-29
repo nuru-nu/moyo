@@ -83,6 +83,10 @@ then there are two standalone programs to be run on the remote server:
 
 ## Development
 
+For an overview, see [Slides]
+
+[Slides]: https://docs.google.com/presentation/d/1kWKOjcJiLdcVQkaqHcMZZdBt3DM2olypaQvjHZF1c8I
+
 ### Open ligthning architecture
 
 See instructions in `notebooks/dmx.ipynb` and `py/nuru/dmx.py`.
