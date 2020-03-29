@@ -14,7 +14,7 @@ CM="${CM:-C-m}"
 MACHINE="${MACHINE:-$(uname -n)}"
 RESTARTER="./env/bin/python -m smanmi.restarter"
 INDEX0="${INDEX0:-1}"
-UDP_MIDI_PORT=
+MIDI_ADDRESS=
 
 FCSERVER='fcserver'
 DMX=yes
@@ -33,7 +33,7 @@ cervelat*)
   DMX=
   FADECANDY=
   RESTARTER=
-  UDP_MIDI_PORT=6109
+  MIDI_ADDRESS=127.0.0.1
   ;;
 gabriel*)
   FCSERVER=
@@ -49,7 +49,6 @@ sanduku)
   OUT2=
   ;;
 esac
-echo UDP_MIDI_PORT=$UDP_MIDI_PORT
 
 # create columns
 tmux selectp -t $INDEX0
@@ -97,10 +96,10 @@ if [ ! -z "$DMX" ]; then
 fi
 
 tmux splitw -v
-if [ -z "$UDP_MIDI_PORT" ]; then
+if [ -z "$MIDI_ADDRESS" ]; then
   restarting_py nuru.player out1
 else
-  restarting_py smanmi.udp_midi --port=$UDP_MIDI_PORT
+  restarting_py nuru.midi --address=$MIDI_ADDRESS
 fi
 if [ ! -z "$OUT2" ]; then
   tmux splitw -h
