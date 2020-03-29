@@ -1,7 +1,7 @@
 import bpy
 import json
 
-print("writing transform matrix for currently selected object")
+print("Writing transform matrix for currently selected object")
 
 obj = bpy.context.active_object
 

@@ -25,7 +25,9 @@ for name in arms + sphere:
 		break
 
 	for idx, vert in enumerate(obj.data.vertices):
-		kinect_mapping.append({"strip_name" : name, "idx" : str(idx).zfill(3), "co" : list(vert.co)}) # "theta" : theta, "phi" : phi
+		kinect_mapping.append({"strip_name" : name, 
+							   "idx" : str(idx).zfill(3),
+							   "co" : list(obj.matrix_world @ vert.co)})
 else:
 	path = bpy.path.abspath("//data/") + 'kinect_mapping.json'
 	print("Saving vertices to", path)
