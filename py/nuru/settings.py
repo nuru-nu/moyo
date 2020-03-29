@@ -1,6 +1,6 @@
 # some constants shared between files
 
-import collections, glob, os, subprocess
+import collections, os, subprocess
 from dataclasses import dataclass
 
 import numpy as np  # type: ignore
@@ -132,6 +132,7 @@ player2_sig_port = 6105
 sonar_cmd_port = 6106
 recorder_cmd_port = 6107
 cmd_cmd_port = 6108
+midi_port = 6109
 
 
 # files

@@ -110,7 +110,7 @@ export const Recorder = (output) => {
     bari = 0
     if (!playback) return
     recs[playback].envelope.forEach(value => {
-      const height = Math.max(2, Math.min(150, Math.floor(value**2 * 30)))
+      const height = Math.max(2, Math.min(150, Math.floor(value**2 * 20)))
       h.span({style: `height:${height}px`}
       ).of(' ').into(disp.bars)
     })
@@ -118,6 +118,12 @@ export const Recorder = (output) => {
   disp.loop.addEventListener('change', e => {
     const loop = e.target.checked
     sender({recorder: { loop } })
+  })
+  disp.bars.addEventListener('click', e => {
+    if (!playback) return
+    const rect = disp.bars.getBoundingClientRect()
+    const t = recs[playback].secs * ((e.pageX - rect.left) / rect.width)
+    sender({recorder: { t } })
   })
 
   function secsmin(secs) {
@@ -200,6 +206,7 @@ export const Subsample = output => {
 
 export const Cmd = (output) => {
   const cont = h.div().into(output).el
+  const notes = ['C2', 'D2', 'E2', 'F2']
   fetch('/setstates').then(res => res.json()).then(setstates => {
     let {colors, states} = setstates
     colors.unshift('')
@@ -217,6 +224,8 @@ export const Cmd = (output) => {
         'state',
         h.select('state').of(states.map(value =>
           h.option({value}).of(value))),
+        'midi',
+        notes.map(note => h.button(note).of(note)),
       ),
     ).into(cont).els
 
@@ -230,6 +239,17 @@ export const Cmd = (output) => {
     disp.state.addEventListener('change', e => {
       const state = e.target.value === '' ? null : e.target.value
       sender({setstate: { state }})
+    })
+
+    notes.forEach(note => {
+      disp[note].addEventListener('mousedown', function() {
+        this.classList.add('on')
+        sender({midi: note})
+      })
+      disp[note].addEventListener('mouseup', function() {
+        this.classList.remove('on')
+        sender({midi: null})
+      })
     })
   })
 
