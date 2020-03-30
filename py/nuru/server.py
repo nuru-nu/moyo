@@ -1,5 +1,6 @@
 import argparse
 import json
+import traceback
 
 from aiohttp import web
 import numpy as np  # type: ignore
@@ -32,11 +33,14 @@ class Animator:
 
     def __init__(self, client, logger):
         self.client = client
-        self.hp_animations = hotplug.HotPlug('.hotplug.animations', logger)
+        self.logger = logger
+        self.hp_animations = hotplug.HotPlug(
+            '.hotplug.animations', logger, autoreload=False)
         self.signals = None
         self.stats = None
         self.subsample = 1
         self.i = 0
+        self.faulty_mtime = None
 
     def received_from_udp(self, data):
         self.signals = json.loads(data.decode('utf8'))
@@ -51,12 +55,25 @@ class Animator:
 
     @perf.measure('Animator()')
     def __call__(self):
-        if self.signals is None:
-            return
         self.i += 1
         if self.i % self.subsample != 0:
             return
-        data = self.hp_animations.pixels(**self.signals)['value']
+        if self.signals is None:
+            return
+
+        self.hp_animations.hotplug_reload()
+        if self.faulty_mtime == self.hp_animations._reload_mtime:
+            # Don't generate an exception every frame - wait for next reload.
+            return
+        try:
+            data = self.hp_animations.pixels(**self.signals)['value']
+        except Exception as e:
+            self.faulty_mtime = self.hp_animations._reload_mtime
+            self.logger.error('Animator() ERROR: %r', e)
+            self.logger.warning(traceback.format_exc())
+            self.logger.info('Waiting for next `hp_animations` reload.')
+            return
+
         data = np.clip((255 * data).astype('uint8'), 0, 255)
 
         if self.client:
@@ -74,8 +91,8 @@ async def send_mapping(request):
     return web.Response(
         content_type='Application/JSON',
         text=json.dumps(util.pythonize(dict(
-            phi_r_mapping=animations.phi_r_mapping,
-            xyz_mapping=animations.xyz_mapping,
+            phi_r=animations.phi_r_mapping,
+            xyz=animations.xyz_mapping,
         ))))
 
 
