@@ -18,13 +18,14 @@ class Integrator(integrator.Integrator):
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,
-                settings.midi_port,
+                settings.midi_sig_port,
             ),
             cmd_in_ports=(settings.integrator_cmd_port,),
             cmd_out_ports=(
                 settings.recorder_cmd_port,
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
+                settings.midi_cmd_port,
             ),
         )
         self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
@@ -35,9 +36,6 @@ class Integrator(integrator.Integrator):
             iso=0.,
         )
         self.last_missing = None
-
-    def should_send_now(self, signals):
-        return 'loud' in signals
 
     def __call__(self):
         try:
