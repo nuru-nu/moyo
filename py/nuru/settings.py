@@ -140,7 +140,7 @@ midi_cmd_port = 6110
 # files
 ###############################################################################
 
-root_dir = '.'
+root_dir = os.path.join(os.path.dirname(__file__), '..', '..')
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
 recorder_dir = os.path.join(recordings_dir, 'recorder')
