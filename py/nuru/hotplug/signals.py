@@ -92,12 +92,12 @@ audio_runner = L.SignalRunner(dict(
         L.Named('tf') |
         S.Median(n=10, threshold=0.7)
     ) | S.Exponential(alpha=0.95),
-    sig1=(
-        S.Louder(n=10) | S.Lin(mult=20)
-    ) * (
-        L.Named('tf') |
-        S.Median(n=10, threshold=0.7)
-    ),
+    # sig1=(
+    #     S.Louder(n=10) | S.Lin(mult=20)
+    # ) * (
+    #     L.Named('tf') |
+    #     S.Median(n=10, threshold=0.7)
+    # ),
 
     # logmel
     breadth=(
@@ -157,4 +157,8 @@ integrator_runner = L.SignalRunner(dict(
 
     # output
     flash_pulse=L.Named('rawloud') | S.Smoke(0.5, 2, 40),
+), defaults=dict(
+    loud=0,
+    setstate={},
+    sonar=0,
 ))
