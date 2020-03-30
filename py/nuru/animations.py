@@ -187,6 +187,60 @@ class GaussianRain(L.Signal):
         return pixels
 
 
+# 3D
+###############################################################################
+
+class StandingWave(L.Signal):
+
+    def init(self, period=1, hz=1, color=[1, 1, 1]):
+        self.dist = np.linalg.norm(xyz_mapping, axis=1)
+
+    def call(self, t):
+        return np.sin(
+            -t * self.hz * np.pi * 2
+            + np.pi * 2 * self.dist / self.period
+        ).reshape((-1, 1)) * np.array([[1.0, 1.0, 1.0]])
+
+
+class Dist(L.Signal):
+    """Calculates distance."""
+
+    def init(self, x=0, y=0, z=0):
+        self.lxyz = xyz = (x, y, z)
+        self.dist = self._dist(*xyz)
+
+    def _dist(self, x, y, z):
+        return np.linalg.norm(xyz_mapping - [[x, y, z]], axis=1)
+
+    def call(self):
+        xyz = (self.x, self.y, self.z)
+        if self.lxyz != xyz:
+            self.dist = self._dist(*xyz)
+            self.lxyz = xyz
+        return self.dist
+
+
+class F(L.Signal):
+    """Calculates a function on previous signal with optional parameters."""
+
+    def init(self, f, p1=None):
+        pass
+
+    def call(self, value):
+        if self.p1 is None:
+            return self.f(value)
+        return self.f(value, self.p1)
+
+
+class RGB(L.Signal):
+
+    def init(self, r, g, b):
+        pass
+
+    def call(self, value):
+        return value[:, None] * np.array([[self.r, self.g, self.b]])
+
+
 # debug
 ###############################################################################
 

@@ -8,6 +8,7 @@ from .. import animations as A, palette as P, settings
 
 importlib.reload(S)
 S.init(settings)
+importlib.reload(A)
 
 
 ooo_hue = S.SinT(hz=L.Named('ooo_intensity')
@@ -82,8 +83,15 @@ def std3():
 
 
 def test():
+    # Just for fun : set 3D gradient with sonar sensor...
+    return A.Dist() | S.Lin(
+        mult=L.Named('sonar') | S.Lin(mult=0.01),
+    ) | A.F(
+        C.Palette(P.blue_purple),
+    )
+    # return A.StandingWave(period=1, hz=0.2)
     # return A.CalibrationPattern()
-    return A.PositionIdentify()
+    # return A.PositionIdentify()
 
 
 def frozen():
