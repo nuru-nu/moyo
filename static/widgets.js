@@ -174,6 +174,7 @@ export const Subsample = output => {
       ),
     ),
   ).into(output).els
+  disp.recorder.value = disp.animator.value = 10
 
   let full = true
   disp.full.addEventListener('click', () => {
@@ -244,11 +245,11 @@ export const Cmd = (output) => {
     notes.forEach(note => {
       disp[note].addEventListener('mousedown', function() {
         this.classList.add('on')
-        sender({midi: note})
+        sender({midi: `${note} on`})
       })
       disp[note].addEventListener('mouseup', function() {
         this.classList.remove('on')
-        sender({midi: null})
+        sender({midi: `${note} off`})
       })
     })
   })
