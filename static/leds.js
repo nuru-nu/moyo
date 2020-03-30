@@ -41,7 +41,7 @@ export const Leds = (output) => {
         colors.hex2[values[3 * i + 1]] +
         colors.hex2[values[3 * i + 2]]
       )
-      const [phi, r] = mapping[i]
+      const [phi, r] = mapping.phi_r[i]
       led(phi, r, col)
       // ctx.fillStyle = col
       // ctx.fillRect(x*sz, y*sz, sz, sz)

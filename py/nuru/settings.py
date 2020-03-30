@@ -44,6 +44,7 @@ out2_names = (
     'C-Media USB Audio Device',  # Ubuntu
     'Built-in Output',  # OS X
 )
+midi_name = 'IAC Driver Bus 1'
 
 if rate == 16000:
     # 32ms
@@ -132,7 +133,8 @@ player2_sig_port = 6105
 sonar_cmd_port = 6106
 recorder_cmd_port = 6107
 cmd_cmd_port = 6108
-midi_port = 6109
+midi_sig_port = 6109
+midi_cmd_port = 6110
 
 
 # files
@@ -146,8 +148,9 @@ signalin_dir = os.path.join(recordings_dir, 'signalin')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
 samples_dir = os.path.join(root_dir, 'data', 'samples')
 
-
 model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
+kinect_mapping_path = os.path.join(
+    root_dir, 'blender', 'data', 'kinect_mapping.json')
 
 
 # animation
@@ -257,6 +260,23 @@ arm_configs = [
         ],
     ),
 ]
+
+FcPos = collections.namedtuple('FcPos', ['fadecandy', 'pos'])
+
+arm_mapping = {
+    'arm_5-1': [FcPos(2, 0), FcPos(2, 2)],
+    'arm_5-2': [FcPos(2, 1), FcPos(2, 3)],
+    'arm_4-1': [FcPos(2, 4)],
+    'arm_4-2': [FcPos(2, 5)],
+    'arm_3-1': [FcPos(2, 6), FcPos(3, 0)],
+    'arm_3-2': [FcPos(2, 7), FcPos(3, 1)],
+    'arm_2-1': [FcPos(3, 2)],
+    'arm_2-2': [FcPos(3, 3)],
+    'arm_1-1': [FcPos(3, 4)],
+    'arm_1-2': [FcPos(3, 5)],
+    'arm_6-1': [FcPos(3, 6)],
+    'arm_6-2': [FcPos(3, 7)],
+}
 
 
 # Arduino

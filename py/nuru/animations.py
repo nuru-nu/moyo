@@ -1,3 +1,4 @@
+import json
 import time
 
 import numpy as np  # type: ignore
@@ -9,11 +10,13 @@ from . import mapping, pixel_functions as pf, settings
 # mapping
 ###############################################################################
 
-
 phi_r_mapping = mapping.generate_arm_configs(settings.arm_configs)
 sphere_mapping = phi_r_mapping[: 2 * 8 * 60, :] = (
     mapping.generate_sphere_mapping(settings.sphere_strips, phi0=settings.phi0)
 )
+kinect_mapping = json.load(open(settings.kinect_mapping_path))
+xyz_mapping = mapping.generate_xyz_mapping(
+    kinect_mapping, settings.arm_mapping)
 
 
 # utils
