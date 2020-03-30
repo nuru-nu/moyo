@@ -69,14 +69,14 @@ class Animator:
         return data.tostring()
 
 
-async def send_mapping(request, digits=5):
+async def send_mapping(request):
     del request
     return web.Response(
         content_type='Application/JSON',
-        text='[{}]'.format(','.join([
-            '[{},{}]'.format(str(phi)[:digits + 2], str(r)[:digits + 2])
-            for phi, r in animations.phi_r_mapping
-        ])))
+        text=json.dumps(util.pythonize(dict(
+            phi_r_mapping=animations.phi_r_mapping,
+            xyz_mapping=animations.xyz_mapping,
+        ))))
 
 
 async def send_setstate(request):
