@@ -11,12 +11,23 @@ export const Leds = (output) => {
   const disp = h.div({class: 'flex'}).of(
     h.canvas('leds', {width, height}),
     h.button('pause').of('pause'),
+    h.button('download').of('download'),
   ).into(output).els
 
   let paused = false
   disp.pause.addEventListener('click', () => {
     paused = !paused
     disp.pause.textContent = paused ? 'unpause' : 'pause'
+  })
+
+  disp.download.addEventListener('click', () => {
+    const s = JSON.stringify(Array.from(lvalues))
+    const a = h.a({
+      href: 'data:text/plain;charset=utf8,' + encodeURIComponent(s),
+      download: `${Math.floor(Date.now() / 1e3)}.json`
+    }).into(document.body).el
+    a.click()
+    document.body.removeChild(a)
   })
 
   const ctx = disp.leds.getContext('2d')
@@ -28,10 +39,12 @@ export const Leds = (output) => {
     ctx.fillRect(x, y, 3, 3)
   }
 
+  let lvalues = null
   function listener(values) {
     if (paused || !mapping) {
       return
     }
+    lvalues = values
     ctx.clearRect(0, 0, width, height)
     for(let i = 0; i < values.byteLength / 3; i++) {
       const x=i%cols, y=Math.floor(i/cols)
