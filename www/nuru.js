@@ -14,7 +14,6 @@ import { WireframeGeometry2 } from './threejs/WireframeGeometry2.js'
 // improvement ideas
 // - better camera controls
 
-
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_interactive_buffergeometry.html
 // - raycaster to find intersecting element
 // - set individual colors as BufferedGeometry color attribute
@@ -59,38 +58,52 @@ const Geometry = mesh => {
   return geometry
 }
 
-export const Mapping = mesh => {
-  const positions = mesh.geometry.getAttribute('position').array
-  const centers = []
-  for (let i = 0; i < positions.length; i += 18) {
-    const corners = []
-    const sum = new THREE.Vector3()
-    for (let j = 0; j < 6; j++) {
-      const v = new THREE.Vector3(
-        positions[i + j * 3 + 0],
-        positions[i + j * 3 + 1],
-        positions[i + j * 3 + 2]
-      )
-      let k
-      for (k = 0; k < corners.length; k++) {
-        if (v.equals(corners[k])) break
+const Mapping = () => {
+
+  let options = {
+    d: 0.1,
+    radius: 0.3,
+    maxn: 20,
+    weightf: dist => 1 / (dist + 1e-6) ** 2
+  }
+  let mesh = null
+  let centers = null
+  let mapping = null
+  let weights = null
+
+  function from(mesh_) {
+    mesh = mesh_
+    centers = []
+    const positions = mesh.geometry.getAttribute('position').array
+    for (let i = 0; i < positions.length; i += 18) {
+      const corners = []
+      const sum = new THREE.Vector3()
+      for (let j = 0; j < 6; j++) {
+        const v = new THREE.Vector3(
+          positions[i + j * 3 + 0],
+          positions[i + j * 3 + 1],
+          positions[i + j * 3 + 2]
+        )
+        let k
+        for (k = 0; k < corners.length; k++) {
+          if (v.equals(corners[k])) break
+        }
+        if (k >= corners.length) {
+          corners.push(v)
+          sum.add(v)
+        }
       }
-      if (k >= corners.length) {
-        corners.push(v)
-        sum.add(v)
-      }
+      if (corners.length !== 4) throw `Invalid quad at i=${i}`
+      centers.push(sum.divideScalar(4))
     }
-    if (corners.length !== 4) throw `Invalid quad at i=${i}`
-    centers.push(sum.divideScalar(4))
+    regenerate()
   }
 
-  const weights = []  // of lists of [pixel_i, weight]
-  const onready = fetch('3D/mapping.json'
-  ).then(res => res.json()).then(mapping => {
+  function regenerate() {
+    if (!mapping || !centers) return
     const t0 = Date.now()
-    mapping = mapping.xyz_mapping
     // Bucketize space into cubes of length `d`.
-    const d = 0.1
+    const d = options.d
     const buck = x => Math.floor(x / d)
     const unbuck = x => x * d
     const diag = (3 * d / 2) ** .5
@@ -107,9 +120,10 @@ export const Mapping = mesh => {
       bs.get(b).push([pixel_i, new THREE.Vector3(xyz[0], xyz[1], xyz[2])])
     })
 
-    const radius = 0.3
-    const maxn = 20
-    const weightf = dist => 1 / (dist + 1e-6) ** 2
+    const radius = options.radius
+    const maxn = options.maxn
+    const weightf = options.weightf
+    weights = []
     centers.forEach(center => {
       const ws = []
       weights.push(ws)
@@ -132,6 +146,7 @@ export const Mapping = mesh => {
         w[1] /= sum
       })
     })
+
     const bsps = Array.from(bs.entries()).map(([b, points]) => points.length)
     console.log(
       'mapping',
@@ -144,9 +159,20 @@ export const Mapping = mesh => {
       '.max', Math.max.apply(null, weights.map(ws => ws.length)),
       '.avg', weights.reduce((acc, ws) => acc + ws.length, 0),
       'ms', Date.now() - t0)
+
+    if (lvalues) load(lvalues)
+  }
+
+  fetch('3D/mapping.json').then(res => res.json()).then(mappings => {
+    mapping = mappings.xyz_mapping
+    regenerate()
   })
 
+  let lvalues = null
   function load(values) {
+    lvalues = values
+    if (!weights) return
+    const t0 = Date.now()
     const colors = new Float32Array(centers.length * 18)
     const color = new THREE.Color()
     for (let i = 0; i < centers.length; i++) {
@@ -163,11 +189,18 @@ export const Mapping = mesh => {
       }
     }
     mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    console.log('load', Date.now() - t0, 'ms')
+  }
+
+  function set(opts) {
+    options = {...options, ...opts}
+    regenerate()
   }
 
   return {
     load,
-    onready,
+    set,
+    from,
   }
 }
 
@@ -289,6 +322,7 @@ export const Scene = (container, options) => {
   return {
     animate,
     add: obj => scene.add(obj),
+    gui,
   }
 }
 
@@ -296,40 +330,34 @@ export const Nuru = scene => {
   const arms = Array.from(new Array(6)).map(() => new Array(2))
   const strips = Array.from(new Array(16)).map(() => null)
   const loader = new FBXLoader();
+  const mapping = Mapping()
   let lowres, colored
-  const onready = new Promise((resolve, reject) => {
-    let found = false
-    function update() {
-      // scene.add(MakeWireframe2(lowres))
-      colored = Colored(lowres)
-      scene.add(colored)
-      // scene.add(new THREE.Mesh(lowres.geometry, colW));
-      resolve()
-    }
-    function rek(child) {
-      if (child.children.length) {
-        child.children.forEach(rek)
-      }
-      if (child.name === 'lowres') {
-        found = true
-        window.lowres = child  //dbg
-        lowres = child
-        window.setTimeout(update, 0)
-        return
-      }
-    }
-    loader.load('3d/kinect_lowres.fbx', function(obj) {
-      window.obj = obj  //dbg
-      obj.children.forEach(rek)
-      if (!found) reject()
-    });
-  })
-  function obj() {
-    return colored
+  function update() {
+    // scene.add(MakeWireframe2(lowres))
+    colored = Colored(lowres)
+    mapping.from(colored)
+    scene.add(colored)
+    // scene.add(new THREE.Mesh(lowres.geometry, colW));
   }
+  function rek(child) {
+    if (child.children.length) {
+      child.children.forEach(rek)
+    }
+    if (child.name === 'lowres') {
+      window.lowres = child  //dbg
+      lowres = child
+      window.setTimeout(update, 0)
+      return
+    }
+  }
+  loader.load('3d/kinect_lowres.fbx', function(obj) {
+    window.obj = obj  //dbg
+    obj.children.forEach(rek)
+  });
   return {
-    onready,
-    obj,
+    load: mapping.load,
+    loadjson: path => fetch(path).then(res => res.json()).then(mapping.load),
+    remap: opts => mapping.set(opts),
   }
 }
 
