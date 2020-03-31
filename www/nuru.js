@@ -13,16 +13,11 @@ import { WireframeGeometry2 } from './threejs/WireframeGeometry2.js'
 
 // improvement ideas
 // - better camera controls
-// - quads not triangles
-// - thicker wireframe
 
 
 // https://github.com/mrdoob/three.js/blob/master/examples/webgl_interactive_buffergeometry.html
 // - raycaster to find intersecting element
 // - set individual colors as BufferedGeometry color attribute
-
-// https://github.com/mrdoob/three.js/blob/master/examples/webgl_lines_fat_wireframe.html
-// - fat wireframe
 
 const Geometry = mesh => {
   const positions = mesh.geometry.getAttribute('position').array
@@ -34,6 +29,7 @@ const Geometry = mesh => {
   const pC = new THREE.Vector3()
   const cb = new THREE.Vector3()
   const ab = new THREE.Vector3()
+  let idx = 0
   for (let i = 0; i < positions.length; i += 9) {
     pA.set(positions[i + 0], positions[i + 1], positions[i + 2])
     pB.set(positions[i + 3], positions[i + 4], positions[i + 5])
@@ -42,7 +38,8 @@ const Geometry = mesh => {
     cb.subVectors(pC, pB)
     cb.cross(ab)
     cb.normalize()
-    color.setRGB(Math.random(), 0, 0)
+    if (idx < 2) console.log(idx, pA, pB, pC)
+    if (++idx % 2) color.setRGB(Math.random(), 0, 0)
     for (let j = 0; j < 3; j++) {
       normals[i + j * 3 + 0] = cb.x
       normals[i + j * 3 + 1] = cb.y
@@ -52,6 +49,7 @@ const Geometry = mesh => {
       colors [i + j * 3 + 2] = color.b
     }
   }
+  console.log('triangles', idx, 'quads', idx / 2)
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3))
@@ -59,6 +57,118 @@ const Geometry = mesh => {
   geometry.computeBoundingSphere()
   console.log(geometry)
   return geometry
+}
+
+export const Mapping = mesh => {
+  const positions = mesh.geometry.getAttribute('position').array
+  const centers = []
+  for (let i = 0; i < positions.length; i += 18) {
+    const corners = []
+    const sum = new THREE.Vector3()
+    for (let j = 0; j < 6; j++) {
+      const v = new THREE.Vector3(
+        positions[i + j * 3 + 0],
+        positions[i + j * 3 + 1],
+        positions[i + j * 3 + 2]
+      )
+      let k
+      for (k = 0; k < corners.length; k++) {
+        if (v.equals(corners[k])) break
+      }
+      if (k >= corners.length) {
+        corners.push(v)
+        sum.add(v)
+      }
+    }
+    if (corners.length !== 4) throw `Invalid quad at i=${i}`
+    centers.push(sum.divideScalar(4))
+  }
+
+  const weights = []  // of lists of [pixel_i, weight]
+  const onready = fetch('3D/mapping.json'
+  ).then(res => res.json()).then(mapping => {
+    const t0 = Date.now()
+    mapping = mapping.xyz_mapping
+    // Bucketize space into cubes of length `d`.
+    const d = 0.1
+    const buck = x => Math.floor(x / d)
+    const unbuck = x => x * d
+    const diag = (3 * d / 2) ** .5
+    const bucket = xyz => `${buck(xyz[0])}_${buck(xyz[1])}_${buck(xyz[2])}`
+    const buckcenter = b => {
+      const xyz = b.split(/_/).map(x => unbuck(parseFloat(x)))
+      return new THREE.Vector3(xyz[0] + d / 2, xyz[1] + d / 2, xyz[2] + d / 2)
+    }
+
+    const bs = new Map()
+    mapping.forEach((xyz, pixel_i) => {
+      const b = bucket(xyz)
+      if (!bs.has(b)) bs.set(b, [])
+      bs.get(b).push([pixel_i, new THREE.Vector3(xyz[0], xyz[1], xyz[2])])
+    })
+
+    const radius = 0.3
+    const maxn = 20
+    const weightf = dist => 1 / (dist + 1e-6) ** 2
+    centers.forEach(center => {
+      const ws = []
+      weights.push(ws)
+      Array.from(bs.entries()).forEach(([b, points]) => {
+        const dist = buckcenter(b).distanceTo(center)
+        if (dist > radius + diag) return
+        points.forEach(([pixel_i, v]) => {
+          const dist = v.distanceTo(center)
+          if (dist > radius) return
+          const w = weightf(dist)
+          ws.push([pixel_i, w])
+        })
+      })
+      if (ws.length > maxn) {
+        ws.sort((w1, w2) => w2[1] - w1[1])
+        while (ws.length > maxn) ws.pop()
+      }
+      const sum = ws.reduce((acc, w) => acc + w[1], 0)
+      ws.forEach(w => {
+        w[1] /= sum
+      })
+    })
+    const bsps = Array.from(bs.entries()).map(([b, points]) => points.length)
+    console.log(
+      'mapping',
+      'buckets', bsps.length,
+      '.min', Math.min.apply(null, bsps),
+      '.max', Math.max.apply(null, bsps),
+      '.avg', bsps.reduce((acc, n) => acc + n),
+      'weights', weights.length,
+      '.min', Math.min.apply(null, weights.map(ws => ws.length)),
+      '.max', Math.max.apply(null, weights.map(ws => ws.length)),
+      '.avg', weights.reduce((acc, ws) => acc + ws.length, 0),
+      'ms', Date.now() - t0)
+  })
+
+  function load(values) {
+    const colors = new Float32Array(centers.length * 18)
+    const color = new THREE.Color()
+    for (let i = 0; i < centers.length; i++) {
+      let r = 0, g = 0, b = 0
+      weights[i].forEach(([pixel_i, w]) => {
+        r += values[pixel_i * 3 + 0] * w
+        g += values[pixel_i * 3 + 1] * w
+        b += values[pixel_i * 3 + 2] * w
+      })
+      for (let j = 0; j < 6; j++) {
+        colors[i * 18 + j * 3 + 0] = r / 255
+        colors[i * 18 + j * 3 + 1] = g / 255
+        colors[i * 18 + j * 3 + 2] = b / 255
+      }
+    }
+    mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  }
+
+  return {
+    load,
+    onready,
+  }
 }
 
 const Colored = mesh => {
@@ -69,6 +179,8 @@ const Colored = mesh => {
   return new THREE.Mesh(Geometry(mesh), material2)
 }
 
+// https://github.com/mrdoob/three.js/blob/master/examples/webgl_lines_fat_wireframe.html
+// buggy : currently freezes renderer ...
 const MakeWireframe = mesh => {
   const material = new LineMaterial({
     color: 0x00ff00, lineWidth: 3, dashed: false,
@@ -80,7 +192,7 @@ const MakeWireframe = mesh => {
   return wireframe
 }
 
-const Wireframe2 = mesh => {
+const MakeWireframe2 = mesh => {
   const material = new THREE.MeshBasicMaterial({
     color: 0x00ff00,
     wireframe: true,
@@ -141,7 +253,8 @@ export const Scene = (container, options) => {
   stats = new Stats();
   container.appendChild(stats.dom);
 
-  window.controls = controls = new TrackballControls(camera, renderer.domElement);
+  window.controls = controls = new TrackballControls(
+    camera, renderer.domElement);
 
   const gui = new GUI()
   gui.close()
@@ -183,35 +296,40 @@ export const Nuru = scene => {
   const arms = Array.from(new Array(6)).map(() => new Array(2))
   const strips = Array.from(new Array(16)).map(() => null)
   const loader = new FBXLoader();
-  let lowres
-  function update() {
-    // scene.add(Colored(lowres))
-    scene.add(MakeWireframe(lowres))
-    // scene.add(new THREE.Mesh(lowres.geometry, colW));
+  let lowres, colored
+  const onready = new Promise((resolve, reject) => {
+    let found = false
+    function update() {
+      // scene.add(MakeWireframe2(lowres))
+      colored = Colored(lowres)
+      scene.add(colored)
+      // scene.add(new THREE.Mesh(lowres.geometry, colW));
+      resolve()
+    }
+    function rek(child) {
+      if (child.children.length) {
+        child.children.forEach(rek)
+      }
+      if (child.name === 'lowres') {
+        found = true
+        window.lowres = child  //dbg
+        lowres = child
+        window.setTimeout(update, 0)
+        return
+      }
+    }
+    loader.load('3d/kinect_lowres.fbx', function(obj) {
+      window.obj = obj  //dbg
+      obj.children.forEach(rek)
+      if (!found) reject()
+    });
+  })
+  function obj() {
+    return colored
   }
-  function rek(child) {
-    if (child.children.length) {
-      child.children.forEach(rek)
-    }
-    if (child.name === 'lowres') {
-      window.setTimeout(update, 0)
-      window.lowres = lowres = child
-      return
-    }
-    const [name, numbers] = child.name.split(/_/)
-    if (numbers && name === 'arm') {
-      let [arm, idx] = numbers.split(/-/).map(v => parseInt(v) - 1)
-      arms[arm][idx] = child
-    } else if (numbers && name === 'strip') {
-      strips[parseInt(numbers, 16)] = child
-    }
-  }
-  loader.load('3d/kinect_lowres.fbx', function(obj) {
-    window.obj = obj
-    obj.children.forEach(rek)
-  });
   return {
-    arms, strips,
+    onready,
+    obj,
   }
 }
 

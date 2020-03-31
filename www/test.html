@@ -11,13 +11,21 @@
 
 <script type="module">
 
-import { Scene, Nuru, Test } from './nuru.js';
+import { Scene, Nuru, Test, Mapping } from './nuru.js';
 
 const container = document.createElement('div')
 document.body.appendChild(container)
 
 const scene = Scene(container)
-const nuru = window.nuru = Nuru(scene)
+const nuru = Nuru(scene)
+let mapping
+nuru.onready.then(() => {
+  mapping = Mapping(nuru.obj())
+  return mapping.onready
+}).then(() => fetch('3D/test.json')
+).then(res => res.json()
+).then(values => mapping.load(values)
+)
 scene.animate()
 
 // Test()
