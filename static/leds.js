@@ -1,18 +1,59 @@
-import { h, colors } from './smanmi/util.js'
+import { h, colors, ui } from './smanmi/util.js'
+import { Scene, Nuru } from './nuru.js';
 
 export const Leds = (output) => {
 
-  let mapping = null
-  fetch('/mapping').then(res => res.json()).then(json => mapping = json)
+  let phi_r_mapping = null
 
   const width=800, height=600
   const rows=32, cols=64, sz=10
 
-  const disp = h.div({class: 'flex'}).of(
-    h.canvas('leds', {width, height}),
-    h.button('pause').of('pause'),
-    h.button('download').of('download'),
+  const disp = ui.h(
+    ui.v(
+      h.canvas('rphi', {width, height}),
+      h.div('xyz', {class: 'xyz'}),
+    ),
+    ui.v(
+      ui.choice('view', {values: ['r-phi', 'x-y-z']}),
+      h.div('xyzcontrols').of(ui.h(
+        'fps ',
+        ui.dropdown('fps', {values: ['10', '20', '30', '60']}),
+        ui.toggle('wireframe'),
+        ui.toggle('stats'),
+      )),
+      ui.h(
+        h.button('pause').of('pause'),
+        h.button('download').of('download'),
+      ),
+    ),
   ).into(output).els
+
+  const scene = Scene(disp.xyz, {width, height})
+  const nuru = Nuru(scene)
+  fetch('/mapping').then(res => res.json()).then(mapping => {
+    phi_r_mapping = mapping.phi_r
+    nuru.mapping(mapping.xyz)
+  })
+
+  let view = null
+  disp.view.change(value => {
+    view = value
+    if (view == 'r-phi') {
+      disp.xyz.style.display = 'none'
+      disp.xyzcontrols.style.display = 'none'
+      disp.rphi.style.display = 'block'
+      scene.stop()
+    } else {
+      disp.xyz.style.display = 'block'
+      disp.xyzcontrols.style.display = 'block'
+      disp.rphi.style.display = 'none'
+      scene.start()
+    }
+  })
+
+  disp.fps.change(fps => scene.fps(parseFloat(fps)))
+  disp.wireframe.change(nuru.wireframe)
+  disp.stats.change(scene.stats)
 
   let paused = false
   disp.pause.addEventListener('click', () => {
@@ -30,7 +71,7 @@ export const Leds = (output) => {
     document.body.removeChild(a)
   })
 
-  const ctx = disp.leds.getContext('2d')
+  const ctx = disp.rphi.getContext('2d')
 
   function led(phi, r, col) {
     const x = width / 2 + Math.sin(phi) * r * 77
@@ -41,7 +82,11 @@ export const Leds = (output) => {
 
   let lvalues = null
   function listener(values) {
-    if (paused || !mapping) {
+    if (paused || !phi_r_mapping) {
+      return
+    }
+    if (view === 'x-y-z') {
+      nuru.load(values)
       return
     }
     lvalues = values
@@ -54,7 +99,7 @@ export const Leds = (output) => {
         colors.hex2[values[3 * i + 1]] +
         colors.hex2[values[3 * i + 2]]
       )
-      const [phi, r] = mapping.phi_r[i]
+      const [phi, r] = phi_r_mapping[i]
       led(phi, r, col)
       // ctx.fillStyle = col
       // ctx.fillRect(x*sz, y*sz, sz, sz)
