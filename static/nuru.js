@@ -1,7 +1,3 @@
-//////////////////////////////////////////////////////
-// Note : should be replaced with ../static/nuru.js //
-//////////////////////////////////////////////////////
-
 import * as THREE from './threejs/three.module.js'
 
 import Stats from './threejs/stats.module.js'
@@ -9,7 +5,6 @@ import Stats from './threejs/stats.module.js'
 import { FBXLoader } from './threejs/FBXLoader.js'
 import { TrackballControls } from './threejs/TrackballControls.js'
 import { OrbitControls } from './threejs/OrbitControls.js'
-import { GUI } from './threejs/dat.gui.module.js'
 import { LineMaterial } from './threejs/LineMaterial.js'
 import { Wireframe } from './threejs/Wireframe.js'
 import { WireframeGeometry2 } from './threejs/WireframeGeometry2.js'
@@ -41,7 +36,6 @@ const Geometry = mesh => {
     cb.subVectors(pC, pB)
     cb.cross(ab)
     cb.normalize()
-    if (idx < 2) console.log(idx, pA, pB, pC)
     if (++idx % 2) color.setRGB(Math.random(), 0, 0)
     for (let j = 0; j < 3; j++) {
       normals[i + j * 3 + 0] = cb.x
@@ -52,13 +46,11 @@ const Geometry = mesh => {
       colors [i + j * 3 + 2] = color.b
     }
   }
-  console.log('triangles', idx, 'quads', idx / 2)
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3))
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
   geometry.computeBoundingSphere()
-  console.log(geometry)
   return geometry
 }
 
@@ -167,16 +159,10 @@ const Mapping = () => {
     if (lvalues) load(lvalues)
   }
 
-  fetch('3D/mapping.json').then(res => res.json()).then(mappings => {
-    mapping = mappings.xyz_mapping
-    regenerate()
-  })
-
   let lvalues = null
   function load(values) {
     lvalues = values
     if (!weights) return
-    const t0 = Date.now()
     const colors = new Float32Array(centers.length * 18)
     const color = new THREE.Color()
     for (let i = 0; i < centers.length; i++) {
@@ -193,18 +179,19 @@ const Mapping = () => {
       }
     }
     mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-    console.log('load', Date.now() - t0, 'ms')
-  }
-
-  function set(opts) {
-    options = {...options, ...opts}
-    regenerate()
   }
 
   return {
-    load,
-    set,
     from,
+    load,
+    mapping: xyz_mapping => {
+      mapping = xyz_mapping
+      regenerate()
+    },
+    set: opts => {
+      options = {...options, ...opts}
+      regenerate()
+    },
   }
 }
 
@@ -212,7 +199,7 @@ const Colored = mesh => {
   const material2 = new THREE.MeshBasicMaterial({
     color: 0xffffff, vertexColors: true,
     transparent: false, opacity: 0.5,
-  });
+  })
   return new THREE.Mesh(Geometry(mesh), material2)
 }
 
@@ -221,7 +208,7 @@ const Colored = mesh => {
 const MakeWireframe = mesh => {
   const material = new LineMaterial({
     color: 0x00ff00, lineWidth: 3, dashed: false,
-  });
+  })
   const geometry = new WireframeGeometry2(mesh.geometry)
   const wireframe = new Wireframe(geometry, material)
   wireframe.computeLineDistances()
@@ -234,7 +221,7 @@ const MakeWireframe2 = mesh => {
     color: 0x00ff00,
     wireframe: true,
     wireframeLinewidth: 30,
-  });
+  })
   return new THREE.Mesh(mesh.geometry, material)
   // const material = new THREE.LineBasicMaterial({
   //   color: 0xffffff, transparent: true,
@@ -262,86 +249,98 @@ const Colorer = (mesh, mapping) => {
 export const Scene = (container, options) => {
   window.THREE = THREE
   options = options || {}
-  let fps = options.fps || 10
+  options.fps = options.fps || 10
+  options.width = options.width || window.innerWidth
+  options.height = options.height || window.innerHeight
   let stats, camera, cameraTarget, scene, renderer, controls
 
   camera = new THREE.PerspectiveCamera(
-    50, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set(0, -6, 2);
-  cameraTarget = new THREE.Vector3( 0, 0, 0 );
+    50, options.width / options.height, 0.1, 1000)
+  camera.position.set(0, -6, 2)
+  cameraTarget = new THREE.Vector3( 0, 0, 0 )
 
-  scene = new THREE.Scene();
+  scene = new THREE.Scene()
 
   // Ground
   var plane = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry( 40, 40 ),
-    new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
-  );
-  plane.rotation.x = - Math.PI / 2;
-  plane.position.y = - 0.5;
+    new THREE.PlaneBufferGeometry(40, 40),
+    new THREE.MeshPhongMaterial({ color: 0x999999, specular: 0x101010 })
+  )
+  plane.rotation.x = - Math.PI / 2
+  plane.position.y = - 0.5
   plane.receiveShadow = true;
-  // scene.add( plane );
+  // scene.add( plane )
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  container.appendChild(renderer.domElement);
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setPixelRatio( window.devicePixelRatio )
+  renderer.setSize(options.width, options.height)
+  container.appendChild(renderer.domElement)
 
-  stats = new Stats();
-  container.appendChild(stats.dom);
+  stats = new Stats()
+  container.appendChild(stats.dom)
 
   window.controls = controls = new TrackballControls(
-    camera, renderer.domElement);
+    camera, renderer.domElement)
 
-  const gui = new GUI()
-  gui.close()
-  const param = { fps }
-  gui.add(param, 'fps', { 10: 10, 20: 20, 30: 30, max: 1000}).onChange(
-    val => { fps = parseInt(val) }
-  )
-
-  window.addEventListener( 'resize', onWindowResize, false );
+  if (options.width === window.innerWidth
+      && options.height === window.innerHeight) {
+    window.addEventListener('resize', onWindowResize, false)
+  }
   function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize( window.innerWidth, window.innerHeight )
   }
 
   let t0 = Date.now()
+  let running = false
+  function start() {
+    if (running) return
+    running = true
+    animate()
+  }
+  function stop() {
+    if (!running) return
+    running = false
+  }
   function animate() {
-    requestAnimationFrame(animate);
+    if (!running) return
+    requestAnimationFrame(animate)
     const now = Date.now()
-    if (now - t0 > 1e3 / fps) {
+    if (now - t0 > 1e3 / options.fps) {
       t0 = now
-      render();
-      stats.update();
+      render()
+      stats.update()
     }
   }
 
   function render() {
-    controls.update();
-    renderer.render( scene, camera );
+    controls.update()
+    renderer.render(scene, camera)
   }
 
   return {
-    animate,
+    start,
+    stop,
     add: obj => scene.add(obj),
-    gui,
+    remove: obj => scene.remove(obj),
+    fps: value => options.fps = value,
+    stats: show => stats.dom.style.display = show ? 'block' : 'none'
   }
 }
 
 export const Nuru = scene => {
   const arms = Array.from(new Array(6)).map(() => new Array(2))
   const strips = Array.from(new Array(16)).map(() => null)
-  const loader = new FBXLoader();
+  const loader = new FBXLoader()
   const mapping = Mapping()
-  let lowres, colored
+  let lowres, colored, wireframe
   function update() {
-    // scene.add(MakeWireframe2(lowres))
+    wireframe = MakeWireframe2(lowres)
     colored = Colored(lowres)
     mapping.from(colored)
     scene.add(colored)
-    // scene.add(new THREE.Mesh(lowres.geometry, colW));
+    // scene.add(new THREE.Mesh(lowres.geometry, colW))
   }
   function rek(child) {
     if (child.children.length) {
@@ -357,55 +356,13 @@ export const Nuru = scene => {
   loader.load('3d/kinect_lowres.fbx', function(obj) {
     window.obj = obj  //dbg
     obj.children.forEach(rek)
-  });
+  })
   return {
     load: mapping.load,
-    loadjson: path => fetch(path).then(res => res.json()).then(mapping.load),
+    mapping: xyz_mapping => mapping.mapping(xyz_mapping),
     remap: opts => mapping.set(opts),
+    wireframe: show => {
+      scene[show ? 'add' : 'remove'](wireframe)
+    },
   }
-}
-
-export const Test = () => {
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(
-    75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-
-  var renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  var geometry = new THREE.BoxGeometry(1, 1, 1);
-  var red = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-  var redW = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true });
-  var green = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  var cube = new THREE.Mesh(geometry, green);
-  window.cube = cube;
-  // scene.add(cube);
-
-  camera.position.z = 5;
-  let controls = new TrackballControls(camera, renderer.domElement);
-
-  var animate = function () {
-    requestAnimationFrame( animate );
-
-    red.color.setHex(0x800000);
-
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-
-    controls.update();
-    renderer.render(scene, camera);
-  };
-
-  const loader = new FBXLoader();
-  loader.load('cube.fbx', function(obj) {
-    console.log(obj);
-    const cube2 = window.cube2 = obj.children.find(child => child.name === 'Cube');
-    // scene.add(new THREE.Mesh(cube2.geometry, [red, green]));
-    scene.add(new THREE.Mesh(cube2.geometry, redW));
-    // cube2.material = [red, green];
-    // scene.add(cube2);
-  });
-
-  animate();
 }
