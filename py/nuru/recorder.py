@@ -60,7 +60,7 @@ class InputStreamer(object):
         data16 = np.frombuffer(data, settings.dtype_np)
         if settings.in_channels == 2:
             data16l, data16r = audio.fromstereo(data16)
-            data16 = settings.in_channels_comination(data16l, data16r)
+            data16 = settings.in_channel_combination(data16l, data16r)
         data = util.int16_to_float(data16)
         data = hp_effects.microphone(data)
         self.t += float(len(data)) / settings.rate
