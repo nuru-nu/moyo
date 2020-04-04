@@ -120,7 +120,7 @@ def to_string():
 # network
 ###############################################################################
 
-address = server_address = status_address = '127.0.0.1'
+address = server_address = status_address = midi_address = '127.0.0.1'
 #status_address = 'figur.li'
 #server_address = '0.0.0.0'
 

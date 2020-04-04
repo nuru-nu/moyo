@@ -1,9 +1,18 @@
+import argparse
+
 from smanmi import hotplug
 from smanmi import integrator
 from smanmi import logic as L
 from smanmi import state
 from smanmi import util
 from . import settings
+
+
+parser = argparse.ArgumentParser(description='Integrates signals for NURU.')
+parser.add_argument(
+        '--midi_address', type=str, default=settings.midi_address,
+        help='Address of machine running `smanmi.midi` script.')
+args = parser.parse_args()
 
 
 class Integrator(integrator.Integrator):
@@ -18,14 +27,14 @@ class Integrator(integrator.Integrator):
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,
-                settings.midi_sig_port,
+                (args.midi_address, settings.midi_sig_port),
             ),
             cmd_in_ports=(settings.integrator_cmd_port,),
             cmd_out_ports=(
                 settings.recorder_cmd_port,
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
-                settings.midi_cmd_port,
+                (args.midi_address, settings.midi_cmd_port),
             ),
         )
         self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
