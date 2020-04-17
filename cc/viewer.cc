@@ -1,5 +1,11 @@
 #include "viewer.h"
 
+#include <stdlib.h>
+#include <string.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <unistd.h>
+
 #include "util.h"
 
 namespace {
@@ -20,15 +26,68 @@ void apply_overlay(const cv::Mat& overlay, cv::Mat* const image) {
   overlay_brg.copyTo(*image, brga[3]);
 }
 
+struct termios orig_termios;
+
+void reset_terminal_mode() {
+    tcsetattr(0, TCSANOW, &orig_termios);
+}
+
+// Sets character mode in stdin (instead of default line mode).
+void set_conio_terminal_mode() {
+    struct termios new_termios;
+
+    /* take two copies - one for now, one for later */
+    tcgetattr(0, &orig_termios);
+    memcpy(&new_termios, &orig_termios, sizeof(new_termios));
+
+    /* register cleanup handler, and set the new terminal mode */
+    atexit(reset_terminal_mode);
+    cfmakeraw(&new_termios);
+    new_termios.c_oflag |= OPOST;
+    tcsetattr(0, TCSANOW, &new_termios);
+}
+
+// Returns 0 if no keyboard stroke is available.
+int kbhit() {
+    struct timeval tv = { 0L, 0L };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(0, &fds);
+    return select(1, &fds, NULL, NULL, &tv);
+}
+
+// Returns character, or <0 if error occured.
+int getch() {
+  int r;
+  unsigned char c;
+  if ((r = read(0, &c, sizeof(c))) < 0) {
+    return r;
+  } else {
+    return c;
+  }
+}
+
 }  // namespace
 
-Viewer::Viewer() : hz_(kHzSlow ) {
-  cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
+Viewer::Viewer(const bool gui) : hz_(kHzSlow), gui_(gui) {
   last_t_ = t0_ = std::chrono::high_resolution_clock::now();
+  if (gui) {
+    cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
+  } else {
+    set_conio_terminal_mode();
+    std::cerr << R"(
+Commands:
+  - <ENTER> : outputs information & stores a single "kinect_frame.jpg"
+  - <SPACE> : reset features
+  - q : quit
+  - s : stores a single pointcloud
+  - r : starts pointcloud recording
+)" << std::endl;
+  }
 }
 
 void Viewer::draw_process_key() {
-  const int key = cv::waitKey(1);
+  const int key = gui_ ? cv::waitKey(1) : (kbhit() ? getch() : -1);
   if (key == (int) 'q') {
     should_quit_ = true;
   }
@@ -38,6 +97,7 @@ void Viewer::draw_process_key() {
   should_store_ = key == (int) 's';
   should_record_ = key == (int) 'r';
   should_reset_ = key == (int) ' ';
+  should_dump_ = key == 13;
 }
 
 void Viewer::update_graphs(const cv::Mat& img, const Features& features) {
@@ -81,26 +141,42 @@ void Viewer::update(const cv::Mat& img, const Features& features) {
   last_t_ = t;
   const long long t0_microseconds =
     std::chrono::duration_cast<std::chrono::microseconds>(t - t0_).count();
-  if (t0_microseconds < 1e6 / hz_) {
+  if (!should_dump_ && t0_microseconds < 1e6 / hz_) {
     return;
   }
   t0_ = t;
 
-  double min, max;
-  cv::Point minloc, maxloc;
-  cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
-  cv::Mat img_brg;
-  cv::cvtColor((img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
-  img_brg.convertTo(img_brg, CV_8UC3, /*alpha=*/255.0);
-
-  cv::putText(
-      img_brg, string_format("presence=%.2f", features.presence()),
-      cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+  const std::string features_string =
+    string_format("presence=%.2f", features.presence());
   const double fps = 1e6 / static_cast<double>(microseconds);
-  cv::putText(
-      img_brg, string_format("fps=%.2f display_fps=%.2f", fps, hz_),
-      cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+  const std::string fps_string =
+    string_format("fps=%.2f display_fps=%.2f", fps, hz_);
 
-  apply_overlay(graphs_, &img_brg);
-  cv::imshow("viewer", img_brg);
+  if (gui_ || should_dump_) {
+    double min, max;
+    cv::Point minloc, maxloc;
+    cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
+    cv::Mat img_brg;
+    cv::cvtColor((img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
+    img_brg.convertTo(img_brg, CV_8UC3, /*alpha=*/255.0);
+
+    cv::putText(
+        img_brg, features_string,
+        cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+    cv::putText(
+        img_brg, fps_string,
+        cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+
+    apply_overlay(graphs_, &img_brg);
+    if (gui_) {
+      cv::imshow("viewer", img_brg);
+    }
+    if (should_dump_) {
+      cv::imwrite("kinect_frame.jpg", img_brg);
+      std::cout << "Stored frame to \"kinect_frame.jpg\"" << std::endl;
+    }
+  }
+  if (!gui_) {
+    std::cout << features_string << ' ' << fps_string << std::endl;
+  }
 }
