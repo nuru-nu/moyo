@@ -21,7 +21,8 @@
 #include <NiteSampleUtilities.h>
 #endif
 
-const int kSignalinPort = 6101;
+const int kSignalinPort = 6100;
+const int kCmdPort = 6111;
 bool running = true;
 
 void sigint_handler(int s) {
@@ -30,7 +31,6 @@ void sigint_handler(int s) {
 }
 
 int main(const int argc, const char** const argv) {
-  const int signalin_port = 6100;
 
 #ifdef USE_PCL
   std::cout << "Compiled with USE_PCL" << std::endl;
@@ -66,7 +66,7 @@ int main(const int argc, const char** const argv) {
 
   Features features;
   Viewer viewer(gui);
-  SignalSender sender(kSignalinPort);
+  SignalSender sender(kSignalinPort, kCmdPort);
 
   signal(SIGINT, sigint_handler);
   while (running && !viewer.should_quit()) {
