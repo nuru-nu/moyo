@@ -21,7 +21,7 @@
 class Hardware {
   public:
     // Also initializes Kinect and exits program in case of error.
-    Hardware(bool rgb = false);
+    Hardware(bool rgb = false, bool simulate = false);
 
     // Waits for another frame. Returns `false` in case of error.
     bool next();
@@ -47,6 +47,8 @@ class Hardware {
 
   private:
     const bool rgb_;
+    const bool simulate_;
+    cv::Mat simulated_depth_, simulated_ir_, simulated_rgb_;
     int frame_ = 0;
     libfreenect2::FrameMap frames_;
     std::unique_ptr<libfreenect2::Freenect2> freenect2_;

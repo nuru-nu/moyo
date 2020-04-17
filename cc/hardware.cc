@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
+#include <unistd.h>
 
 #ifdef USE_PCL
 #include <pcl/io/pcd_io.h>
@@ -42,7 +43,8 @@ const bool kEnableDepth = true;
 //   return dt_string + ":" + std::to_string(millisec);
 // }
 
-Hardware::Hardware(const bool rgb) : rgb_(rgb) {
+Hardware::Hardware(const bool rgb, const bool simulate)
+  : rgb_(rgb), simulate_(simulate) {
   freenect2_ = std::unique_ptr<libfreenect2::Freenect2>(
       new libfreenect2::Freenect2);
 
@@ -54,6 +56,14 @@ Hardware::Hardware(const bool rgb) : rgb_(rgb) {
   }
   listener_ = std::unique_ptr<libfreenect2::SyncMultiFrameListener>(
       new libfreenect2::SyncMultiFrameListener(listener_types));
+
+  if (simulate_) {
+    std::cerr << "SIMULATING kinect data" << std::endl;
+    simulated_depth_ = cv::Mat(480, 640, CV_32FC1);
+    simulated_ir_ = cv::Mat(480, 640, CV_32FC1);
+    simulated_rgb_ = cv::Mat(480, 640, CV_8UC4);
+    return;
+  }
 
   libfreenect2::PacketPipeline *pipeline = 0;
   const std::string serial = freenect2_->getDefaultDeviceSerialNumber();
@@ -107,27 +117,37 @@ bool Hardware::next() {
     }
 #endif
 
-    listener_->release(frames_);
+    if (!simulate_) {
+      listener_->release(frames_);
+    }
+  }
+  if (simulate_) {
+    usleep(1e6 / 60);
+    return true;
   }
   return listener_->waitForNewFrame(frames_, 10 * 1000);
 }
 
 cv::Mat Hardware::depth() {
+  if (simulate_) return simulated_depth_;
   const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
   return cv::Mat(depth->height, depth->width, CV_32FC1, depth->data).clone();
 }
 
-cv::Mat Hardware::rgb() {
-  const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  return cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
-}
-
 cv::Mat Hardware::ir() {
+  if (simulate_) return simulated_ir_;
   const libfreenect2::Frame* const ir = frames_[libfreenect2::Frame::Ir];
   return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
 }
 
+cv::Mat Hardware::rgb() {
+  if (simulate_) return simulated_rgb_;
+  const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
+  return cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
+}
+
 void Hardware::close() {
+  if (simulate_) return;
   dev_->stop();
   dev_->close();
 }
