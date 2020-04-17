@@ -3,15 +3,12 @@
 #include <iostream>
 #include <string>
 #include <stdio.h>
-#include <unistd.h>
 
-#ifdef USE_PCL
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
-#endif
 
 #include "util.h"
 
@@ -21,186 +18,112 @@ const bool kEnableDepth = true;
 
 }  // namespace
 
-// std::string datetime_str(){
-//   char buffer[26];
-//   int millisec;
-//   struct tm* tm_info;
-//   struct timeval tv;
 
-//   gettimeofday(&tv, NULL);
+Hardware::Hardware(void) {
 
-//   millisec = lrint(tv.tv_usec/1000.0); // Round to nearest millisec
-//   if (millisec>=1000) { // Allow for rounding up to nearest second
-//     millisec -=1000;
-//     tv.tv_sec++;
-//   }
+  nite::NiTE::initialize();
 
-//   tm_info = localtime(&tv.tv_sec);
-
-//   strftime(buffer, 26, "%Y:%m:%d_%H:%M:%S", tm_info);
-//   std::string dt_string = buffer;
-
-//   return dt_string + ":" + std::to_string(millisec);
-// }
-
-Hardware::Hardware(const bool rgb, const bool simulate)
-  : rgb_(rgb), simulate_(simulate) {
-  freenect2_ = std::unique_ptr<libfreenect2::Freenect2>(
-      new libfreenect2::Freenect2);
-
-  int listener_types = 0;
-  listener_types |= libfreenect2::Frame::Ir;
-  listener_types |= libfreenect2::Frame::Depth;
-  if (rgb) {
-    listener_types |= libfreenect2::Frame::Color;
+  niteRc_ = userTracker_.create();
+  if (niteRc_ != nite::STATUS_OK)
+  {
+      printf("niteRc %d \n", niteRc_);
+      printf("Couldn't create user tracker\n");
   }
-  listener_ = std::unique_ptr<libfreenect2::SyncMultiFrameListener>(
-      new libfreenect2::SyncMultiFrameListener(listener_types));
-
-  if (simulate_) {
-    std::cerr << "SIMULATING kinect data" << std::endl;
-    simulated_depth_ = cv::Mat(480, 640, CV_32FC1);
-    simulated_ir_ = cv::Mat(480, 640, CV_32FC1);
-    simulated_rgb_ = cv::Mat(480, 640, CV_8UC4);
-    return;
-  }
-
-  libfreenect2::PacketPipeline *pipeline = 0;
-  const std::string serial = freenect2_->getDefaultDeviceSerialNumber();
-
-  // If OpenGL is installed.
-  pipeline = new libfreenect2::OpenGLPacketPipeline();
-
-  if(freenect2_->enumerateDevices() == 0) {
-    std::cerr << "### No device connected!" << std::endl;
-    exit(-1);
-  }
-
-  dev_ = std::unique_ptr<libfreenect2::Freenect2Device>(
-      pipeline
-      ? freenect2_->openDevice(serial, pipeline)
-      : freenect2_->openDevice(serial));
-  std::cout << "device serial: " << dev_->getSerialNumber() << std::endl;
-  std::cout << "device firmware: " << dev_->getFirmwareVersion() << std::endl;
-
-  dev_->setColorFrameListener(listener_.get());
-  dev_->setIrAndDepthFrameListener(listener_.get());
-  if (!dev_->startStreams(kEnableDepth, kEnableDepth)) {
-    std::cerr << "### Cannot start streams!" << std::endl;
-    exit(-1);
-  }
-
-  registration =
-    new libfreenect2::Registration(
-        dev_->getIrCameraParams(), dev_->getColorCameraParams());
-  libfreenect2::Frame undistorted(512, 424, 4), registered(512, 424, 4);
 }
 
-bool Hardware::next() {
-  if (++frame_) {
+int Hardware::next() {
 
-#ifdef USE_PCL
-    if(recording){
-      pointclouds_.push_back(pcl());
-      rec_names_.push_back(datetime_str());
-    }
+  if(recording)
+    recorder();
 
-    if (int(rec_names_.size()) == nr_rec_frames_){
-      for(int i = 0; i < int(rec_names_.size()); i++){
-        std::cout << "pcl_" + rec_names_[i] << std::endl;
-        pcl::PLYWriter writer;
-        writer.write(rec_path + "/pcl_" + rec_names_[i] + ".ply", *pointclouds_[i], false, false);
-      }
-      pointclouds_.clear();
-      rec_names_.clear();
-      recording = false;
-    }
-#endif
+  return userTracker_.readFrame(&userTrackerFrame_);
+} 
 
-    if (!simulate_) {
-      listener_->release(frames_);
+void Hardware::recorder(){
+
+  pointclouds_.push_back(pcl());
+  rec_names_.push_back(datetime_str());
+
+  if (int(rec_names_.size()) == nr_rec_frames_){
+    for(int i = 0; i < int(rec_names_.size()); i++){
+      std::cout << "pcl_" + rec_names_[i] << std::endl;
+      pcl::PLYWriter writer;
+      writer.write(rec_path_ + "/pcl_" + rec_names_[i] + ".ply", *pointclouds_[i], false, false);
     }
+    pointclouds_.clear();
+    rec_names_.clear();
+    recording = false;
   }
-  if (simulate_) {
-    usleep(1e6 / 60);
-    return true;
-  }
-  return listener_->waitForNewFrame(frames_, 10 * 1000);
 }
 
 cv::Mat Hardware::depth() {
-  if (simulate_) return simulated_depth_;
-  const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
-  return cv::Mat(depth->height, depth->width, CV_32FC1, depth->data).clone();
+  depthFrame_ = userTrackerFrame_.getDepthFrame();
+
+  openni::DepthPixel *depthPixels = new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
+  memcpy(depthPixels, depthFrame_.getData(), depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
+
+  cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
+
+  return depthImage;
 }
 
-cv::Mat Hardware::ir() {
-  if (simulate_) return simulated_ir_;
-  const libfreenect2::Frame* const ir = frames_[libfreenect2::Frame::Ir];
-  return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
-}
+// cv::Mat Hardware::rgb() {
+//   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
+//   return cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
+// }
 
-cv::Mat Hardware::rgb() {
-  if (simulate_) return simulated_rgb_;
-  const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  return cv::Mat(rgb->height, rgb->width, CV_8UC4, rgb->data).clone();
-}
+// cv::Mat Hardware::ir() {
+//   const libfreenect2::Frame* const ir = frames_[libfreenect2::Frame::Ir];
+//   return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
+// }
 
-void Hardware::close() {
-  if (simulate_) return;
-  dev_->stop();
-  dev_->close();
-}
+pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){  
 
-#ifdef USE_PCL
-pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){
+  openni::DepthPixel *depthPixels = new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
+  memcpy(depthPixels, depthFrame_.getData(), depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
 
-  const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
-  const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
+  cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
 
-  // Regester color frame to depth frame
-  libfreenect2::Frame undistorted(depth->width, depth->height, 4);
-  libfreenect2::Frame registered(depth->width, depth->height, 4);
-  libfreenect2::Frame depth2rgb(rgb->width, rgb->height + 2, 4);
-  registration->apply(rgb, depth, &undistorted, &registered, true, &depth2rgb);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+  float x,y;
 
-  float x,y,z,rgb_values;
+  pointcloud->width = depthFrame_.getWidth(); //Dimensions must be initialized to use 2-D indexing 
+  pointcloud->height = depthFrame_.getHeight();
 
-  pointcloud->width = depth->width; //Dimensions must be initialized to use 2-D indexing 
-  pointcloud->height = depth->height;
+  for (int i = 0; i< pointcloud->width; i++){
+    for(int j = 0; j < pointcloud->height; j++){
+      pcl::PointXYZ vertex;
+      int depth_value = (int) depthImage.at<unsigned short>(j,i);
 
-  for (int i = 0; i< depth->height; i++){
-    for(int j = 0; j < depth->width; j++){
-      registration->getPointXYZRGB(&undistorted, &registered, i, j, x, y, z, rgb_values);
+      // find the world coordinates
+      userTracker_.convertDepthCoordinatesToJoint(j, i, depth_value, &x, &y);
 
-      pcl::PointXYZRGBA vertex;
       vertex.x   = (float) x;
       vertex.y   = (float) y;
-      vertex.z   = (float) z;
-      const uint8_t *p = reinterpret_cast<uint8_t*> (&rgb_values);
-      vertex.b = p[0];
-      vertex.g = p[1];
-      vertex.r = p[2];
-      vertex.a = p[3];
+      vertex.z   = (float) depth_value;
 
+      // the point is pushed back in the cloud
       pointcloud->points.push_back( vertex );
-    }
+    }  
   }
-
+  
   return pointcloud;
 }
 
 void Hardware::record_pcl(const std::string path, const int nr_frames){
+  printf("Recording PCL\n");
   recording = true;
   nr_rec_frames_ = nr_frames;
-  rec_path = path;
+  rec_path_ = path;
 }
 
-void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud){
+void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud){
   pcl::PLYWriter writer;
   writer.write(path + "/pcl_" + datetime_str() + ".ply", *pointcloud, false, false);
 }
 
-#endif
+void Hardware::close() {
+  depthFrame_.release();
+  nite::NiTE::shutdown();
+}
