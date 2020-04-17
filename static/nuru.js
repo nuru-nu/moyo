@@ -198,7 +198,8 @@ const Mapping = () => {
 const Colored = mesh => {
   const material2 = new THREE.MeshBasicMaterial({
     color: 0xffffff, vertexColors: true,
-    transparent: false, opacity: 0.5,
+    transparent: false, opacity: 1.0,
+    side: THREE.DoubleSide,
   })
   return new THREE.Mesh(Geometry(mesh), material2)
 }
@@ -207,7 +208,7 @@ const Colored = mesh => {
 // buggy : currently freezes renderer ...
 const MakeWireframe = mesh => {
   const material = new LineMaterial({
-    color: 0x00ff00, lineWidth: 3, dashed: false,
+    color: 0x000000, lineWidth: 3, dashed: false,
   })
   const geometry = new WireframeGeometry2(mesh.geometry)
   const wireframe = new Wireframe(geometry, material)
@@ -217,12 +218,18 @@ const MakeWireframe = mesh => {
 }
 
 const MakeWireframe2 = mesh => {
-  const material = new THREE.MeshBasicMaterial({
+  // const material = new THREE.MeshBasicMaterial({
+  //   color: 0x000000,
+  //   wireframe: true,
+  //   wireframeLinewidth: 30,
+  // })
+  const material = new THREE.LineBasicMaterial({
     color: 0x00ff00,
-    wireframe: true,
-    wireframeLinewidth: 30,
+    // linewidth: 2,
   })
-  return new THREE.Mesh(mesh.geometry, material)
+  // return new THREE.Mesh(mesh.geometry, material)
+  const edges = new THREE.EdgesGeometry(mesh.geometry)
+  return new THREE.LineSegments(edges, material)
   // const material = new THREE.LineBasicMaterial({
   //   color: 0xffffff, transparent: true,
   // })
@@ -256,8 +263,7 @@ export const Scene = (container, options) => {
 
   camera = new THREE.PerspectiveCamera(
     50, options.width / options.height, 0.1, 1000)
-  camera.position.set(0, -6, 2)
-  cameraTarget = new THREE.Vector3( 0, 0, 0 )
+  camera.position.set(0, -3, 0.7)
 
   scene = new THREE.Scene()
 
@@ -279,8 +285,7 @@ export const Scene = (container, options) => {
   stats = new Stats()
   container.appendChild(stats.dom)
 
-  window.controls = controls = new TrackballControls(
-    camera, renderer.domElement)
+  controls = new TrackballControls(camera, renderer.domElement)
 
   if (options.width === window.innerWidth
       && options.height === window.innerHeight) {
@@ -303,6 +308,7 @@ export const Scene = (container, options) => {
     if (!running) return
     running = false
   }
+  const animated = new Set()
   function animate() {
     if (!running) return
     requestAnimationFrame(animate)
@@ -311,6 +317,7 @@ export const Scene = (container, options) => {
       t0 = now
       render()
       stats.update()
+      Array.from(animated).map(cb => cb())
     }
   }
 
@@ -325,7 +332,9 @@ export const Scene = (container, options) => {
     add: obj => scene.add(obj),
     remove: obj => scene.remove(obj),
     fps: value => options.fps = value,
-    stats: show => stats.dom.style.display = show ? 'block' : 'none'
+    stats: show => stats.dom.style.display = show ? 'block' : 'none',
+    animate: cb => animated.add(cb),
+    camera: (x, y, z) => camera.position.set(x, y, z),
   }
 }
 
@@ -362,6 +371,7 @@ export const Nuru = scene => {
     mapping: xyz_mapping => mapping.mapping(xyz_mapping),
     remap: opts => mapping.set(opts),
     wireframe: show => {
+      // colored.material.wireframe = show
       scene[show ? 'add' : 'remove'](wireframe)
     },
   }
