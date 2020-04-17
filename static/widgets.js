@@ -1,4 +1,4 @@
-import { h, u, colors, Lines } from './smanmi/util.js'
+import { h, u, ui, colors, Lines } from './smanmi/util.js'
 
 export const Sonar = (output) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -28,6 +28,49 @@ export const Sonar = (output) => {
   function listener(data) {
     if (override) return
     if (data.sonarsig) disp.sonar.value = 100 * data.sonarsig
+  }
+  function sendto(sender_) {
+    sender = sender_
+  }
+  return {
+    listener,
+    sendto,
+  }
+}
+
+export const Kinect = (output) => {
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('kinect'),
+    ui.v(
+      ui.h(
+        'presence ',
+        h.button('override').of('override'),
+        h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
+      ),
+    ),
+  ).into(output).els
+
+  let override = false
+  disp.presence.disabled = true
+  disp.override.addEventListener('click', () => {
+    override = !override
+    disp.override.classList.toggle('on')
+    disp.presence.disabled = !override
+    update()
+  })
+  disp.presence.addEventListener('change', update)
+
+  let sender
+  function update() {
+    if (!override) {
+      if (sender) sender({presence: null})
+      return
+    }
+    if (sender) sender({presence: parseFloat(disp.presence.value)})
+  }
+  function listener(data) {
+    if (override) return
+    if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
   }
   function sendto(sender_) {
     sender = sender_

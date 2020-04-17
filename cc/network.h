@@ -6,16 +6,19 @@
 #include <string>
 #include <sys/socket.h>
 
+using Values = std::map<std::string, float>;
+
 class SignalSender {
   public:
     // Fails if socket cannot be created;
-    SignalSender(int port, const char* ip = "127.0.0.1");
+    SignalSender(int signal_port, int cmd_port, const char* ip = "127.0.0.1");
     // Returns numbers of bytes sent.
-    int send(const std::map<std::string, float>& values);
+    int send(const Values& values);
   private:
-    const int port_;
-    int sock_;
-    sockaddr_in servaddr_;
+    const int signal_port_, cmd_port_;
+    int signal_sock_, cmd_sock_;
+    sockaddr_in signal_addr_, cmd_addr_;
+    Values overrides_;
 };
 
 #endif

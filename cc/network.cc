@@ -1,34 +1,86 @@
 #include "network.h"
 
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <iostream>
 #include <sstream>
 #include <strings.h>
 
-SignalSender::SignalSender(const int port, const char* const ip) : port_(port) {
-  sock_ = socket(AF_INET,SOCK_DGRAM,0);
-  if(sock_ < 0){
+#include "jute.h"
+
+SignalSender::SignalSender(
+    const int signal_port, const int cmd_port, const char* const ip)
+  : signal_port_(signal_port), cmd_port_(cmd_port)
+{
+
+  signal_sock_ = socket(AF_INET, SOCK_DGRAM, 0);
+  if(signal_sock_ < 0){
     std::cerr << "### Cannot open socket : errno=" << errno << std::endl;
     exit(-1);
   }
-  bzero(&servaddr_, sizeof(servaddr_));
-  servaddr_.sin_family = AF_INET;
-  servaddr_.sin_addr.s_addr = inet_addr(ip);
-  servaddr_.sin_port = htons(port);
+  bzero(&signal_addr_, sizeof(signal_addr_));
+  signal_addr_.sin_family = AF_INET;
+  signal_addr_.sin_addr.s_addr = inet_addr(ip);
+  signal_addr_.sin_port = htons(signal_port_);
+
+  cmd_sock_ = socket(AF_INET, SOCK_DGRAM, 0);
+  if(cmd_sock_ < 0){
+    std::cerr << "### Cannot open socket : errno=" << errno << std::endl;
+    exit(-1);
+  }
+  int flags = fcntl(cmd_sock_, F_GETFL);
+  flags |= O_NONBLOCK;
+  if (fcntl(cmd_sock_, F_SETFL, flags) == -1) {
+    std::cerr << "### Cannot set nonblocking : errno=" << errno << std::endl;
+    exit(-1);
+  }
+  bzero(&cmd_addr_, sizeof(cmd_addr_));
+  cmd_addr_.sin_family = AF_INET;
+  cmd_addr_.sin_addr.s_addr = inet_addr(ip);
+  // cmd_addr_.sin_addr.s_addr = inet_addr(INADDR_ANY);
+  cmd_addr_.sin_port = htons(cmd_port_);
+  if (bind(cmd_sock_, (struct sockaddr*) &cmd_addr_, sizeof(cmd_addr_)) < 0) {
+    std::cerr << "### Cannot bind socket : errno=" << errno << std::endl;
+    exit(-1);
+  }
+
+  std::cout << "Will send UDP to " << ip << ':' << signal_port_ << std::endl;
+  std::cout << "Will receive UDP from " << ip << ':' << cmd_port_ << std::endl;
 }
 
 int SignalSender::send(const std::map<std::string, float>& values) {
-  std::stringstream buf;
-  buf << '{';
-  bool first = true;
-  for(const auto& pair : values) {
-    if (!first) buf << ',';
-    first = false;
-    buf << '"' << pair.first << '"' << ':' << pair.second;
+
+  char msgbuf[2048];
+  struct sockaddr_in addr;
+  int addrlen;
+  const int recv_bytes = recvfrom(
+      cmd_sock_, msgbuf, sizeof(msgbuf) - 1, 0,
+      (struct sockaddr*) &addr, (socklen_t*) &addrlen);
+  if (recv_bytes > 0) {
+    msgbuf[recv_bytes] = 0;
+    jute::jValue json = jute::parser::parse(msgbuf);
+    for (const auto& name : json.keys()) {
+      if (json[name].get_type() == jute::JNUMBER) {
+        overrides_[name] = static_cast<float>(json[name].as_double());
+      } else if (json[name].get_type() == jute::JNULL) {
+        overrides_.erase(name);
+      }
+    }
   }
-  buf << '}';
-  const std::string msg = buf.str();
+
+  std::stringstream buf;
+  jute::jValue json(jute::JOBJECT);
+  for(const auto& pair : values) {
+    jute::jValue value(jute::JNUMBER);
+    value.set_string(std::to_string(pair.second));
+    if (overrides_.count(pair.first) > 0) {
+      value.set_string(std::to_string(overrides_.at(pair.first)));
+    }
+    json.add_property(pair.first, value);
+  }
+  const std::string msg = json.to_string();
   return sendto(
-      sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&servaddr_,
-      sizeof(servaddr_));
+      signal_sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&signal_addr_,
+      sizeof(signal_addr_));
 }
+
