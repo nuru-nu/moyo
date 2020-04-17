@@ -82,7 +82,15 @@ ENDIF(USE_PCL)
 
 CONFIGURE_FILE(conf.h.in conf.h)
 
-ADD_EXECUTABLE(kinect features.cc hardware.cc kinect.cc network.cc util.cc viewer.cc)
+ADD_EXECUTABLE(kinect
+  features.cc
+  hardware.cc
+  jute.cc
+  kinect.cc
+  network.cc
+  util.cc
+  viewer.cc
+)
 TARGET_LINK_LIBRARIES(kinect PUBLIC ${EXTRA_LIBS})
 TARGET_INCLUDE_DIRECTORIES(kinect PUBLIC
   "${PROJECT_BINARY_DIR}"
