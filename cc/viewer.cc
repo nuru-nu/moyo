@@ -135,6 +135,8 @@ void Viewer::update(const cv::Mat& img, const Features& features) {
   draw_process_key();
   update_graphs(img, features);
 
+  if (!should_dump_ && !gui_) return;
+
   const auto t = std::chrono::high_resolution_clock::now();
   const long long microseconds =
     std::chrono::duration_cast<std::chrono::microseconds>(t - last_t_).count();
