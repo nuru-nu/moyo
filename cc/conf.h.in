@@ -1,0 +1,2 @@
+#cmakedefine USE_PCL
+#cmakedefine USE_NITE

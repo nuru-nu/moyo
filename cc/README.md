@@ -4,6 +4,10 @@ Build like this:
 
 `mkdir build && cd build && cmake .. && make -j`
 
+Note: The library can also be built without PCL / NiTE support:
+
+`cmake -DUSE_PCL=No -DUSE_NITE=No ..`
+
 Then the executable `kinect` shows images from Kinect and sends signals to
 signalin port.
 
@@ -20,3 +24,7 @@ Some keyboard shortcuts (when then window has focus):
 - libfreenect2 (and a Kinect One)
 - OpenGL (for libfreenect2 pipeline; can probably be commented out)
 
+Optional;
+
+- PCL
+- NiTE (OpenNI)

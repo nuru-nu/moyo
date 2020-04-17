@@ -4,11 +4,13 @@
 #include <string>
 #include <stdio.h>
 
+#ifdef USE_PCL
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/console/print.h>
 #include <pcl/console/parse.h>
 #include <pcl/console/time.h>
+#endif
 
 #include "util.h"
 
@@ -87,10 +89,11 @@ Hardware::Hardware(const bool rgb) : rgb_(rgb) {
 bool Hardware::next() {
   if (++frame_) {
 
+#ifdef USE_PCL
     if(recording){
       pointclouds_.push_back(pcl());
       rec_names_.push_back(datetime_str());
-    } 
+    }
 
     if (int(rec_names_.size()) == nr_rec_frames_){
       for(int i = 0; i < int(rec_names_.size()); i++){
@@ -102,6 +105,7 @@ bool Hardware::next() {
       rec_names_.clear();
       recording = false;
     }
+#endif
 
     listener_->release(frames_);
   }
@@ -123,7 +127,13 @@ cv::Mat Hardware::ir() {
   return cv::Mat(ir->height, ir->width, CV_32FC1, ir->data).clone();
 }
 
-pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){  
+void Hardware::close() {
+  dev_->stop();
+  dev_->close();
+}
+
+#ifdef USE_PCL
+pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){
 
   const libfreenect2::Frame* const rgb = frames_[libfreenect2::Frame::Color];
   const libfreenect2::Frame* const depth = frames_[libfreenect2::Frame::Depth];
@@ -150,15 +160,15 @@ pcl::PointCloud<pcl::PointXYZRGBA>::Ptr Hardware::pcl(){
       vertex.y   = (float) y;
       vertex.z   = (float) z;
       const uint8_t *p = reinterpret_cast<uint8_t*> (&rgb_values);
-      vertex.b = p[0]; 
-      vertex.g = p[1]; 
+      vertex.b = p[0];
+      vertex.g = p[1];
       vertex.r = p[2];
-      vertex.a = p[3];  
+      vertex.a = p[3];
 
       pointcloud->points.push_back( vertex );
-    }  
+    }
   }
-  
+
   return pointcloud;
 }
 
@@ -173,7 +183,4 @@ void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZRGBA>::P
   writer.write(path + "/pcl_" + datetime_str() + ".ply", *pointcloud, false, false);
 }
 
-void Hardware::close() {
-  dev_->stop();
-  dev_->close();
-}
+#endif

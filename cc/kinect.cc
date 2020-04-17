@@ -1,3 +1,5 @@
+#include "conf.h"
+
 #include <iostream>
 #include <signal.h>
 #include <stdio.h>
@@ -13,9 +15,10 @@
 #include "util.h"
 #include "viewer.h"
 
+#ifdef USE_NITE
 #include "NiTE.h"
-
 #include <NiteSampleUtilities.h>
+#endif
 
 const int kSignalinPort = 6101;
 bool running = true;
@@ -56,14 +59,15 @@ int main() {
       features.reset();
     }
 
+#ifdef USE_PCL
     if (viewer.should_store()) {
       pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pointcloud = hardware.pcl();
       hardware.write_pcl("../../data/pcls", pointcloud);
     }
-
     if (viewer.should_record()) {
       hardware.record_pcl("../../data/pcls", 60);
     }
+#endif
   }
 
   hardware.close();
