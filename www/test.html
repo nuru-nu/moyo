@@ -12,28 +12,8 @@
 <script type="module">
 
 import { Scene, Nuru } from './nuru.js'
+import { Cube } from './test.js'
 import { GUI } from './dat.gui.module.js'
-
-const container = document.createElement('div')
-document.body.appendChild(container)
-
-const scene = Scene(container)
-const nuru = Nuru(scene)
-const mopts = {
-    fps: 10,
-    d: 0.1,
-    radius: 0.3,
-    maxn: 20,
-    weightf: dist => 1 / (dist + 1e-6) ** 2,
-    json: 'test',
-}
-nuru.remap(mopts)
-fetch('3D/mapping.json').then(res => res.json()).then(mapping => {
-  nuru.mapping(mapping.xyz)
-})
-const loadjson = name => fetch(`3D/${name}.json`).then(
-res => res.json()).then(nuru.load)
-loadjson('test')
 
 const tod = (s, conv) => {
   const d = {}
@@ -41,18 +21,56 @@ const tod = (s, conv) => {
   s.split(/ /).forEach(v => d[v] = conv(v))
   return d
 }
-const gui = new GUI()
-gui.add(mopts, 'fps', tod('5 10 20 30 60', parseInt)
-).onChange(() => scene.fps(mopts.fps))
-gui.add(mopts, 'd', tod('0.01 0.05 0.1 0.2, 0.5')
-).onChange(() => nuru.remap(mopts))
-gui.add(mopts, 'radius', tod('0.1 0.2 0.3 0.4')
-).onChange(() => nuru.remap(mopts))
-gui.add(mopts, 'maxn', tod('10 20 50 100 200', parseInt)
-).onChange(() => nuru.remap(mopts))
-gui.add(mopts, 'json', tod('test std2', x => x)
-).onChange(() => loadjson(mopts.json))
-gui.open()
+
+const container = document.createElement('div')
+document.body.appendChild(container)
+
+const scene = Scene(container)
+
+const sopts = {fps: 10}
+const gui = window.gui = new GUI()
+gui.add(sopts, 'fps', tod('5 10 20 30 60', parseInt)
+).onChange(() => scene.fps(sopts.fps)).setValue(60)
+
+if (true) {
+  const cube = window.cube = Cube(scene)
+  cube.mesh.position.set(0, -4, 2)
+  cube.wireframe.position.set(0, -4, 2)
+  scene.camera(0, -5, 4)
+}
+
+else {
+  const nuru = Nuru(scene)
+  const mopts = {
+      d: 0.1,
+      radius: 0.3,
+      maxn: 20,
+      weightf: dist => 1 / (dist + 1e-6) ** 2,
+  }
+  const opts = {
+      fps: 10,
+      json: 'test',
+      wireframe: false,
+  }
+  nuru.remap(mopts)
+  fetch('3D/mapping.json').then(res => res.json()).then(mapping => {
+    nuru.mapping(mapping.xyz)
+  })
+  const loadjson = name => fetch(`3D/${name}.json`).then(
+  res => res.json()).then(nuru.load)
+  loadjson('test')
+
+  gui.add(mopts, 'd', tod('0.01 0.05 0.1 0.2, 0.5')
+  ).onChange(() => nuru.remap(mopts))
+  gui.add(mopts, 'radius', tod('0.1 0.2 0.3 0.4')
+  ).onChange(() => nuru.remap(mopts))
+  gui.add(mopts, 'maxn', tod('10 20 50 100 200', parseInt)
+  ).onChange(() => nuru.remap(mopts))
+  gui.add(opts, 'json', tod('test std2', x => x)
+  ).onChange(() => loadjson(mopts.json))
+  gui.add(opts, 'wireframe', {true: true, false: false}
+  ).onChange(v => nuru.wireframe(v))
+}
 
 scene.start()
 
