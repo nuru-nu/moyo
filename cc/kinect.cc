@@ -32,13 +32,30 @@ void sigint_handler(int s) {
 int main(const int argc, const char** const argv) {
   const int signalin_port = 6101;
 
-  bool rgb = true, simulate = false;
+#ifdef USE_PCL
+  std::cout << "Compiled with USE_PCL" << std::endl;
+#endif
+
+#ifdef USE_NITE
+  std::cout << "Compiled with USE_NITE" << std::endl;
+#endif
+
+  bool rgb = true, simulate = false, gui = true;
   const std::vector<std::string> args(argv + 1, argv + argc);
   for (const auto& arg : args) {
     if (arg == "--no-rgb") {
       rgb = false;
+    } else if (arg == "--no-gui") {
+      gui = false;
     } else if (arg == "--simulate") {
       simulate = true;
+    } else if (arg == "--help") {
+      std::cout << R"(kinect sensor; available options:
+  --no-rgb: don't use RGB channel
+  --no-gui: don't show GUI; useful if X not available
+  --simulate: don't actually try to connect to Kinect
+)" << std::endl;
+      return 0;
     } else {
       std::cerr << "Unknown option : " << arg << std::endl;
       return -1;
@@ -48,7 +65,7 @@ int main(const int argc, const char** const argv) {
   Hardware hardware(rgb, simulate);
 
   Features features;
-  Viewer viewer;
+  Viewer viewer(gui);
   SignalSender sender(kSignalinPort);
 
   signal(SIGINT, sigint_handler);
