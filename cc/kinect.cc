@@ -1,11 +1,12 @@
 #include "conf.h"
 
 #include <iostream>
+#include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
-#include <math.h>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
@@ -28,10 +29,23 @@ void sigint_handler(int s) {
   running = false;
 }
 
-int main() {
+int main(const int argc, const char** const argv) {
   const int signalin_port = 6101;
 
-  Hardware hardware(/*rgb=*/true);
+  bool rgb = true, simulate = false;
+  const std::vector<std::string> args(argv + 1, argv + argc);
+  for (const auto& arg : args) {
+    if (arg == "--no-rgb") {
+      rgb = false;
+    } else if (arg == "--simulate") {
+      simulate = true;
+    } else {
+      std::cerr << "Unknown option : " << arg << std::endl;
+      return -1;
+    }
+  }
+
+  Hardware hardware(rgb, simulate);
 
   Features features;
   Viewer viewer;
