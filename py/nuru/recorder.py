@@ -1,12 +1,14 @@
 """Records audio & extracts FFT."""
 
-
 import logging, os, signal as pysig, time
 
-import numpy as np  # type: ignore
+# Avoid BLAS/PACK using all cores for realtime matmul (wav2features).
+os.environ['OMP_NUM_THREADS'] = '1'
 
-from smanmi import audio, hotplug, network, perf, util
-from . import features, recording, settings
+import numpy as np  # noqa=E402 type: ignore
+
+from smanmi import audio, hotplug, network, perf, util  # noqa=E402
+from . import features, recording, settings  # noqa=E402
 
 
 assert os.path.isdir(settings.recorder_dir), (
