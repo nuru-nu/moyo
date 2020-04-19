@@ -66,7 +66,7 @@ def wav2features(wav, hop_size):
     """
     assert wav.dtype == np.float32, wav.dtype
     assert len(wav) == settings.buf_size, len(wav)
-    spectrogram = np.abs(np.fft.rfft(hann_window * wav))
+    spectrogram = np.abs(scipy.fft.rfft(hann_window * wav))
     logmel = np.log(spectrogram.reshape((1, -1)).dot(mel_matrix))
     return Features(
         wav=wav[:hop_size],
@@ -77,7 +77,7 @@ def wav2features(wav, hop_size):
     )
 
 
-@perf.measure('wav2features_old')
+# @perf.measure('wav2features_old')
 def wav2features_old(wav, hop_size):
     """Less efficient original implementation of wav2features.
 
