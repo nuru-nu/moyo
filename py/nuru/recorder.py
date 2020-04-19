@@ -90,12 +90,17 @@ i_o = 0
 
 logger.info('Using in_channels={}'.format(settings.in_channels))
 audio.init(settings)
-ai0 = audio.AudioInterface(
-    input=settings.in_channels, output=1)
+ai0 = audio.AudioInterface(input=settings.in_channels, output=1)
 input_streamer = InputStreamer(ai0)
 last_reset_t = time.time()
 
 status_sender = network.StatusSender(name='recorder', logger=logger)
+
+
+@perf.measure('get_signals')
+def get_signals(features):
+    return hp_signals.audio_runner(features=features)
+
 
 sock = network.create_udp_socket(settings.recorder_cmd_port, settings.address)
 loop = False
@@ -129,7 +134,7 @@ while running:
         if record:
             record.append(feats)
 
-    signals = hp_signals.audio_runner(features=feats)
+    signals = get_signals(feats)
     if playback:
         signals['playback_t'] = playback.t
     del signals['features']
