@@ -209,6 +209,9 @@ class Dist(L.Signal):
         self.lxyz = xyz = (x, y, z)
         self.dist = self._dist(*xyz)
 
+    def dump(self):
+        print(self.dist)
+
     def _dist(self, x, y, z):
         return np.linalg.norm(xyz_mapping - [[x, y, z]], axis=1)
 
@@ -239,6 +242,19 @@ class RGB(L.Signal):
 
     def call(self, value):
         return value[:, None] * np.array([[self.r, self.g, self.b]])
+
+
+class MidiGate(L.Signal):
+
+    def init(self, port_letter_octave):
+        self.state = 0
+
+    def call(self, value, midi):
+        if midi == f'{self.port_letter_octave} on':
+            self.state = 1
+        if midi == f'{self.port_letter_octave} off':
+            self.state = 0
+        return value * self.state
 
 
 # debug

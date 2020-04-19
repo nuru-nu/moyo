@@ -83,6 +83,10 @@ def std3():
 
 
 def test():
+    # syncing heart beat with red centered circle
+    return A.Dist() | A.F(
+        lambda dist: dist < 0.5
+    ) | A.RGB(1, 0, 0) | A.MidiGate('2: G#1')
     # Just for fun : set 3D gradient with sonar sensor...
     return A.Dist() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=0.01),

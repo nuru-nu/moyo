@@ -44,7 +44,6 @@ out2_names = (
     'C-Media USB Audio Device',  # Ubuntu
     'Built-in Output',  # OS X
 )
-midi_name = 'IAC Driver Bus 1'
 
 if rate == 16000:
     # 32ms

@@ -288,11 +288,11 @@ export const Cmd = (output) => {
     notes.forEach(note => {
       disp[note].addEventListener('mousedown', function() {
         this.classList.add('on')
-        sender({midi: `${note} on`})
+        sender({midi: `0: ${note} on`})
       })
       disp[note].addEventListener('mouseup', function() {
         this.classList.remove('on')
-        sender({midi: `${note} off`})
+        sender({midi: `0: ${note} off`})
       })
     })
   })
