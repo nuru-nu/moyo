@@ -13,6 +13,5 @@ while True:
     data = network.get_json(sock, None)
     if data:
         cmds['fc'] = data.get('fc', cmds['fc'])
-        cmds['midi'] = data.get('midi', cmds['midi'])
         cmds['setstate'].update(data.get('setstate', {}))
         logger.info('-> %r', cmds)
