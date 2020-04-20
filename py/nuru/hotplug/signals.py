@@ -1,6 +1,7 @@
 import importlib, random
 
 from smanmi import effects as E, logic as L, signals as S
+
 from .. import settings
 
 
@@ -144,6 +145,8 @@ integrator_runner = L.SignalRunner(dict(
     # non-audio input
     into=S.Into(),
 
+    xxx=S.MidiPulse('0: G1'),
+
     # derived
     ooo=(
         L.Named('iso') |
@@ -157,8 +160,4 @@ integrator_runner = L.SignalRunner(dict(
 
     # output
     flash_pulse=L.Named('rawloud') | S.Smoke(0.5, 2, 40),
-), defaults=dict(
-    loud=0,
-    setstate={},
-    sonar=0,
 ))
