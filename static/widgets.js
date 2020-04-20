@@ -305,3 +305,43 @@ export const Cmd = (output) => {
     sendto,
   }
 }
+
+export const Midi = (output) => {
+  const re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
+  const ports = new Map()
+  const keys = new Map()
+  const cont = h.div({class: 'flex widget'}).of(
+      h.div({class: 'header'}).of('midi'),
+      h.div('cont'),
+  ).into(output).els.cont
+  function listener(signals) {
+    if (!signals.midi) return
+    const m = re.exec(signals.midi)
+    if (m === null) {
+      console.warn('Could not parse signals.midi', signals.midi)
+      return
+    }
+    let [_, port, letter, octave, command] = m
+    if (!ports.has(port)) {
+      ports.set(port, ui.h(
+        `${port}:`,
+        h.div('cont'),
+      ).into(cont).els.cont)
+    }
+    const key = `${port}:${letter}${octave}`
+    if (!keys.has(key)) {
+      keys.set(
+        key, h.span('.key').of(
+          `${letter}${octave}`,
+        ).into(ports.get(port)).el)
+    }
+    if (command === 'on') {
+      keys.get(key).classList.add('on')
+    } else if (command === 'off') {
+      keys.get(key).classList.remove('on')
+    }
+  }
+  return {
+    listener,
+  }
+}
