@@ -1,8 +1,9 @@
 import argparse
+import asyncio
+import time
 
 from smanmi import hotplug
 from smanmi import integrator
-from smanmi import logic as L
 from smanmi import state
 from smanmi import util
 from . import settings
@@ -10,16 +11,22 @@ from . import settings
 
 parser = argparse.ArgumentParser(description='Integrates signals for NURU.')
 parser.add_argument(
-        '--midi_address', type=str, default=settings.midi_address,
-        help='Address of machine running `smanmi.midi` script.')
+    '--idle_fps', type=float, default=25,
+    help='Minimum frequency to integrate at (in absence of audio signals).')
+parser.add_argument(
+    '--midi_address', type=str, default=settings.midi_address,
+    help='Address of machine running `smanmi.midi` script.')
 args = parser.parse_args()
 
+logger = util.createLogger('integrator')
+hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
-class Integrator(integrator.Integrator):
 
-    def __init__(self, logger):
-        super().__init__(
-            logger, fps=20,
+class Integrator:
+
+    def __init__(self):
+        self.server = integrator.IntegrationServer(
+            logger,
             address=settings.address,
             sig_in_ports=(settings.integrator_sig_port,),
             sig_out_ports=(
@@ -35,33 +42,48 @@ class Integrator(integrator.Integrator):
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
                 (args.midi_address, settings.midi_cmd_port),
-                settings.kinect_cmd_port,
             ),
         )
-        self.hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
-        self.signalin = {}
+        self.server.onreceive(self.received)
         self.signals = dict(
+            t=0,
+            iso=0,
+            rawloud=0,
+            loud=0,
+            setstate={},
+            sonar=0,
             state=state.State(),
-            rawloud=0.,
-            iso=0.,
+            midi=None,
         )
-        self.last_missing = None
+        self.transient = (
+            'midi',
+        )
 
-    def __call__(self):
-        try:
-            signals = self.hp_signals.integrator_runner(**self.signals)
-            if self.last_missing:
-                self.logger.info('Got complete signals')
-            self.last_missing = None
-            return signals
-        except L.MissingInputsException as e:
-            e = str(e)
-            if self.last_missing != e:
-                self.logger.warning('Incomplete signals : %s', e)
-            self.last_missing = e
-            return {}
+    def start(self):
+        self.schedule()
+        self.server.start()
+
+    def schedule(self):
+        if hasattr(self, 'handle'):
+            self.handle.cancel()
+        self.handle = asyncio.get_event_loop().call_later(
+            1 / args.idle_fps, self.integrate)
+
+    def received(self, signals):
+        # TODO : never lose a MIDI signal !
+        self.signals.update(signals)
+        if 'logmel' in signals:
+            self.integrate()
+
+    def integrate(self):
+        self.schedule()
+        self.signals['t'] = time.time()
+        signals = hp_signals.integrator_runner(**self.signals)
+        self.signals = {
+            name: None if name in self.transient else signal
+            for name, signal in signals.items()
+        }
+        self.server.send(signals)
 
 
-logger = util.createLogger('integrator')
-integrator = Integrator(logger)
-integrator.start()
+Integrator().start()
