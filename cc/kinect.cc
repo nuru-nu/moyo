@@ -53,7 +53,7 @@ int main(const int argc, const char** const argv) {
   }
 
 
-  Hardware hardware(simulate);
+  Hardware hardware;
 
 
   Features features;
@@ -67,6 +67,7 @@ int main(const int argc, const char** const argv) {
       return -1;
     }
 
+    hardware.get_users();
     const cv::Mat depth = hardware.depth(); 
 
     features.process(depth);
