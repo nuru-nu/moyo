@@ -1,6 +1,8 @@
 #include "hardware.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <stdio.h>
 
@@ -11,6 +13,7 @@
 #include <pcl/console/time.h>
 
 #include "util.h"
+#include "jute.h"
 
 namespace {
 
@@ -21,7 +24,7 @@ const bool kEnableDepth = true;
 
 Hardware::Hardware(void) {
 
-  nite::NiTE::initialize();
+  nite::NiTE::initialize(); 
 
   nite::Status niteRc = userTracker_.create();
   if (niteRc != nite::STATUS_OK)
@@ -29,6 +32,35 @@ Hardware::Hardware(void) {
       printf("niteRc %d \n", niteRc);
       printf("Couldn't create user tracker\n");
   }
+  
+  std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
+  if (load_extrinsic_matrix(default_trafo_path) < 0){
+      printf("Couldnt find trafo at default path %s \n", default_trafo_path);
+      printf("Needs to be explicitly defined with load_extrinsic_matrix(std::string path)\n");
+  }
+}
+
+int Hardware::load_extrinsic_matrix(std::string path){
+  std::ifstream in(path);
+  std::string str = "";
+  std::string tmp;
+
+  if(in.fail())
+    return -1;
+
+  while (getline(in, tmp)) str += tmp;
+  jute::jValue v = jute::parser::parse(str);
+
+  // std::cout << v["world_matrix"].to_string() << std::endl;
+  for(int rdx=0; rdx<v["world_matrix"].size(); rdx++) {
+    for(int cdx=0; cdx<v["world_matrix"][0].size(); cdx++) {
+      trafo_.at<double>(rdx, cdx) = v["world_matrix"][rdx][cdx].as_double();
+    }
+  }
+
+  std::cout << trafo_ << std::endl;
+
+  return 1;
 }
 
 void Hardware::recorder(){
@@ -93,26 +125,38 @@ int Hardware::next() {
   return userTracker_.readFrame(&userTrackerFrame_);
 }
 
-void Hardware::get_users() {
+std::vector<person_t> Hardware::get_tracking_data() {
   const nite::Array<nite::UserData>& users = userTrackerFrame_.getUsers();
 
+  cv::Mat depthImage = this->depth();
+  std::vector<person_t> people;
   for (int i = 0; i < users.getSize(); ++i)
   {
+    person_t person;
+    
     const nite::UserData& user = users[i];
     update_user_state(user, userTrackerFrame_.getTimestamp());
     if (user.isNew())
     {
       userTracker_.startSkeletonTracking(user.getId());
     }
-    else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
-    {
-      const nite::SkeletonJoint& head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
-      if (head.getPositionConfidence() > .5)
-        printf("%d. (%5.2f, %5.2f, %5.2f) - Head found with condfidence %5.2f\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z, head.getPositionConfidence());
-    } else {
-      printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
-    }
+    person.id = user.getId();
+
+    convertJointCoordinatesToWorld(user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z, person.cm[0], person.cm[1], person.cm[2]);
+
+    people.push_back(person);
+
+    // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
+    // {
+    //   const nite::SkeletonJoint& head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
+    //   if (head.getPositionConfidence() > .5)
+    //     printf("%d. (%5.2f, %5.2f, %5.2f) - Head found with condfidence %5.2f\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z, head.getPositionConfidence());
+    // } else {
+    //   printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
+    // }
   }
+
+  return people;
 } 
 
 cv::Mat Hardware::depth() {
@@ -128,25 +172,20 @@ cv::Mat Hardware::depth() {
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){  
 
-  openni::DepthPixel *depthPixels = new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
-  memcpy(depthPixels, depthFrame_.getData(), depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
-
-  cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
+  cv::Mat depthImage = Hardware::depth();
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-  float x,y,z;
-
-  pointcloud->width = depthFrame_.getWidth(); //Dimensions must be initialized to use 2-D indexing 
-  pointcloud->height = depthFrame_.getHeight();
+  pointcloud->width = depthImage.size().width; //Dimensions must be initialized to use 2-D indexing 
+  pointcloud->height = depthImage.size().height;
 
   for (int i = 0; i< pointcloud->width; i++){
     for(int j = 0; j < pointcloud->height; j++){
       pcl::PointXYZ vertex;
-      int depth_value = (int) depthImage.at<unsigned short>(j,i);
 
       // find the world coordinates
-       // userTracker_.convertDepthCoordinatesToJoint(j, i, depth_value, &x, &y);
+      float x,y,z;
+      int depth_value = (int) depthImage.at<unsigned short>(j,i);
       convertDepthCoordinatesToWorld(j, i, depth_value, x, y, z);
 
       vertex.x   = (float) x;
@@ -175,6 +214,7 @@ void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZ>::Ptr p
 
 void Hardware::close() {
   depthFrame_.release();
+  userTracker_.destroy();
   nite::NiTE::shutdown();
 }
 
@@ -198,8 +238,8 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth, float &
   }
   else
   {
-    x = (c + 0.5 - cx) * fx * depth_val/100000.0f;
-    y = (r + 0.5 - cy) * fy * depth_val/100000.0f;
+    x = (c + 0.5 - cx) * fx * depth_val / 100000.0f;
+    y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
     z = depth_val;
   }
 }
@@ -209,12 +249,31 @@ void Hardware::convertJointCoordinatesToDepth(float x, float y, float z, float* 
   userTracker_.convertJointCoordinatesToDepth(x, y, z, pOutX, pOutY);
 }
 
-// void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, float* pOutX, float* pOutY) const {
+void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, float &tx, float &ty, float &tz) const {
 
-//   userTracker_.convertDepthCoordinatesToJoint(x, y, z, pOutX, pOutY);
-//   convertDepthCoordinatesToWorld(j, i, depth_value, x, y, z);
+  float dx, dy; 
+  convertJointCoordinatesToDepth(x, y, z, &dx, &dy);
+  
+  if(isnan(dx) || isnan(dy)){
+    tx, ty, tz = 0;
+    return;
+  }
 
-// }
+  openni::DepthPixel *depthPixels = new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
+  memcpy(depthPixels, depthFrame_.getData(), depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
+
+  cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
+
+  int depth_value = (int) depthImage.at<unsigned short>((int) dx, (int) dy);
+  convertDepthCoordinatesToWorld((int) dx, (int) dy, depth_value, tx, ty, tz);
+
+  cv::Matx41d loc(tx, ty, tz, 1);
+  cv::Mat local_point = trafo_*loc;
+
+  tx = local_point.at<double>(0,0);
+  ty = local_point.at<double>(0,1);
+  tz = local_point.at<double>(0,2);
+}
 
 void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z, float* pOutX, float* pOutY) const {
 
