@@ -65,9 +65,14 @@ int main(const int argc, const char** const argv) {
     if (hardware.next() != 0) {
       std::cerr << "### Timeout!" << std::endl;
       return -1;
+    } 
+
+    const int bytesS = sender.send_tracking_data(hardware.get_tracking_data()); 
+    if (bytesS < 0) {
+      std::cerr << "### errno=" << errno << std::endl;
     }
 
-    hardware.get_users();
+
     const cv::Mat depth = hardware.depth(); 
 
     features.process(depth);
@@ -82,7 +87,6 @@ int main(const int argc, const char** const argv) {
       features.reset();
     }
 
-#ifdef USE_PCL
     if (viewer.should_store()) {
       pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud = hardware.pcl();
       hardware.write_pcl("../../data/pcls", pointcloud);
@@ -91,7 +95,6 @@ int main(const int argc, const char** const argv) {
     if (viewer.should_record()) {
       hardware.record_pcl("../../data/pcls", 60);
     }
-#endif
   }
 
   hardware.close();

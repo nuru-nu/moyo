@@ -79,8 +79,37 @@ int SignalSender::send(const std::map<std::string, float>& values) {
     json.add_property(pair.first, value);
   }
   const std::string msg = json.to_string();
+
   return sendto(
       signal_sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&signal_addr_,
       sizeof(signal_addr_));
 }
 
+int SignalSender::send_tracking_data(const std::vector<person_t>& people){
+
+  jute::jValue people_jarray(jute::JARRAY);
+  for(const auto& person : people) {
+    jute::jValue person_jobject(jute::JOBJECT);
+
+    jute::jValue id_value(jute::JNUMBER);
+    id_value.set_string(std::to_string(person.id));
+    person_jobject.add_property("id", id_value);
+
+    jute::jValue cm_jarray(jute::JARRAY);
+    for(const auto& cm_val : person.cm) {
+      jute::jValue nvalue(jute::JNUMBER);
+      nvalue.set_string(std::to_string(cm_val));
+      cm_jarray.add_element(nvalue);
+    }
+    person_jobject.add_property("cm", cm_jarray);
+
+    people_jarray.add_element(person_jobject);
+  }
+  const std::string msg = people_jarray.to_string();
+
+  // std::cout << msg << std::endl;
+
+  return sendto(
+      signal_sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&signal_addr_,
+      sizeof(signal_addr_));
+}

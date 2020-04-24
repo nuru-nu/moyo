@@ -10,6 +10,8 @@
 
 #include "NiTE.h"
 
+#include "settings.h"
+
 #define MAX_USERS 10
 
 #define USER_MESSAGE(msg) \
@@ -20,10 +22,13 @@ class Hardware {
     // Also initializes Kinect and exits program in case of error.
     Hardware();
 
+    int load_extrinsic_matrix(std::string path);
+
     // Waits for another frame. Returns `false` in case of error.
     int next();
 
-    void get_users();
+    // Returns a list of people_t structs defined in settings.h.
+    std::vector<person_t> get_tracking_data();
     // Returns depth data. Invalidated when `next()` is called.
     cv::Mat depth();
     // Returns a point cloud.
@@ -38,6 +43,8 @@ class Hardware {
     void convertJointCoordinatesToDepth(float x, float y, float z, float* pOutX, float* pOutY) const;
     // Convert depth map value to joint coordinate
     void convertDepthCoordinatesToJoint(int x, int y, int z, float* pOutX, float* pOutY) const;
+    // Convert joint ot world
+    void convertJointCoordinatesToWorld(float x, float y, float z, float &tx, float &ty, float &tz) const;
     // Shuts down the device, irreversibly.
     void close();
 
@@ -57,6 +64,8 @@ class Hardware {
     
     void recorder();
     void update_user_state(const nite::UserData& user, unsigned long long ts);
+
+    cv::Mat trafo_ = cv::Mat::eye(4, 4, CV_64F);
 
 };
 
