@@ -8,7 +8,7 @@ let g:syntastic_javascript_checkers = ["eslint"]
 let g:syntastic_python_flake8_args='--config=.flake8'
 
 set cc=80
-set cino=N-s
+set cino=N-s,(0
 autocmd FileType python setl cc=79
 nnoremap ,/ yaw :Ag <C-R>" py/<cr>
 
