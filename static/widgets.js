@@ -39,6 +39,11 @@ export const Sonar = (output) => {
 }
 
 export const Kinect = (output) => {
+  const width = 200
+  const height = 200
+  const xlim = [-4, 1]
+  const ylim = [-4, 1]
+  const r = 8
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('kinect'),
     ui.v(
@@ -47,8 +52,10 @@ export const Kinect = (output) => {
         h.button('override').of('override'),
         h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
       ),
+      h.canvas('xy', {width, height}),
     ),
   ).into(output).els
+  const ctx = disp.xy.getContext('2d')
 
   let override = false
   disp.presence.disabled = true
@@ -68,7 +75,47 @@ export const Kinect = (output) => {
     }
     if (sender) sender({presence: parseFloat(disp.presence.value)})
   }
+  const palette = colors.strong_palette
+  const cmap = new Map()
+  const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
+  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
+  function grid() {
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#444'
+    ctx.beginPath()
+    ctx.moveTo(0, toy(0))
+    ctx.lineTo(width, toy(0))
+    ctx.moveTo(tox(0), 0)
+    ctx.lineTo(tox(0), height)
+    ctx.stroke()
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {
+      if (x < xlim[0]) continue
+      ctx.moveTo(tox(x), 0)
+      ctx.lineTo(tox(x), height)
+    }
+    for (let y = Math.floor(ylim[0] - 1); y <= ylim[1]; ++y) {
+      if (y < ylim[0]) continue
+      ctx.moveTo(0, toy(y))
+      ctx.lineTo(height, toy(y))
+    }
+    ctx.stroke()
+  }
   function listener(data) {
+    if (data.hasOwnProperty('people')) {
+      ctx.clearRect(0, 0, width, height)
+      grid()
+      data.people.forEach(p => {
+        if (!cmap.has(p.id)) {
+          cmap.set(p.id, palette[cmap.size % palette.length])
+        }
+        ctx.fillStyle = cmap.get(p.id)
+        ctx.beginPath()
+        ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
+        ctx.fill()
+      })
+    }
     if (override) return
     if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
   }
@@ -345,3 +392,4 @@ export const Midi = (output) => {
     listener,
   }
 }
+
