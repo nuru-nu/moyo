@@ -257,6 +257,24 @@ class MidiGate(L.Signal):
         return value * self.state
 
 
+def tocos2(x):
+    """Translates 0 -> to soft 0 -> 1 -> 0."""
+    return 1 - (0.5 + 0.5 * np.cos(2 * x * np.pi))
+
+
+class CompWave(L.Signal):
+    """Use: sig | CompWave() | Gradient."""
+
+    def init(self, start=1.5, stop=1.8):
+        r = phi_r_mapping[:, 1]
+        self.x = r / r.max()
+
+    def call(self, value):
+        exp = self.start + tocos2(value) * (self.stop - self.start)
+        u = np.exp((1.5 - self.x) * exp)
+        return 0.5 + 0.5 * np.sin(u)
+
+
 # debug
 ###############################################################################
 
