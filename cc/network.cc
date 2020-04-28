@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <strings.h>
+#include <math.h>
 
 #include "jute.h"
 
@@ -85,7 +86,20 @@ int SignalSender::send(const std::map<std::string, float>& values) {
       sizeof(signal_addr_));
 }
 
-int SignalSender::send_tracking_data(const std::vector<person_t>& people){
+int SignalSender::send_tracking_data(
+                                    const std::vector<person_t>& people, 
+                                    const std::map<std::string, float>& values){
+
+  jute::jValue json(jute::JOBJECT);
+  for(const auto& pair : values) {
+    jute::jValue value(jute::JNUMBER);
+    value.set_string(std::to_string(pair.second));
+
+    if (overrides_.count(pair.first) > 0) {
+      value.set_string(std::to_string(overrides_.at(pair.first)));
+    }
+    json.add_property(pair.first, value);
+  }
 
   jute::jValue people_jarray(jute::JARRAY);
   for(const auto& person : people) {
@@ -95,19 +109,27 @@ int SignalSender::send_tracking_data(const std::vector<person_t>& people){
     id_value.set_string(std::to_string(person.id));
     person_jobject.add_property("id", id_value);
 
-    jute::jValue cm_jarray(jute::JARRAY);
-    for(const auto& cm_val : person.cm) {
+    for(const auto& joint : person.points3d) {
+      jute::jValue point3d(jute::JARRAY);
+
       jute::jValue nvalue(jute::JNUMBER);
-      nvalue.set_string(std::to_string(cm_val));
-      cm_jarray.add_element(nvalue);
+      nvalue.set_string(std::to_string(joint.second.x));
+      point3d.add_element(nvalue);
+      nvalue.set_string(std::to_string(joint.second.y));
+      point3d.add_element(nvalue);
+      nvalue.set_string(std::to_string(joint.second.z));
+      point3d.add_element(nvalue);
+
+      person_jobject.add_property(joint.first, point3d);
     }
-    person_jobject.add_property("cm", cm_jarray);
 
     people_jarray.add_element(person_jobject);
   }
-  const std::string msg = people_jarray.to_string();
 
-  // std::cout << msg << std::endl;
+  json.add_property("people", people_jarray);
+  const std::string msg = json.to_string();
+
+  std::cout << msg << std::endl;
 
   return sendto(
       signal_sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&signal_addr_,
