@@ -8,3 +8,5 @@ __pycache__
 /tmp
 /cc/build
 /notebooks/generated.gif
+/fadecandy/fcserver
+/fadecandy/fcserver-osx
