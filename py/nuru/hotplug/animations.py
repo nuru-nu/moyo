@@ -83,18 +83,21 @@ def std3():
 
 
 def test():
-    # syncing heart beat with red centered circle
-    return A.Dist() | A.F(
-        lambda dist: dist < 0.5
-    ) | A.RGB(1, 0, 0) | A.MidiGate('2: G#1')
+    return L.Named('std2') | A.CompWave(1.8, 2.3) | A.F(
+        C.Palette(P.super_red)
+    )
+    # return A.StandingWave(period=1, hz=0.2)
+    # return A.CalibrationPattern()
     # Just for fun : set 3D gradient with sonar sensor...
     return A.Dist() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=0.01),
     ) | A.F(
         C.Palette(P.blue_purple),
     )
-    # return A.StandingWave(period=1, hz=0.2)
-    # return A.CalibrationPattern()
+    # syncing heart beat with red centered circle
+    return A.Dist() | A.F(
+        lambda dist: dist < 0.5
+    ) | A.RGB(1, 0, 0) | A.MidiGate('2: G#1')
     # return A.PositionIdentify()
 
 
