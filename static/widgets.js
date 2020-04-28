@@ -41,7 +41,7 @@ export const Sonar = (output) => {
 export const Kinect = (output) => {
   const width = 200
   const height = 200
-  const xlim = [-4, 1]
+  const xlim = [-2.5, 2.5]
   const ylim = [-4, 1]
   const r = 8
   const disp = h.div({class: 'flex widget'}).of(
@@ -75,8 +75,6 @@ export const Kinect = (output) => {
     }
     if (sender) sender({presence: parseFloat(disp.presence.value)})
   }
-  const palette = colors.strong_palette
-  const cmap = new Map()
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
   function grid() {
@@ -102,6 +100,10 @@ export const Kinect = (output) => {
     }
     ctx.stroke()
   }
+
+  const palette = colors.strong_palette
+  const cmap = new Map()
+  const lcm = new Map()
   function listener(data) {
     if (data.hasOwnProperty('people')) {
       ctx.clearRect(0, 0, width, height)
@@ -112,7 +114,12 @@ export const Kinect = (output) => {
         }
         ctx.fillStyle = cmap.get(p.id)
         ctx.beginPath()
-        ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
+        if (p.cm[0] == 0 && p.cm[1] == 0 && lcm.has(p.id)) {
+          ctx.arc(tox(lcm.get(p.id)[0]), toy(lcm.get(p.id)[1]), r, 0, 2 * Math.PI)
+        } else {
+          ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
+          lcm.set(p.id, p.cm)
+        }
         ctx.fill()
       })
     }
