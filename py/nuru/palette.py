@@ -116,3 +116,8 @@ black_violet = C.parse_colors_hex((
     (0.6, '418'),
     (1.0, '818'),
 ))
+
+black_white = C.parse_colors_hex((
+    (0, '000'),
+    (1.0, 'FFF'),
+))
