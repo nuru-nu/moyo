@@ -51,14 +51,11 @@ int Hardware::load_extrinsic_matrix(std::string path){
   while (getline(in, tmp)) str += tmp;
   jute::jValue v = jute::parser::parse(str);
 
-  // std::cout << v["world_matrix"].to_string() << std::endl;
   for(int rdx=0; rdx<v["world_matrix"].size(); rdx++) {
     for(int cdx=0; cdx<v["world_matrix"][0].size(); cdx++) {
       trafo_.at<double>(rdx, cdx) = v["world_matrix"][rdx][cdx].as_double();
     }
   }
-
-  std::cout << trafo_ << std::endl;
 
   return 1;
 }
@@ -142,9 +139,13 @@ std::vector<person_t> Hardware::get_tracking_data() {
     }
     person.id = user.getId();
 
-    convertJointCoordinatesToWorld(user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z, person.cm[0], person.cm[1], person.cm[2]);
+    float x, y, z;
+    convertJointCoordinatesToWorld(user.getCenterOfMass().x, 
+                                   user.getCenterOfMass().y, 
+                                   user.getCenterOfMass().z, 
+                                   x, y, z);
+    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm", cv::Point3d(x, y, z)));
 
-    people.push_back(person);
 
     // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
     // {
@@ -154,6 +155,8 @@ std::vector<person_t> Hardware::get_tracking_data() {
     // } else {
     //   printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
     // }
+
+    people.push_back(person);
   }
 
   return people;
@@ -244,18 +247,22 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth, float &
   }
 }
 
-void Hardware::convertJointCoordinatesToDepth(float x, float y, float z, float* pOutX, float* pOutY) const {
+void Hardware::convertJointCoordinatesToDepth(float x, float y, float z, 
+                                              float* pOutX, float* pOutY) const {
 
   userTracker_.convertJointCoordinatesToDepth(x, y, z, pOutX, pOutY);
 }
 
-void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, float &tx, float &ty, float &tz) const {
+void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, 
+                                              float &tx, float &ty, float &tz) const {
 
   float dx, dy; 
   convertJointCoordinatesToDepth(x, y, z, &dx, &dy);
   
   if(isnan(dx) || isnan(dy)){
-    tx, ty, tz = 0;
+    tx = 0;
+    ty = 0;
+    tz = 0;
     return;
   }
 
@@ -273,9 +280,16 @@ void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, float &
   tx = local_point.at<double>(0,0);
   ty = local_point.at<double>(0,1);
   tz = local_point.at<double>(0,2);
+
+  if(isnan(tx) || isnan(ty) || isnan(tz)){
+    tx = 0;
+    ty = 0;
+    tz = 0;
+  }
 }
 
-void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z, float* pOutX, float* pOutY) const {
+void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z, 
+                                              float* pOutX, float* pOutY) const {
 
   userTracker_.convertDepthCoordinatesToJoint(x, y, z, pOutX, pOutY);
 }

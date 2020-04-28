@@ -55,7 +55,6 @@ int main(const int argc, const char** const argv) {
 
   Hardware hardware;
 
-
   Features features;
   Viewer viewer(gui);
   SignalSender sender(kSignalinPort, kCmdPort);
@@ -67,11 +66,12 @@ int main(const int argc, const char** const argv) {
       return -1;
     } 
 
-    const int bytesS = sender.send_tracking_data(hardware.get_tracking_data()); 
+    const int bytesS = sender.send_tracking_data(
+                                  hardware.get_tracking_data(), 
+                                  {{"presence", features.presence()},}); 
     if (bytesS < 0) {
       std::cerr << "### errno=" << errno << std::endl;
     }
-
 
     const cv::Mat depth = hardware.depth(); 
 
