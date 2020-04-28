@@ -83,8 +83,8 @@ def std3():
 
 
 def test():
-    return L.Named('std2') | A.CompWave(1.8, 2.3) | A.F(
-        C.Palette(P.super_red)
+    return L.Named('std2') | A.CompWave(1.8, 2.5) | A.F(
+        C.Palette(P.funny_rainbow)
     )
     # return A.StandingWave(period=1, hz=0.2)
     # return A.CalibrationPattern()
