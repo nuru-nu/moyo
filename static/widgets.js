@@ -52,7 +52,8 @@ export const Kinect = (output) => {
         h.button('override').of('override'),
         h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
       ),
-      h.canvas('xy', {width, height}),
+      h.span('nosig').of('no signal'),
+      h.canvas('xy .h', {width, height}),
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
@@ -106,6 +107,9 @@ export const Kinect = (output) => {
   const lcm = new Map()
   function listener(data) {
     if (data.hasOwnProperty('people')) {
+      disp.nosig.classList.add('h')
+      disp.xy.classList.remove('h')
+
       ctx.clearRect(0, 0, width, height)
       grid()
       data.people.forEach(p => {
@@ -161,7 +165,7 @@ export const Recorder = (output) => {
             h.input('loop', {id: 'loop', type: 'checkbox'}),
             h.label({for: 'loop'}).of('loop'),
           ),
-          h.div().of(
+          h.div('playing .h').of(
             h.div('bars', {class: 'bars'}),
             h.div('dt', {class: 'dt'}),
           ),
@@ -202,6 +206,7 @@ export const Recorder = (output) => {
   })
   disp.sel.addEventListener('change', e => {
     playback = e.target.value || null
+    disp.playing.classList[playback ? 'remove' : 'add']('h')
     sender({recorder: { playback } })
     disp.bars.innerHTML = ''
     bari = 0
@@ -399,4 +404,3 @@ export const Midi = (output) => {
     listener,
   }
 }
-
