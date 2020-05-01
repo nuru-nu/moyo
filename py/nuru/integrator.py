@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import collections
 import time
 
 from smanmi import hotplug
@@ -55,9 +56,9 @@ class Integrator:
             state=state.State(),
             midi=None,
         )
-        self.transient = (
-            'midi',
-        )
+        self.transients = {
+            'midi': collections.deque(),
+        }
 
     def start(self):
         self.schedule()
@@ -71,6 +72,9 @@ class Integrator:
 
     def received(self, signals):
         # TODO : never lose a MIDI signal !
+        for name, queue in self.transients.items():
+            if name in signals:
+                queue.append(signals.pop(name))
         self.signals.update(signals)
         if 'logmel' in signals:
             self.integrate()
@@ -79,10 +83,8 @@ class Integrator:
         self.schedule()
         self.signals['t'] = time.time()
         signals = hp_signals.integrator_runner(**self.signals)
-        self.signals = {
-            name: None if name in self.transient else signal
-            for name, signal in signals.items()
-        }
+        for name, queue in self.transients.items():
+            signals[name] = queue.pop() if queue else None
         self.server.send(signals)
 
 
