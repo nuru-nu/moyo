@@ -23,11 +23,11 @@ export const Sonar = (output) => {
       if (sender) sender({sonar: null})
       return
     }
-    if (sender) sender({sonar: parseInt(disp.sonar.value)})
+    if (sender) sender({sonar: parseInt(disp.sonar.value) / 100})
   }
   function listener(data) {
     if (override) return
-    if (data.sonarsig) disp.sonar.value = 100 * data.sonarsig
+    if (data.sonar) disp.sonar.value = 100 * data.sonarsig
   }
   function sendto(sender_) {
     sender = sender_

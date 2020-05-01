@@ -1,3 +1,4 @@
+"""Reads sonar signal from Arduino as `sonar` [m] (or 0.0 if no signal)."""
 import time
 
 import serial
@@ -34,13 +35,13 @@ else:
 
 def read_sonar():
     if arduino is None:
-        return -1
+        return 0.
     arduino.send("get_sonar")
     msg = arduino.receive()
     if msg is None or (len(msg) < 1):
-        return -1
+        return 0.
     else:
-        return msg[1][0]
+        return msg[1][0] / 100.
 
 
 sock = network.create_udp_socket(settings.sonar_cmd_port, settings.address)
@@ -50,7 +51,8 @@ while True:
     if data and 'sonar' in data:
         override = data['sonar']
         logger.info('override=%r', override)
-    network.send(settings.integrator_sig_port, dict(
-        sonar=override if override is not None else read_sonar(),
-    ))
+    sonar = read_sonar()
+    if override is not None:
+        sonar = override
+    network.send(settings.integrator_sig_port, dict(sonar=sonar))
     time.sleep(1 / settings.sonar_hz)
