@@ -1,3 +1,18 @@
+#title {
+  font-size: xxx-large;
+  font-weight: bold;
+  text-align: center;
+  color: #020;
+}
+
+#container {
+  display:flex;
+}
+
+#right > * {
+  margin-bottom: 30px;
+}
+
 #leds {
   margin-top: 1rem;
 }
