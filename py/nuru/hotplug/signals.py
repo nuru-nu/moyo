@@ -11,6 +11,18 @@ E.init(settings)
 S.init(settings)
 
 
+class Into(L.Signal):
+    """Turns on when head presence is detected by sonar."""
+
+    def init(self, limit=0.3):
+        self.value = 0
+
+    def call(self, sonar):
+        if sonar > 0:
+            self.value = sonar < self.limit
+        return self.value
+
+
 class State(L.Signal):
     """Updates the state."""
 
@@ -143,7 +155,7 @@ integrator_runner = L.SignalRunner(dict(
     drone3=S.RndRamp(),
 
     # non-audio input
-    into=S.Into(),
+    into=Into(),
 
     xxx=S.MidiPulse('0: G1'),
 

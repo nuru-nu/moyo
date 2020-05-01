@@ -51,7 +51,7 @@ class Integrator:
             rawloud=0,
             loud=0,
             setstate={},
-            sonar=0,
+            sonar=1,
             state=state.State(),
             midi=None,
         )
