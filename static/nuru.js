@@ -278,7 +278,7 @@ export const Scene = (container, options) => {
   // scene.add( plane )
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio( window.devicePixelRatio )
+  renderer.setPixelRatio(window.devicePixelRatio)
   renderer.setSize(options.width, options.height)
   container.appendChild(renderer.domElement)
 
@@ -335,6 +335,10 @@ export const Scene = (container, options) => {
     stats: show => stats.dom.style.display = show ? 'block' : 'none',
     animate: cb => animated.add(cb),
     camera: (x, y, z) => camera.position.set(x, y, z),
+    size: (width, height) => {
+      renderer.setSize(width, height)
+      camera.aspect = width / height
+    },
   }
 }
 

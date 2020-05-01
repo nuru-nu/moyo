@@ -8,16 +8,18 @@ export const Leds = (output, opts) => {
   opts = opts || {}
   const min_value = opts.min_value || 20
 
-  const width=800, height=600
+  let width=600, height=480
+  const sizes = {
+    s: { width: 600, height: 480 },
+    m: { width: 800, height: 600 },
+    l: { width: 1024, height: 768 },
+  }
   const rows=32, cols=64, sz=10
 
-  const disp = ui.h(
-    ui.v(
-      h.canvas('rphi', {width, height}),
-      h.div('xyz', {class: 'xyz'}),
-    ),
-    ui.v(
+  const disp = ui.v(
+    ui.h(
       ui.choice('view', {values: ['r-phi', 'x-y-z']}),
+      ui.choice('size', {values: Object.keys(sizes), initial: 's'}),
       h.div('xyzcontrols').of(ui.h(
         'fps ',
         ui.dropdown('fps', {values: ['10', '20', '30', '60']}),
@@ -28,6 +30,10 @@ export const Leds = (output, opts) => {
         h.button('pause').of('pause'),
         h.button('download').of('download'),
       ),
+    ),
+    ui.v(
+      h.canvas('rphi', {width, height}),
+      h.div('xyz', {class: 'xyz'}),
     ),
   ).into(output).els
 
@@ -52,6 +58,14 @@ export const Leds = (output, opts) => {
       disp.rphi.style.display = 'none'
       scene.start()
     }
+  })
+  disp.size.change(value => {
+    console.log('size', value)
+    width = sizes[value].width
+    height = sizes[value].height
+    scene.size(width, height)
+    disp.rphi.setAttribute('width', width)
+    disp.rphi.setAttribute('height', height)
   })
 
   disp.fps.change(fps => scene.fps(parseFloat(fps)))
