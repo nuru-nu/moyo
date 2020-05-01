@@ -1,9 +1,12 @@
 import { h, colors, ui } from './smanmi/util.js'
 import { Scene, Nuru } from './nuru.js';
 
-export const Leds = (output) => {
+export const Leds = (output, opts) => {
 
   let phi_r_mapping = null
+
+  opts = opts || {}
+  const min_value = opts.min_value || 20
 
   const width=800, height=600
   const rows=32, cols=64, sz=10
@@ -95,9 +98,9 @@ export const Leds = (output) => {
       const x=i%cols, y=Math.floor(i/cols)
       const col = (
         '#' +
-        colors.hex2[values[3 * i]] +
-        colors.hex2[values[3 * i + 1]] +
-        colors.hex2[values[3 * i + 2]]
+        colors.hex2[Math.max(min_value, values[3 * i])] +
+        colors.hex2[Math.max(min_value, values[3 * i + 1])] +
+        colors.hex2[Math.max(min_value, values[3 * i + 2])]
       )
       const [phi, r] = phi_r_mapping[i]
       led(phi, r, col)
