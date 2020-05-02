@@ -175,10 +175,29 @@ class Phi(L.Signal):
         return phi_r_mapping[:, 0]
 
 
+class Dist2D(L.Signal):
+    """Distance from point in euclidian phi/r plane."""
+
+    def init(self, phi, r):
+        self.lphi = self.lr = None
+        self.ldist = None
+
+    def call(self):
+        if self.phi != self.lphi or self.r != self.lr:
+            phi, r = phi_r_mapping.T
+            self.ldist = (
+                (r * np.cos(phi) - self.r * np.cos(self.phi)) ** 2 +
+                (r * np.sin(phi) - self.r * np.sin(self.phi)) ** 2
+            ) ** .5
+            self.lphi = self.phi
+            self.lr = self.r
+        return self.ldist
+
+
 # 3D
 ###############################################################################
 
-class Dist(L.Signal):
+class Dist3D(L.Signal):
     """Calculates distance in 3D."""
 
     def init(self, x=0, y=0, z=0):
