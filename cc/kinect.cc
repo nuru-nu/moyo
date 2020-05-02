@@ -74,6 +74,7 @@ int main(const int argc, const char** const argv) {
     }
 
     const cv::Mat depth = hardware.depth(); 
+    const cv::Mat user_pixels = hardware.get_user_pixels();
 
     features.process(depth);
     const int bytes_sent = sender.send({
