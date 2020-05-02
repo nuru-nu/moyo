@@ -25,8 +25,8 @@ const bool kEnableDepth = true;
 Hardware::Hardware(void) {
 
   nite::NiTE::initialize(); 
-
   nite::Status niteRc = userTracker_.create();
+
   if (niteRc != nite::STATUS_OK)
   {
       printf("niteRc %d \n", niteRc);
@@ -119,7 +119,31 @@ int Hardware::next() {
   if(recording)
     recorder();
 
+  const nite::Array<nite::UserData>& users = userTrackerFrame_.getUsers();
+
   return userTracker_.readFrame(&userTrackerFrame_);
+}
+
+cv::Mat Hardware::get_user_pixels(){
+
+  const nite::UserMap& userLabels = userTrackerFrame_.getUserMap();
+
+  cv::Mat user_pixels = cv::Mat::zeros(
+                                    depthFrame_.getHeight(), 
+                                    depthFrame_.getWidth(), 
+                                    CV_8UC1);
+
+  const nite::UserId* pLabels = userLabels.getPixels();
+  for (int y = 0; y < depthFrame_.getHeight(); ++y) {
+    for (int x = 0; x < depthFrame_.getWidth(); ++x, ++pLabels){
+      if (*pLabels != 0)
+        user_pixels.at<uint8_t>(y, x) = *pLabels;
+    }
+  }
+
+  std::cout << user_pixels << std::endl;
+
+  return user_pixels;
 }
 
 std::vector<person_t> Hardware::get_tracking_data() {
