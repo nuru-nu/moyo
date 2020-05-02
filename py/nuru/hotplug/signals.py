@@ -76,7 +76,7 @@ audio_runner = L.SignalRunner(dict(
         S.Lin(shift=3 / 5, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
     ),
 
-    #std3=S.SinT(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
+    #std3=S.Sin(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 ))
 
 integrator_runner = L.SignalRunner(dict(

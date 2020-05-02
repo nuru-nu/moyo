@@ -12,6 +12,7 @@ from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
 from smanmi import util
 from . import animations
 from . import recording
+from . import state
 from . import settings
 
 
@@ -98,8 +99,8 @@ async def send_setstate(request):
     return web.Response(
         content_type='Application/JSON',
         text=json.dumps(dict(
-            colors=hp_signals.State.COLORS,
-            states=hp_signals.State.STATES,
+            colors=state.Rizhom.COLORS,
+            states=state.Rizhom.STATES,
         )))
 
 

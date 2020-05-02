@@ -6,40 +6,49 @@ import numpy as np  # type: ignore
 from scipy.stats import multivariate_normal, norm  # type: ignore
 
 
-def spherical_gaussian_droplet(phi_r_mapping, pos, sigma, color):
-        pixels = np.zeros((len(phi_r_mapping), 3)) + np.array([color])
-        phi0, r0 = pos
-        n, (phi, r) = len(phi_r_mapping), phi_r_mapping.T
+def spherical_gaussian_droplet(phi_r_mapping, pos, sigma):
+    """Computes a 2D gaussian based on great circle distance.
 
-        dist_mapping = dist_pos(
-            haversine(
-                phi1=np.repeat(phi0, n),
-                theta1=np.repeat(r0, n),
-                phi2=phi,
-                theta2=r,
-                radius=1),
-            bearing(
-                phi1=np.repeat(phi0, n),
-                theta1=np.repeat(r0, n),
-                phi2=phi,
-                theta2=r),
-        )
+    Params:
+      phi_r_mapping: pixel coordinates, len=n
+      pos: center of the Gaussian [phi, r]
+      sigma: width of the Gaussian
 
-        kernel = multivariate_normal.pdf(
-            dist_mapping, mean=[0,0], cov=np.abs(sigma) + 1.e-12
-        )[:, np.newaxis]
+    Returns:
+      Values as returned by Gaussian function, shape=[n].
+    """
+    phi0, r0 = pos
+    n, (phi, r) = len(phi_r_mapping), phi_r_mapping.T
 
-        return pixels * kernel
+    dist_mapping = dist_pos(
+        haversine(
+            phi1=np.repeat(phi0, n),
+            theta1=np.repeat(r0, n),
+            phi2=phi,
+            theta2=r,
+            radius=1),
+        bearing(
+            phi1=np.repeat(phi0, n),
+            theta1=np.repeat(r0, n),
+            phi2=phi,
+            theta2=r),
+    )
+
+    kernel = multivariate_normal.pdf(
+        dist_mapping, mean=[0,0], cov=np.abs(sigma) + 1.e-12
+    )
+
+    return kernel
 
 
-def r_phi_gaussian_1d(phi_r_mapping, pos, sigma, color):
+def r_phi_gaussian_2d(phi_r_mapping, pos, sigma, eps=1e-5):
     """Distance is take in (x, y) space defined by phi_r_mapping."""
     (phi, r), (phi0, r0) = phi_r_mapping.T, pos
     dist = (
         (r * np.cos(phi) - r0 * np.cos(phi0)) ** 2 +
         (r * np.sin(phi) - r0 * np.sin(phi0)) ** 2
     ) ** .5
-    return norm.pdf(dist, scale=sigma)[:, np.newaxis] * [color]
+    return norm.pdf(dist, scale=sigma + eps)
 
 
 def haversine(phi1, theta1, phi2, theta2, radius):

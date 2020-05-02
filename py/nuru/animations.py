@@ -1,3 +1,4 @@
+import functools
 import json
 import time
 
@@ -22,15 +23,6 @@ xyz_mapping = mapping.generate_xyz_mapping(
 # utils
 ###############################################################################
 
-
-def full_on(color, nr_pixels):
-    return np.tile(color, nr_pixels).reshape(nr_pixels, -1)
-
-
-def linear(x):
-    return x
-
-
 def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
     """Multiplies r with different factors for inner/outer area."""
     return np.piecewise(
@@ -40,19 +32,8 @@ def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
     )
 
 
-def phi_r_transform(r_phi_mapping, inner_mult=np.pi / 2, outer_mult=0.5):
-    """Transforms both r & phi."""
-    return np.hstack([
-        r_phi_mapping[:, 0:1],
-        r_piecewise(
-            r_phi_mapping[:, 1:2], inner_mult=inner_mult,
-            outer_mult=outer_mult),
-    ])
-
-
 # state related
 ###############################################################################
-
 
 # Note: This cannot be implemented as a `L.Signal()` because we don't want to
 # run the animations that are currently not shown.
@@ -73,11 +54,11 @@ class Mixer:
             self.last = self.current
             self.current = state
             self.t0 = t
-        pixels = self.animations[state](**signals)['value']
+        pixels = self.animations[state](**signals)
         dt = self.dt_by_state.get(state, self.default_dt)
         if t - self.t0 < dt:
             v = (t - self.t0) / dt
-            last_pixels = self.animations[self.last](**signals)['value']
+            last_pixels = self.animations[self.last](**signals)
             pixels = v * pixels + (1 - v) * last_pixels
         return dict(value=pixels)
 
@@ -86,29 +67,23 @@ class Mixer:
 ###############################################################################
 
 
-# TODO subclass L.Signal
-class Add:
-
-    def __init__(self, *anims):
-        self.anims = anims
-
-    def __call__(self, **signals):
-        pixels = self.anims[0](**signals)['value']
-        for anim in self.anims[1:]:
-            pixels += anim(**signals)['value']
-        return dict(value=pixels)
+def add(anims):
+    """Reduces an iterable of animations by addition."""
+    return functools.reduce(lambda acc, a: acc + a, anims[1:], anims[0])
 
 
 # simple animations
 ###############################################################################
 
 
-class FullOn(L.Signal):
-    def init(self, color):
-        pass
+class Ones(L.Signal):
+    """All pixels same value."""
+
+    def init(self):
+        self.value = np.ones([len(phi_r_mapping)], float)
 
     def call(self):
-        return np.repeat([self.color], phi_r_mapping.shape[0], axis=0)
+        return self.value
 
 
 class RPalette(L.Signal):
@@ -136,22 +111,18 @@ class PhiPalette(L.Signal):
 # gaussians
 ###############################################################################
 
-
 class GaussianDroplet(L.Signal):
 
-    def init(self, sigma, color, phi, r, inner_mult=np.pi / 2):
-        self.spherical_mask = phi_r_mapping[:, 1:2] < 1
+    def init(self, sigma, phi, r, inner_mult=np.pi / 2):
+        self.spherical_mask = phi_r_mapping[:, 1] < 1
 
     def call(self):
-        return pf.spherical_gaussian_droplet(
-            phi_r_mapping, [self.phi, self.r], self.sigma, self.color
-        ) * (phi_r_mapping[:, 1:2] < np.pi)
-        # FIXME
         # return pf.spherical_gaussian_droplet(
-        #     phi_r_mapping, [self.phi, self.r], self.sigma, self.color
-        # ) * self.spherical_mask + pf.r_phi_gaussian_1d(
-        #     phi_r_mapping, [self.phi, self.r], self.sigma, self.color
-        # ) * (~self.spherical_mask)
+        #     phi_r_mapping, [self.phi, self.r], self.sigma
+        # ) * self.spherical_mask
+        return pf.r_phi_gaussian_2d(
+            phi_r_mapping, [self.phi, self.r], self.sigma
+        )  # * (~self.spherical_mask)
 
 
 class GaussianRain(L.Signal):
@@ -187,23 +158,28 @@ class GaussianRain(L.Signal):
         return pixels
 
 
+# r-phi
+###############################################################################
+
+class R(L.Signal):
+    """Returns radius."""
+
+    def call(self):
+        return phi_r_mapping[:, 1]
+
+
+class Phi(L.Signal):
+    """Returns phi."""
+
+    def call(self):
+        return phi_r_mapping[:, 0]
+
+
 # 3D
 ###############################################################################
 
-class StandingWave(L.Signal):
-
-    def init(self, period=1, hz=1, color=[1, 1, 1]):
-        self.dist = np.linalg.norm(xyz_mapping, axis=1)
-
-    def call(self, t):
-        return np.sin(
-            -t * self.hz * np.pi * 2
-            + np.pi * 2 * self.dist / self.period
-        ).reshape((-1, 1)) * np.array([[1.0, 1.0, 1.0]])
-
-
 class Dist(L.Signal):
-    """Calculates distance."""
+    """Calculates distance in 3D."""
 
     def init(self, x=0, y=0, z=0):
         self.lxyz = xyz = (x, y, z)
@@ -223,45 +199,6 @@ class Dist(L.Signal):
         return self.dist
 
 
-class F(L.Signal):
-    """Calculates a function on previous signal with optional parameters."""
-
-    def init(self, f, p1=None):
-        pass
-
-    def call(self, value):
-        if self.p1 is None:
-            return self.f(value)
-        return self.f(value, self.p1)
-
-
-class RGB(L.Signal):
-
-    def init(self, r, g, b):
-        pass
-
-    def call(self, value):
-        return value[:, None] * np.array([[self.r, self.g, self.b]])
-
-
-class MidiGate(L.Signal):
-
-    def init(self, port_letter_octave):
-        self.state = 0
-
-    def call(self, value, midi):
-        if midi == f'{self.port_letter_octave} on':
-            self.state = 1
-        if midi == f'{self.port_letter_octave} off':
-            self.state = 0
-        return value * self.state
-
-
-def tocos2(x):
-    """Translates 0 -> to soft 0 -> 1 -> 0."""
-    return 1 - (0.5 + 0.5 * np.cos(2 * x * np.pi))
-
-
 class CompWave(L.Signal):
     """Use: sig | CompWave() | Gradient."""
 
@@ -269,8 +206,12 @@ class CompWave(L.Signal):
         r = phi_r_mapping[:, 1]
         self.x = r / r.max()
 
+    def tocos2(self, x):
+        """Translates 0 -> to soft 0 -> 1 -> 0."""
+        return 1 - (0.5 + 0.5 * np.cos(2 * x * np.pi))
+
     def call(self, value):
-        exp = self.start + tocos2(value) * (self.stop - self.start)
+        exp = self.start + self.tocos2(value) * (self.stop - self.start)
         u = np.exp((1.5 - self.x) * exp)
         return 0.5 + 0.5 * np.sin(u)
 
