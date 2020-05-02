@@ -45,7 +45,8 @@ class Integrator:
                 (args.midi_address, settings.midi_cmd_port),
             ),
         )
-        self.server.onreceive(self.received)
+        self.server.onsignal(self.onsignal)
+        self.server.oncmd(self.oncmd)
         self.signals = dict(
             t=0,
             iso=0,
@@ -70,14 +71,19 @@ class Integrator:
         self.handle = asyncio.get_event_loop().call_later(
             1 / args.idle_fps, self.integrate)
 
-    def received(self, signals):
-        # TODO : never lose a MIDI signal !
+    def onsignal(self, signals):
         for name, queue in self.transients.items():
             if name in signals:
-                queue.append(signals.pop(name))
+                queue.append(signals[name])
+            else:
+                self.signals[name] = signals[name]
         self.signals.update(signals)
         if 'logmel' in signals:
             self.integrate()
+
+    def oncmd(self, cmd):
+        if 'midi' in cmd:
+            self.transients['midi'].append(cmd['midi'])
 
     def integrate(self):
         self.schedule()
