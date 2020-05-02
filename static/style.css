@@ -30,6 +30,10 @@
   text-decoration: underline;
 }
 
+.key {
+  margin-left: 5px;
+}
+
 .record.recording .start { display: none; }
 .record .stop { display: none; }
 .record.recording .stop { display: inline-block; }

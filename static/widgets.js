@@ -309,7 +309,6 @@ export const Subsample = output => {
 
 export const Cmd = (output) => {
   const cont = h.div().into(output).el
-  const notes = ['C2', 'D2', 'E2', 'F2']
   fetch('/setstates').then(res => res.json()).then(setstates => {
     let {colors, states} = setstates
     colors.unshift('')
@@ -317,7 +316,7 @@ export const Cmd = (output) => {
     const fcs = [0, 1, 2, 3]
     let disp = h.div({class: 'flex widget'}).of(
       h.div({class: 'header'}).of('cmd'),
-      h.div({class: 'flex'}).of(
+      ui.h(
         'fc',
         h.select('fc').of(fcs.map(value =>
           h.option({value}).of(value))),
@@ -327,8 +326,6 @@ export const Cmd = (output) => {
         'state',
         h.select('state').of(states.map(value =>
           h.option({value}).of(value))),
-        'midi',
-        notes.map(note => h.button(note).of(note)),
       ),
     ).into(cont).els
 
@@ -343,17 +340,6 @@ export const Cmd = (output) => {
       const state = e.target.value === '' ? null : e.target.value
       sender({setstate: { state }})
     })
-
-    notes.forEach(note => {
-      disp[note].addEventListener('mousedown', function() {
-        this.classList.add('on')
-        sender({midi: `0: ${note} on`})
-      })
-      disp[note].addEventListener('mouseup', function() {
-        this.classList.remove('on')
-        sender({midi: `0: ${note} off`})
-      })
-    })
   })
 
   let sender
@@ -366,13 +352,54 @@ export const Cmd = (output) => {
 }
 
 export const Midi = (output) => {
+  const notes = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'
+  ]
   const re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
   const ports = new Map()
   const keys = new Map()
-  const cont = h.div({class: 'flex widget'}).of(
-      h.div({class: 'header'}).of('midi'),
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('midi'),
+    ui.v(
+      ui.h(
+        'port ',
+        ui.choice('port', {values: ['0', '1', '2']}),
+        'octave ',
+        ui.choice('octave', {values: ['0', '1', '2', '3', '4'], initial: '2'}),
+      ),
+      notes.map(note => h.button(note).of(note)),
       h.div('cont'),
-  ).into(output).els.cont
+    ),
+  ).into(output).els
+
+  let port, octave
+  disp.port.change(value => port = value)
+  disp.octave.change(value => octave = value)
+
+  notes.forEach(note => {
+    disp[note].addEventListener('mousedown', function() {
+      this.classList.add('on')
+      sender({midi: `${port}: ${note}${octave} on`})
+    })
+    disp[note].addEventListener('mouseup', function() {
+      this.classList.remove('on')
+      sender({midi: `${port}: ${note}${octave} off`})
+    })
+  })
+
+  function value(note) {
+    const octave = parseInt(note.substr(note.length - 1))
+    const idx = notes.indexOf(note.substr(0, note.length - 1))
+    return octave * 12 + idx
+  }
+  function sort(cont) {
+    const arr = Array.from(cont.children).map(child => [
+      value(child.textContent), child])
+    while (cont.firstChild) cont.removeChild(cont.firstChild)
+    arr.sort()
+    arr.forEach(idx_child => cont.appendChild(idx_child[1]))
+  }
+
   function listener(signals) {
     if (!signals.midi) return
     const m = re.exec(signals.midi)
@@ -385,7 +412,7 @@ export const Midi = (output) => {
       ports.set(port, ui.h(
         `${port}:`,
         h.div('cont'),
-      ).into(cont).els.cont)
+      ).into(disp.cont).els.cont)
     }
     const key = `${port}:${letter}${octave}`
     if (!keys.has(key)) {
@@ -393,6 +420,7 @@ export const Midi = (output) => {
         key, h.span('.key').of(
           `${letter}${octave}`,
         ).into(ports.get(port)).el)
+      sort(ports.get(port))
     }
     if (command === 'on') {
       keys.get(key).classList.add('on')
@@ -400,7 +428,13 @@ export const Midi = (output) => {
       keys.get(key).classList.remove('on')
     }
   }
+
+  let sender
+  function sendto(sender_) {
+    sender = sender_
+  }
   return {
     listener,
+    sendto,
   }
 }
