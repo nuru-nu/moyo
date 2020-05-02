@@ -9,7 +9,6 @@ from openpixelcontrol import opc  # type: ignore
 from smanmi import hotplug
 from smanmi import perf
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
-from smanmi import state
 from smanmi import util
 from . import animations
 from . import recording
@@ -43,9 +42,7 @@ class Animator:
         self.faulty_mtime = None
 
     def received_from_udp(self, data):
-        self.signals = json.loads(data.decode('utf8'))
-        if 'state' in self.signals:
-            self.signals['state'] = state.State(self.signals['state'])
+        self.signals = util.deserialize(data)
 
     def received_from_ws(self, data):
         signals = json.loads(data)

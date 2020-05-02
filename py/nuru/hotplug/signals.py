@@ -1,12 +1,14 @@
-import importlib, random
+import importlib
 
 from smanmi import effects as E, midi, logic as L, signals as S
 
 from .. import settings
+from .. import state
 
 
 importlib.reload(E)
 importlib.reload(S)
+importlib.reload(state)
 E.init(settings)
 S.init(settings)
 
@@ -21,62 +23,6 @@ class Into(L.Signal):
         if sonar > 0:
             self.value = sonar < self.limit
         return self.value
-
-
-class State(L.Signal):
-    """Updates the state."""
-
-    COLORS = (
-        'brownish_palette',
-        'coolors_rainbow',
-        'just_greens',
-        'blue_purple',
-        'funny_rainbow',
-        'barbie',
-        'purple_haze',
-        'red_death',
-        'gabe_red',
-        'super_red',
-        'ultra_rainbows',
-        'earth_life',
-    )
-
-    STATES = (
-        'std', 'std2', 'into', 'ooo', 'flash', 'test',
-    )
-
-    def init(self):
-        self.last_change = 0
-
-    def call(self, t, state, into, ooo_intensity, setstate):
-        oldstate = state.state
-        dt = t - self.last_change
-
-        if setstate.get('color'):
-            state.color = setstate['color']
-        if setstate.get('state'):
-            state.state = setstate['state']
-            return state
-
-        if not state.state.startswith('std') and not into:
-            state.goto(random.choice(['std', 'std2']))
-            state.rnd = random.choice(range(10))
-            state.color = random.choice(self.COLORS)
-        elif state.state == 'test':
-            return state
-        elif state.state.startswith('std') and into:
-            state.goto('into')
-        elif state.state == 'into' and dt > 2:
-            state.goto('ooo')
-        # elif state.state == 'ooo' and ooo_intensity == 1.0:
-        #     state.state = 'flash'
-        elif state.state == 'flash' and t - self.last_change > 10:
-            state.state = 'std'
-
-        if oldstate != state.state:
-            self.last_change = t
-
-        return state
 
 
 audio_runner = L.SignalRunner(dict(
@@ -138,7 +84,7 @@ integrator_runner = L.SignalRunner(dict(
     loud_=L.Named('loud'),
 
     # state
-    state=State(),
+    state=state.Rizhom(),
 
     # generated
     std2=S.Saw(hz=0.5, dt=0),
@@ -153,7 +99,7 @@ integrator_runner = L.SignalRunner(dict(
         | S.InState('std') | S.MovingAverage(secs=0.5)
     ),
     drone3=S.RndRamp(),
-    heart=S.MidiPulse(midi.Note(2, 'C', 2)) | S.Lin(-5, 10) | S.Int(),
+    heart=S.MidiPulse(midi.Note(0, 'C', 2)) | S.Lin(-5, 10) | S.Int(),
 
     # non-audio input
     into=Into(),

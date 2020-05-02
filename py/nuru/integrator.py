@@ -5,9 +5,9 @@ import time
 
 from smanmi import hotplug
 from smanmi import integrator
-from smanmi import state
 from smanmi import util
 from . import settings
+from . import state
 
 
 parser = argparse.ArgumentParser(description='Integrates signals for NURU.')
@@ -56,6 +56,8 @@ class Integrator:
             state=state.State(),
             setstate={},
             midi=None,
+            valence_target=0,
+            arousal_target=0,
         )
         self.overrides = {}
         self.transients = {
