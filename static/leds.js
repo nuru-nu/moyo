@@ -60,7 +60,6 @@ export const Leds = (output, opts) => {
     }
   })
   disp.size.change(value => {
-    console.log('size', value)
     width = sizes[value].width
     height = sizes[value].height
     scene.size(width, height)
