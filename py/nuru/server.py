@@ -100,7 +100,7 @@ async def send_setstate(request):
         content_type='Application/JSON',
         text=json.dumps(dict(
             colors=state.Rizhom.COLORS,
-            states=state.Rizhom.STATES,
+            states=list(animator.hp_animations.states.keys()),
         )))
 
 

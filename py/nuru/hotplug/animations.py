@@ -73,10 +73,24 @@ def test():
     )
     # return A.CalibrationPattern()
     # Just for fun : set 3D gradient with sonar sensor...
-    return A.Dist() | S.Lin(
+    return A.Dist3D() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=1 / 5),
     ) | C.Palette(P.blue_purple)
     return A.PositionIdentify()
+
+
+heart_palette = P.parse_colors_hex([
+    (0, '000'),
+    (0.8, 'f00'),
+    (1, 'f00'),
+])
+
+
+def test2():
+    return (
+        A.Dist2D(phi=0, r=1) | S.Lin(1, -1) | S.Lin(0, L.Named('heart'))
+        | C.Palette(heart_palette)
+    )
 
 
 def frozen():
@@ -109,12 +123,16 @@ def flash():
     )
 
 
-pixels = A.Mixer(dict(
+states = dict(
     std=std(),
     std2=std2(),
     test=test(),
+    test2=test2(),
     frozen=frozen(),
     into=into(),
     ooo=ooo(),
     flash=flash(),
-))
+)
+
+
+pixels = A.Mixer(states)
