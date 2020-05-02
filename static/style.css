@@ -1,8 +1,14 @@
+@font-face {
+  font-family: 'Changa ExtraBold';
+  src: url('Changa-ExtraBold.ttf') format('truetype');
+}
+
 #title {
   font-size: xxx-large;
   font-weight: bold;
   text-align: center;
   color: #020;
+  font-family: Changa ExtraBold;
 }
 
 #container {
