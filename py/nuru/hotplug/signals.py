@@ -1,6 +1,6 @@
 import importlib, random
 
-from smanmi import effects as E, logic as L, signals as S
+from smanmi import effects as E, midi, logic as L, signals as S
 
 from .. import settings
 
@@ -82,7 +82,7 @@ class State(L.Signal):
 audio_runner = L.SignalRunner(dict(
     # raw audio
     #_pitch=(
-    #    S.Pitcher(tolerance=0.7) | S.Limiter(minv=0, maxv=400) |
+    #    S.Pitcher(tolerance=0.7) | S.Clip(0, 400) |
     #    S.Exponential(alpha=0.8)
     #),
     loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
@@ -118,15 +118,15 @@ audio_runner = L.SignalRunner(dict(
         S.Clip(0, 1) | S.MovingAverage(n=5)
     ),
     low=(
-        S.FreqBand(hzmin=0, hzmax=800, hzslope=100) |
+        S.FreqBand(fmin=0, fmax=10, df=1.2) |
         S.Lin(shift=3 / 5, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
     ),
     medium=(
-        S.FreqBand(hzmin=800, hzmax=2500, hzslope=400) |
+        S.FreqBand(fmin=10, fmax=30, df=5) |
         S.Lin(shift=3) | S.Clip() | S.MovingAverage(n=5)
     ),
     high=(
-        S.FreqBand(hzmin=2500, hzmax=1e10, hzslope=500) |
+        S.FreqBand(fmin=31, fmax=1e10, df=6) |
         S.Lin(shift=3 / 5, mult=1 / 5) | S.Clip() | S.MovingAverage(n=5)
     ),
 
@@ -153,23 +153,22 @@ integrator_runner = L.SignalRunner(dict(
         | S.InState('std') | S.MovingAverage(secs=0.5)
     ),
     drone3=S.RndRamp(),
+    heart=S.MidiPulse(midi.Note(2, 'C', 2)) | S.Lin(-5, 10) | S.Int(),
 
     # non-audio input
     into=Into(),
 
-    xxx=S.MidiPulse('0: G1'),
-
     # derived
     ooo=(
         L.Named('iso') |
-        S.Ramp(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
-        S.Ramp(up_s=5, down_s=0.5) | S.Tocos()
+        S.ClampSlope(up_s=2, down_s=2) | S.Hyst(up_th=0.5, down_th=0.2) |
+        S.ClampSlope(up_s=5, down_s=0.5) | S.Tocos()
     ) | S.InState('ooo'),
     bass_ooo=S.RndRamp([20, 30], [3, 4], [1, 4], state='ooo'),
     ooo_intensity=(
-        L.Named('ooo') | S.Ramp(up_s=0.2, down_s=0.4) | S.Clip()),
+        L.Named('ooo') | S.ClampSlope(up_s=0.2, down_s=0.4) | S.Clip()),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
 
     # output
-    flash_pulse=L.Named('rawloud') | S.Smoke(0.5, 2, 40),
+    flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
 ))
