@@ -52,13 +52,15 @@ class Integrator:
             iso=0,
             rawloud=0,
             loud=0,
-            setstate={},
             sonar=1,
             state=state.State(),
+            setstate={},
             midi=None,
         )
+        self.overrides = {}
         self.transients = {
-            'midi': collections.deque(),
+            name: collections.deque()
+            for name in ('midi',)
         }
 
     def start(self):
@@ -72,23 +74,35 @@ class Integrator:
             1 / args.idle_fps, self.integrate)
 
     def onsignal(self, signals):
-        for name, queue in self.transients.items():
-            if name in signals:
-                queue.append(signals[name])
+        for name, value in signals.items():
+            if name in self.transients:
+                self.transients[name].append(value)
             else:
-                self.signals[name] = signals[name]
+                self.signals[name] = value
         self.signals.update(signals)
         if 'logmel' in signals:
             self.integrate()
 
+    def override(self, name, value):
+        self.overrides[name] = value
+        if value is None:
+            del self.overrides[name]
+
     def oncmd(self, cmd):
         if 'midi' in cmd:
             self.transients['midi'].append(cmd['midi'])
+        if 'setstate' in cmd:
+            self.signals['setstate'] = cmd['setstate']
+        if 'sonar' in cmd:
+            self.override('sonar', cmd['sonar'])
 
     def integrate(self):
         self.schedule()
         self.signals['t'] = time.time()
-        signals = hp_signals.integrator_runner(**self.signals)
+        signals = hp_signals.integrator_runner(**{
+            name: self.overrides.get(name, value)
+            for name, value in self.signals.items()
+        })
         for name, queue in self.transients.items():
             signals[name] = queue.pop() if queue else None
         self.server.send(signals)

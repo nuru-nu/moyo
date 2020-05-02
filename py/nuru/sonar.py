@@ -45,14 +45,10 @@ def read_sonar():
 
 
 sock = network.create_udp_socket(settings.sonar_cmd_port, settings.address)
-override = None
 while True:
     data = network.get_json(sock, None)
     if data and 'sonar' in data:
-        override = data['sonar']
-        logger.info('override=%r', override)
+        logger.info('received sonar=%s - DOING NOTHING', data['sonar'])
     sonar = read_sonar()
-    if override is not None:
-        sonar = override
     network.send(settings.integrator_sig_port, dict(sonar=sonar))
     time.sleep(1 / settings.sonar_hz)
