@@ -91,7 +91,10 @@ integrator_runner = L.SignalRunner(dict(
     # generated
     std2=S.Saw(hz=0.5, dt=0),
     std22=S.Saw(hz=1.0, dt=0),
+    std2_cos2=L.Named('std2') | S.Lin(mult=2) | S.Tocos(),
     std3=S.Saw(hz=0.5, dt=0),
+    saw_slow=S.Saw(hz=0.05, dt=0),
+    cos2_slow=S.Saw(hz=0.2, dt=0) | S.Lin(mult=2) | S.Tocos(),
     drone1=(
         S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
         | S.InState('std') | S.MovingAverage(secs=0.5)

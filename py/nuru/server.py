@@ -134,8 +134,8 @@ server = Server(static_dir='static', logger=logger)
 animator.stats = server.stats
 server.forward_udp(UdpForwarding(
     '/+signals',
-    in_udp=UdpEndpoint('127.0.0.1', settings.server_sig_port),
-    out_udp=UdpEndpoint('127.0.0.1', settings.integrator_cmd_port),
+    in_udp=UdpEndpoint('192.168.1.58', settings.server_sig_port),
+    out_udp=UdpEndpoint('192.168.1.58', settings.integrator_cmd_port),
 ).with_callbacks(
     animator.received_from_udp,
     animator.received_from_ws,

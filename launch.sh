@@ -70,7 +70,7 @@ if [ $LAYOUT == LANDSCAPE ]; then
   restarting_py nuru.recorder
 
   tmux splitw -v -p 66
-  restarting_py nuru.cmd
+  #restarting_py nuru.cmd
   tmux splitw -v
   tmux selectp -U
   tmux splitw -h -p 50
