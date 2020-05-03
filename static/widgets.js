@@ -438,3 +438,72 @@ export const Midi = (output) => {
     sendto,
   }
 }
+
+export const Css = (output) => {
+  const width = 200
+  const height = 200
+  const xlim = [0, 1]
+  const ylim = [0, 1]
+  const r = 8
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('css'),
+    ui.v(
+      h.div().of(ui.toggle('show', true)),
+      h.canvas('xy .css', {width, height}),
+    ),
+  ).into(output).els
+  const ctx = disp.xy.getContext('2d')
+
+  disp.show.change(value => {
+    disp.xy.classList[value ? 'remove' : 'add']('h')
+  })
+
+  const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
+  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
+  const fromx = x => xlim[0] + x / width * (xlim[1] - xlim[0])
+  const fromy = y => ylim[0] + y / width * (ylim[1] - ylim[0])
+
+  let target_css = null
+  disp.xy.addEventListener('click', e => {
+    console.log(e)
+    target_css = [fromx(e.offsetX), fromy(e.offsetY)]
+    update()
+  })
+
+  let sender
+  function update() {
+    if (!sender) return
+    sender({target_css})
+  }
+
+  const palette = colors.strong_palette
+  const cmap = new Map()
+  const lcm = new Map()
+  function listener(data) {
+    ctx.clearRect(0, 0, width, height)
+    if (target_css) {
+      ctx.lineWidth = 2
+      ctx.strokeStyle = '#444'
+      ctx.beginPath()
+      ctx.moveTo(tox(target_css[0]), toy(0))
+      ctx.lineTo(tox(target_css[0]), toy(1))
+      ctx.moveTo(tox(0), toy(target_css[1]))
+      ctx.lineTo(tox(1), toy(target_css[1]))
+      ctx.stroke()
+    }
+    const { css } = data
+    if (!css) return
+    ctx.fillStyle = '#0f0'
+    ctx.beginPath()
+    ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
+    ctx.fill()
+  }
+  function sendto(sender_) {
+    sender = sender_
+  }
+  return {
+    listener,
+    sendto,
+  }
+}
+

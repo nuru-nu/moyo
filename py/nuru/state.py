@@ -47,15 +47,17 @@ class Css(L.Signal):
     """Continuous State Space."""
 
     def init(self, alpha: float = 10):
-        self.valence = self.arousal = 0
+        self.valence = self.arousal = 0.5
 
-    def call(self, valence_target, arousal_target):
-        self.valence += (valence_target - self.valence) / self.alpha
-        self.arousal += (arousal_target - self.arousal) / self.alpha
-        return dict(
-            valence=self.valence,
-            arousal=self.arousal,
-        )
+    def call(self, target_css):
+        if target_css:
+            valence, arousal = target_css
+            self.valence += (valence - self.valence) / self.alpha
+            self.arousal += (arousal - self.arousal) / self.alpha
+        return [
+            self.valence,
+            self.arousal,
+        ]
 
 
 class Rizhom(L.Signal):

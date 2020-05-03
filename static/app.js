@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Kinect, Debug, Cmd, Recorder, Subsample, Midi } from './widgets.js'
+import { Sonar, Kinect, Css, Debug, Cmd, Recorder, Subsample, Midi } from './widgets.js'
 import { Leds } from './leds.js'
 
 window.console = Console('#console')
@@ -23,6 +23,7 @@ let cmd = Cmd('#cmd')
 let subsample = Subsample('#subsample')
 let sonar = Sonar('#sonar')
 let kinect = Kinect('#kinect')
+let css = Css('#kinect')
 let recorder = Recorder('#recorder')
 let midi = Midi('#midi')
 
@@ -34,12 +35,14 @@ let network = Network('#connection_state', { record_timestamps })
 .listenJson('signals', monitor.listener)
 .listenJson('signals', sonar.listener)
 .listenJson('signals', kinect.listener)
+.listenJson('signals', css.listener)
 .listenJson('signals', recorder.listener)
 .listenJson('signals', midi.listener)
 
 Debug('#debug', { network, record_timestamps })
 cmd.sendto(network.sender)
 kinect.sendto(network.sender)
+css.sendto(network.sender)
 midi.sendto(network.sender)
 sonar.sendto(network.sender)
 recorder.sendto(network.sender)
