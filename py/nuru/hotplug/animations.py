@@ -55,6 +55,26 @@ def std2():
         | state_palette | S.Lin(mult=0.2)
     )
 
+def phi_red():
+    return (
+        A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
+        | C.Palette(P.super_red) | S.Lin(mult=0.2)
+    ) + heart()
+
+def std2_bw():
+    return (
+        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
+        | C.Palette(P.black_white) | S.Lin(mult=0.2)
+    )
+
+
+
+def std3():
+    return (
+        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
+        | C.Palette(P.coolors_rainbow) | S.Lin(mult=0.2)
+    )
+
 
 # def std3():
 #     colors = get_state_colors(C.StatePalette)
@@ -66,17 +86,25 @@ def std2():
 #     ) | S.Lin(mult=0.2)
 
 
+def identify():
+    return A.PositionIdentify()
+
 def test():
     return (
-        L.Named('std2') | A.CompWave(1.8, 2.5)
-        | C.Palette(P.funny_rainbow)
+        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
+        | C.Palette(P.quite_bright) | S.Lin(mult=0.5)
+    )
+
+def test2():
+    return (
+        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
+        | C.Palette(P.gabe_red) | S.Lin(mult=0.5)
     )
     # return A.CalibrationPattern()
     # Just for fun : set 3D gradient with sonar sensor...
     return A.Dist3D() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=1 / 5),
     ) | C.Palette(P.blue_purple)
-    return A.PositionIdentify()
 
 
 heart_palette = P.parse_colors_hex([
@@ -86,11 +114,11 @@ heart_palette = P.parse_colors_hex([
 ])
 
 
-def test2():
+def heart():
     return (
-        A.Dist2D(phi=0, r=1) | S.Lin(1, -1) | S.Lin(0, L.Named('heart'))
+        A.Dist2D(phi=np.pi/4, r=0) | S.Lin(1, -1) | S.Lin(0, L.Named('heart'))
         | C.Palette(heart_palette)
-    )
+    ) | S.Lin(mult=0.3)
 
 
 def frozen():
@@ -122,17 +150,39 @@ def flash():
         saturation=0
     )
 
+spiral_palette = P.parse_colors_hex([
+    (0, '000'),
+    (0.4, '000'),
+    (0.5, '4f2'),
+    (0.6, '000'),
+    (1, '000'),
+])
+
+
+def spiral():
+    return (A.Spiral(
+        dphi=.5/np.pi,
+        dr=L.Named('cos2_slow') | S.Lin(0.5, 0.5),
+        speed=L.Named('sonar') | S.Lin(mult=8)
+    ) | S.Mod(1) | C.Palette(spiral_palette)) + heart()
+
 
 states = dict(
     std=std(),
     std2=std2(),
+    std2_bw=std2_bw(),
+    phi_red=phi_red(),
+    std3=std3(),
+    identify=identify(),
     test=test(),
     test2=test2(),
+    heart=heart(),
     frozen=frozen(),
     into=into(),
     ooo=ooo(),
     flash=flash(),
+    spiral=spiral(),
 )
 
 
-pixels = A.Mixer(states)
+pixels = A.Mixer(states, default_dt=10)

@@ -141,7 +141,7 @@ cv::Mat Hardware::get_user_pixels(){
     }
   }
 
-  std::cout << user_pixels << std::endl;
+  // std::cout << user_pixels << std::endl;
 
   return user_pixels;
 }
