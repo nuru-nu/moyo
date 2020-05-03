@@ -58,6 +58,7 @@ class Integrator:
             midi=None,
             valence_target=0,
             arousal_target=0,
+            fc=0,
         )
         self.overrides = {}
         self.transients = {
@@ -95,18 +96,21 @@ class Integrator:
             self.transients['midi'].append(cmd['midi'])
         if 'setstate' in cmd:
             self.signals['setstate'] = cmd['setstate']
+        if 'fc' in cmd:
+            self.signals['fc'] = cmd['fc']
         if 'sonar' in cmd:
             self.override('sonar', cmd['sonar'])
 
     def integrate(self):
         self.schedule()
         self.signals['t'] = time.time()
-        signals = hp_signals.integrator_runner(**{
-            name: self.overrides.get(name, value)
-            for name, value in self.signals.items()
-        })
+        signals = dict(**self.signals)
         for name, queue in self.transients.items():
             signals[name] = queue.pop() if queue else None
+        signals = hp_signals.integrator_runner(**{
+            name: self.overrides.get(name, value)
+            for name, value in signals.items()
+        })
         self.server.send(signals)
 
 
