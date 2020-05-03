@@ -56,8 +56,7 @@ class Integrator:
             state=state.State(),
             setstate={},
             midi=None,
-            valence_target=0,
-            arousal_target=0,
+            target_css=[0, 0],
         )
         self.overrides = {}
         self.transients = {
@@ -97,6 +96,8 @@ class Integrator:
             self.signals['setstate'] = cmd['setstate']
         if 'sonar' in cmd:
             self.override('sonar', cmd['sonar'])
+        if 'target_css' in cmd:
+            self.override('target_css', cmd['target_css'])
 
     def integrate(self):
         self.schedule()

@@ -9,6 +9,7 @@ from .. import state
 importlib.reload(E)
 importlib.reload(S)
 importlib.reload(state)
+importlib.reload(state)
 E.init(settings)
 S.init(settings)
 
@@ -85,6 +86,7 @@ integrator_runner = L.SignalRunner(dict(
 
     # state
     state=state.Rizhom(),
+    css=state.Css(),
 
     # generated
     std2=S.Saw(hz=0.5, dt=0),

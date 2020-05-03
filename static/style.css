@@ -40,6 +40,10 @@
   margin-left: 5px;
 }
 
+.css {
+  border: 1px solid #0f0;
+}
+
 .record.recording .start { display: none; }
 .record .stop { display: none; }
 .record.recording .stop { display: inline-block; }
