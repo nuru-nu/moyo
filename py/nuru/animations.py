@@ -194,6 +194,18 @@ class Dist2D(L.Signal):
         return self.ldist
 
 
+class Spiral(L.Signal):
+    """Generates a time dependent spiral."""
+    
+    def init(self, dphi=1, dr=1.5, speed=1):
+        pass
+    
+    def call(self, t):
+        return self.speed * t + (
+            phi_r_mapping[:, 0] * self.dphi +
+            phi_r_mapping[:, 1] * self.dr
+        )
+
 # 3D
 ###############################################################################
 
@@ -225,19 +237,15 @@ class CompWave(L.Signal):
         r = phi_r_mapping[:, 1]
         self.x = r / r.max()
 
-    def tocos2(self, x):
-        """Translates 0 -> to soft 0 -> 1 -> 0."""
-        return 1 - (0.5 + 0.5 * np.cos(2 * x * np.pi))
-
     def call(self, value):
-        exp = self.start + self.tocos2(value) * (self.stop - self.start)
+        exp = self.start + value * (self.stop - self.start)
         u = np.exp((1.5 - self.x) * exp)
         return 0.5 + 0.5 * np.sin(u)
 
 
 # debug
 ###############################################################################
-
+testvar = 0
 
 class PositionIdentify(L.Signal):
 
@@ -258,7 +266,7 @@ class PositionIdentify(L.Signal):
         )
     ])
 
-    def call(self, fc=None):
+    def call(self, fc):
         """Shows color cycle on fadecandy specified by `fc`."""
         return np.concatenate([
             self.COLORS if i == fc else self.ZEROS

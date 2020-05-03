@@ -119,7 +119,7 @@ def to_string():
 # network
 ###############################################################################
 
-address = server_address = status_address = midi_address = '127.0.0.1'
+address = server_address = status_address = midi_address = '192.168.1.58'  #'127.0.0.1'
 #status_address = 'figur.li'
 #server_address = '0.0.0.0'
 
@@ -218,22 +218,22 @@ arm_configs = [
         segments=[
             ArmSegment(distance=0, channel=2, position=0, front=True),
             ArmSegment(distance=0, channel=2, position=1, front=False),
-            ArmSegment(distance=1, channel=2, position=2, front=True),
-            ArmSegment(distance=1, channel=2, position=3, front=False),
+            ArmSegment(distance=1, channel=2, position=6, front=True),#
+            ArmSegment(distance=1, channel=2, position=7, front=False),#
         ],
     ),
     ArmConfig(
         phi=-45,
         segments=[
-            ArmSegment(distance=0, channel=2, position=4, front=True),
-            ArmSegment(distance=0, channel=2, position=5, front=False),
+            ArmSegment(distance=0, channel=2, position=2, front=True),#
+            ArmSegment(distance=0, channel=2, position=3, front=False),#
         ],
     ),
     ArmConfig(
         phi=45,
         segments=[
-            ArmSegment(distance=0, channel=2, position=6, front=True),
-            ArmSegment(distance=0, channel=2, position=7, front=False),
+            ArmSegment(distance=0, channel=2, position=4, front=True),#
+            ArmSegment(distance=0, channel=2, position=5, front=False),#
             ArmSegment(distance=1, channel=3, position=0, front=True),
             ArmSegment(distance=1, channel=3, position=1, front=False),
         ],
@@ -260,6 +260,35 @@ arm_configs = [
         ],
     ),
 ]
+
+FcPos = collections.namedtuple('FcPos', ['fadecandy', 'pos'])
+
+arm_mapping = {
+    'arm_5-1': [FcPos(2, 0), FcPos(2, 2)],
+    'arm_5-2': [FcPos(2, 1), FcPos(2, 3)],
+    'arm_4-1': [FcPos(2, 4)],
+    'arm_4-2': [FcPos(2, 5)],
+    'arm_3-1': [FcPos(2, 6), FcPos(3, 0)],
+    'arm_3-2': [FcPos(2, 7), FcPos(3, 1)],
+    'arm_2-1': [FcPos(3, 2)],
+    'arm_2-2': [FcPos(3, 3)],
+    'arm_1-1': [FcPos(3, 4)],
+    'arm_1-2': [FcPos(3, 5)],
+    'arm_6-1': [FcPos(3, 6)],
+    'arm_6-2': [FcPos(3, 7)],
+}
+
+
+# Arduino
+###############################################################################
+
+arduino_ports = [
+    "/dev/ttyACM0",
+    "/dev/ttyACM1",
+    "/dev/cu.usbmodem14344201",
+    "/dev/tty.usbmodem143344201",
+]
+sonar_hz = 4
 
 FcPos = collections.namedtuple('FcPos', ['fadecandy', 'pos'])
 
