@@ -104,7 +104,7 @@ def get_signals(features):
     return hp_signals.audio_runner(features=features)
 
 
-sock = network.create_udp_socket(settings.recorder_cmd_port, settings.address)
+sock = network.create_udp_socket(settings.recorder_cmd_port, '127.0.0.1')
 loop = False
 record = playback = None
 subsample = 1
@@ -148,7 +148,7 @@ while running:
     network.send(settings.integrator_sig_port, signals)
     if settings.timetracing:
         tt()
-    status_sender.send('running', settings.address)
+    status_sender.send('running', settings.status_address)
 
     data = network.get_json(sock, None)
     if data is None:

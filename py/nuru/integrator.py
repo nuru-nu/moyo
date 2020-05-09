@@ -15,8 +15,11 @@ parser.add_argument(
     '--idle_fps', type=float, default=25,
     help='Minimum frequency to integrate at (in absence of audio signals).')
 parser.add_argument(
-    '--midi_address', type=str, default=settings.midi_address,
+    '--midi_address', type=str, default='127.0.0.1',
     help='Address of machine running `smanmi.midi` script.')
+parser.add_argument(
+    '--server_address', type=str, default='127.0.0.1',
+    help='Address of machine running `smanmi.server` script.')
 args = parser.parse_args()
 
 logger = util.createLogger('integrator')
@@ -28,10 +31,11 @@ class Integrator:
     def __init__(self):
         self.server = integrator.IntegrationServer(
             logger,
-            address=settings.address,
-            sig_in_ports=(settings.integrator_sig_port,),
+            sig_in_ports=(
+                ('0.0.0.0', settings.integrator_sig_port),
+            ),
             sig_out_ports=(
-                settings.server_sig_port,
+                (args.server_address, settings.server_sig_port),
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,

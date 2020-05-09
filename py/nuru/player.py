@@ -51,9 +51,11 @@ def signal_handler(signal, frame):
 def play_audio():
     global ai1, running
     zeros = np.zeros(int(settings.out2_rate * settings.hop_secs))
+    time.sleep(1)
     while not signals and running:
         logger.info('waiting for signals...')
         time.sleep(1)
+    logger.info('Signals received.')
     while running:
         bufs = getattr(effects, effector)(zeros, signals)
         ai1.output_stream.write(audio.tostereo(bufs[0], bufs[1]).tostring())
@@ -74,7 +76,7 @@ audio_thread = threading.Thread(target=play_audio)
 audio_thread.start()
 
 signal.signal(signal.SIGINT, signal_handler)
-sock = network.create_udp_socket(port, settings.address, timeout=1)
+sock = network.create_udp_socket(port, '127.0.0.1', timeout=1)
 main_loop()
 
 logger.info('Stop playing.')

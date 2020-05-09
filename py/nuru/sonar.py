@@ -44,7 +44,7 @@ def read_sonar():
         return msg[1][0] / 100.
 
 
-sock = network.create_udp_socket(settings.sonar_cmd_port, settings.address)
+sock = network.create_udp_socket(settings.sonar_cmd_port, '127.0.0.1')
 while True:
     data = network.get_json(sock, None)
     if data and 'sonar' in data:
