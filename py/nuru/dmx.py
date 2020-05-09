@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     logger = util.createLogger('dmx')
     sock = network.create_udp_socket(
-        settings.dmx_port, settings.address, timeout=None)
+        settings.dmx_port, '127.0.0.1', timeout=None)
 
     effects = hotplug.HotPlug('.hotplug.effects', logger)
     status_sender = network.StatusSender(name='dmx', logger=logger)

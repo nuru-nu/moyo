@@ -24,8 +24,10 @@ parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
 parser.add_argument('--port', type=int, default=8080,
                     help='Port for HTTP server.')
-parser.add_argument('--address', type=str, default=settings.server_address,
-                    help='Network address for HTTP server.')
+parser.add_argument('--server_address', type=str, default='127.0.0.1',
+                    help='Network address for HTTP server - can be 0.0.0.0.')
+parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
+                    help='Address of machine running `smanmi.integrator`.')
 args = parser.parse_args()
 
 
@@ -134,8 +136,8 @@ server = Server(static_dir='static', logger=logger)
 animator.stats = server.stats
 server.forward_udp(UdpForwarding(
     '/+signals',
-    in_udp=UdpEndpoint('192.168.1.58', settings.server_sig_port),
-    out_udp=UdpEndpoint('192.168.1.58', settings.integrator_cmd_port),
+    in_udp=UdpEndpoint(args.integrator_address, settings.server_sig_port),
+    out_udp=UdpEndpoint(args.integrator_address, settings.integrator_cmd_port),
 ).with_callbacks(
     animator.received_from_udp,
     animator.received_from_ws,
@@ -145,5 +147,5 @@ server.run_periodically(
 server.routes.append(web.get('/mapping', send_mapping))
 server.routes.append(web.get('/setstates', send_setstate))
 server.routes.append(web.get('/recordings', get_recordings))
-server.run(address=args.address, port=args.port)
+server.run(address=args.server_address, port=args.port)
 print(perf.stats())
