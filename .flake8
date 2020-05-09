@@ -1,7 +1,8 @@
 [flake8]
+# E261 : auto-commented don't have two spaces before inline comment
 # E265 : auto-commented code parts don't have space after `#`
 # E401 : allow multiple imports per line
 # W503, W504 : we break lines before, after `|` operator (e.g. signals.py)
 # N812 : e.g. import logic as L
-ignore = E265, W503, E401, W504, N812
+ignore = E261, E265, W503, E401, W504, N812
 
