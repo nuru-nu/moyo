@@ -442,13 +442,16 @@ export const Midi = (output) => {
 export const Css = (output) => {
   const width = 200
   const height = 200
-  const xlim = [0, 1]
-  const ylim = [0, 1]
+  const xlim = [-1, 1]
+  const ylim = [-1, 1]
   const r = 8
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('css'),
     ui.v(
-      h.div().of(ui.toggle('show', true)),
+      h.div().of(
+        ui.toggle('show', true),
+        h.button('clear').of('clear'),
+      ),
       h.canvas('xy .css', {width, height}),
     ),
   ).into(output).els
@@ -457,23 +460,37 @@ export const Css = (output) => {
   disp.show.change(value => {
     disp.xy.classList[value ? 'remove' : 'add']('h')
   })
+  disp.clear.addEventListener('click', () => update(null))
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => xlim[0] + x / width * (xlim[1] - xlim[0])
   const fromy = y => ylim[0] + y / width * (ylim[1] - ylim[0])
 
-  let target_css = null
   disp.xy.addEventListener('click', e => {
     console.log(e)
-    target_css = [fromx(e.offsetX), fromy(e.offsetY)]
-    update()
+    update([fromx(e.offsetX), fromy(e.offsetY)])
   })
 
   let sender
-  function update() {
+  function update(target_css) {
     if (!sender) return
     sender({target_css})
+  }
+
+  function grid(dist) {
+    ctx.lineWidth = 1
+    ctx.strokeStyle = '#444'
+    ctx.beginPath()
+    for(let x = Math.floor(xlim[0]) - dist; x <= xlim[1]; x += dist) {
+      ctx.moveTo(tox(x), toy(ylim[0]))
+      ctx.lineTo(tox(x), toy(ylim[1]))
+    }
+    for(let y = Math.floor(ylim[0]) - dist; y <= ylim[1]; y += dist) {
+      ctx.moveTo(tox(xlim[0]), toy(y))
+      ctx.lineTo(tox(xlim[1]), toy(y))
+    }
+    ctx.stroke()
   }
 
   const palette = colors.strong_palette
@@ -481,22 +498,22 @@ export const Css = (output) => {
   const lcm = new Map()
   function listener(data) {
     ctx.clearRect(0, 0, width, height)
+    grid(0.25)
+    const { target_css, css } = data
+
     if (target_css) {
+      ctx.strokeStyle = '#f00'
       ctx.lineWidth = 2
-      ctx.strokeStyle = '#444'
       ctx.beginPath()
-      ctx.moveTo(tox(target_css[0]), toy(0))
-      ctx.lineTo(tox(target_css[0]), toy(1))
-      ctx.moveTo(tox(0), toy(target_css[1]))
-      ctx.lineTo(tox(1), toy(target_css[1]))
+      ctx.arc(tox(target_css[0]), toy(target_css[1]), r * 1.4, 0, 2 * Math.PI)
       ctx.stroke()
     }
-    const { css } = data
-    if (!css) return
-    ctx.fillStyle = '#0f0'
-    ctx.beginPath()
-    ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
-    ctx.fill()
+    if (css) {
+      ctx.fillStyle = '#0f0'
+      ctx.beginPath()
+      ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
+      ctx.fill()
+    }
   }
   function sendto(sender_) {
     sender = sender_
