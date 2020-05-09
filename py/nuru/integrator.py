@@ -60,7 +60,7 @@ class Integrator:
             state=state.State(),
             setstate={},
             midi=None,
-            target_css=[0, 0],
+            target_css=None,
             fc=0,
         )
         self.overrides = {}
