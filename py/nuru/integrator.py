@@ -59,7 +59,6 @@ class Integrator:
             sonar=1,
             state=state.State(),
             setstate={},
-            midi=None,
             target_css=None,
             fc=0,
         )
@@ -95,8 +94,7 @@ class Integrator:
             del self.overrides[name]
 
     def oncmd(self, cmd):
-        if 'midi' in cmd:
-            self.transients['midi'].append(cmd['midi'])
+        # Note : MIDI commands are sent and their echo received in midi.py.
         if 'setstate' in cmd:
             self.signals['setstate'] = cmd['setstate']
         if 'fc' in cmd:
@@ -111,7 +109,7 @@ class Integrator:
         self.signals['t'] = time.time()
         signals = dict(**self.signals)
         for name, queue in self.transients.items():
-            signals[name] = queue.pop() if queue else None
+            signals[name] = queue.popleft() if queue else None
         signals = hp_signals.integrator_runner(**{
             name: self.overrides.get(name, value)
             for name, value in signals.items()
