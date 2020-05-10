@@ -60,7 +60,7 @@ class Mixer:
             v = (t - self.t0) / dt
             last_pixels = self.animations[self.last](**signals)
             pixels = v * pixels + (1 - v) * last_pixels
-        return dict(value=pixels)
+        return pixels
 
 
 # animation combiners

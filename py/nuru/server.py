@@ -66,7 +66,7 @@ class Animator:
             # Don't generate an exception every frame - wait for next reload.
             return
         try:
-            data = self.hp_animations.pixels(**self.signals)['value']
+            data = self.hp_animations.pixels(**self.signals)
         except Exception as e:
             self.faulty_mtime = self.hp_animations._reload_mtime
             self.logger.error('Animator() ERROR: %r', e)

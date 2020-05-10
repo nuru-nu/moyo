@@ -46,7 +46,7 @@ class State:
 class Css(L.Signal):
     """Continuous State Space."""
 
-    def init(self, alpha: float = 10):
+    def init(self, alpha: float = 10, beta: float = 200):
         self.valence = self.arousal = 0.5
 
     def call(self, target_css):
@@ -54,6 +54,9 @@ class Css(L.Signal):
             valence, arousal = target_css
             self.valence += (valence - self.valence) / self.alpha
             self.arousal += (arousal - self.arousal) / self.alpha
+        else:
+            self.valence -= self.valence / self.beta
+            self.arousal -= self.arousal / self.beta
         return [
             self.valence,
             self.arousal,

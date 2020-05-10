@@ -9,6 +9,7 @@ from .. import animations as A, settings
 importlib.reload(S)
 S.init(settings)
 importlib.reload(A)
+importlib.reload(C)
 
 
 ooo_hue = (
@@ -185,4 +186,17 @@ states = dict(
 )
 
 
-pixels = A.Mixer(states, default_dt=10)
+def css_color_speed():
+    return (
+        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
+        | C.InterpolPalette(L.Named('valence'), (
+            (0, P.gabe_red),
+            (.5, P.black_white),
+            (1, P.funny_rainbow),
+        )) | S.Lin(mult=0.5)
+    )
+
+
+# pixels = A.Mixer(states, default_dt=10)
+# pixels = spiral()
+pixels = css_color_speed()
