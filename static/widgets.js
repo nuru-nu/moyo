@@ -463,9 +463,9 @@ export const Css = (output) => {
   disp.clear.addEventListener('click', () => update(null))
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
-  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
+  const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => xlim[0] + x / width * (xlim[1] - xlim[0])
-  const fromy = y => ylim[0] + y / width * (ylim[1] - ylim[0])
+  const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
   disp.xy.addEventListener('click', e => {
     console.log(e)
