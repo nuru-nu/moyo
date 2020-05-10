@@ -3,6 +3,7 @@ import importlib
 import numpy as np
 
 from smanmi import colors as C, logic as L, palette as P, signals as S
+from smanmi.midi import Note
 from .. import animations as A, settings
 
 
@@ -10,11 +11,12 @@ importlib.reload(S)
 S.init(settings)
 importlib.reload(A)
 importlib.reload(C)
+importlib.reload(P)
 
 
 ooo_hue = (
-    S.Sin(hz=L.Named('ooo_intensity') | S.Lin(shift=0.0025, mult=0.5))
-    | S.Lin(shift=0.25, mult=0.5)
+    S.Saw(hz=(L.Named('ooo_intensity') | S.Lin(shift=0.0025, mult=0.5)))
+    | S.Tocos() | S.Lin(shift=0.25, mult=0.5)
 )
 
 
@@ -117,7 +119,8 @@ heart_palette = P.parse_colors_hex([
 
 def heart():
     return (
-        A.Dist2D(phi=np.pi/4, r=0) | S.Lin(1, -1) | S.Lin(0, L.Named('heart'))
+        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -1)
+        | S.Lin(0, L.Named('heart_a'))
         | C.Palette(heart_palette)
     ) | S.Lin(mult=0.3)
 
@@ -145,27 +148,49 @@ def ooo():
 def flash():
     return A.Ones() * C.HSV(
         value=(
-            S.Sin(hz=L.Named('loud') | S.Lin(mult=8))
-            | S.Lin(shift=0.5, mult=0.5)
+            S.Saw(hz=L.Named('loud') | S.Lin(mult=8))
+            | S.Tocos() | S.Lin(shift=0.5, mult=0.5)
         ),
         saturation=0
     )
 
-spiral_palette = P.parse_colors_hex([
-    (0, '000'),
-    (0.4, '000'),
-    (0.5, '4f2'),
-    (0.6, '000'),
-    (1, '000'),
-])
+
+def laser_spiral(palette, dt):
+    return (
+        (
+            A.Spiral(
+                dr=0.1,
+                n=8,
+                # aspect=0,#L.Named('valence'),
+                # speed=L.Named('arousal') | S.Lin(mult=8)
+            )
+            + L.Named('saw_a') + L.Constant(dt)
+        ) | S.Mod(1) | C.Palette(palette)
+    )
 
 
-def spiral():
-    return (A.Spiral(
-        dphi=.5/np.pi,
-        dr=L.Named('cos2_slow') | S.Lin(0.5, 0.5),
-        speed=L.Named('sonar') | S.Lin(mult=8)
-    ) | S.Mod(1) | C.Palette(spiral_palette)) + heart()
+def laser_spirals():
+    return (
+        laser_spiral(P.peak_blue, 0)
+        + laser_spiral(P.peak_green, 0.5)
+    )
+
+
+def css_spiral_speed():
+    return (
+        (
+            A.Spiral(
+                dr=L.Named('valence') | S.Lin(1, 2),
+                n=4,
+            )
+            + (L.Named('saw_a') | S.Lin(0, 2))
+        ) | S.Mod(1) | C.Palette(P.funny_rainbow)
+    )
+
+
+def aliasing():
+    return A.Aliasing(
+    ) | S.Mod(1) | C.Palette(P.peak_green)
 
 
 states = dict(
@@ -177,12 +202,10 @@ states = dict(
     identify=identify(),
     test=test(),
     test2=test2(),
-    heart=heart(),
     frozen=frozen(),
     into=into(),
     ooo=ooo(),
     flash=flash(),
-    spiral=spiral(),
 )
 
 
@@ -197,6 +220,25 @@ def css_color_speed():
     )
 
 
-# pixels = A.Mixer(states, default_dt=10)
-# pixels = spiral()
-pixels = css_color_speed()
+def css_direction_speed():
+    return (
+        (
+            A.PhiRXY(dg=L.Named('valence') | S.Lin(0, 90))
+            | S.T() | S.ElementAt(0)
+            | S.Lin(0, 2)
+        ) + (
+            L.Named('saw_a') | S.Lin(0, 2)
+        )
+    ) | S.Mod(1) | C.Palette(P.funny_rainbow)
+
+
+pixels = A.MidiMixer({
+    Note(0, 'C', 2): css_color_speed(),
+    Note(0, 'C#', 2): css_direction_speed(),
+    Note(0, 'D', 2): css_spiral_speed(),
+    Note(0, 'D#', 2): laser_spirals(),
+    Note(0, 'E', 2): aliasing(),
+}, dt=5) + (
+    # Note : animator.py does not handle MIDI as transient signals...
+    heart() * L.Named('hearton')
+)
