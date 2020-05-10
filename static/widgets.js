@@ -353,7 +353,7 @@ export const Cmd = (output) => {
 
 export const Midi = (output) => {
   const notes = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'H'
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
   ]
   const re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
   const ports = new Map()
