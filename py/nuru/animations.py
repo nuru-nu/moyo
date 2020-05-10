@@ -5,6 +5,7 @@ import time
 import numpy as np  # type: ignore
 
 from smanmi import logic as L, util
+from smanmi.midi import Command
 from . import mapping, pixel_functions as pf, settings
 
 
@@ -35,37 +36,58 @@ def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
 # state related
 ###############################################################################
 
-# Note: This cannot be implemented as a `L.Signal()` because we don't want to
-# run the animations that are currently not shown.
-class Mixer:
+class StateMixer(L.Signal):
     """Mixes signals by state.state with some interpolation."""
 
-    def __init__(self, animations, default_dt=1, dt_by_state={}):
-        self.animations = animations
+    def init(self, animations, default_dt=1, dt_by_state={}):
         self.t0 = 0
-        self.default_dt = default_dt
-        self.dt_by_state = dt_by_state
         self.current = self.last = 'std'
 
-    def __call__(self, **signals):
-        state = signals['state'].state
+    def call(self, state, **signals):
+        state = state
         t = signals['t']
-        if state != self.current:
+        if state.state != self.current:
             self.last = self.current
-            self.current = state
+            self.current = state.state
             self.t0 = t
-        pixels = self.animations[state](**signals)
-        dt = self.dt_by_state.get(state, self.default_dt)
+        pixels = self.animations[state.state](state=state, **signals)
+        dt = self.dt_by_state.get(state.state, self.default_dt)
         if t - self.t0 < dt:
             v = (t - self.t0) / dt
-            last_pixels = self.animations[self.last](**signals)
+            last_pixels = self.animations[self.last](state=state, **signals)
             pixels = v * pixels + (1 - v) * last_pixels
         return pixels
 
 
+class MidiMixer(L.Signal):
+    """Mixes signals by MIDI activation with some interpolation."""
+
+    def init(self, notes_to_animations, dt=1.0):
+        self.anim = self.lanim = list(notes_to_animations.values())[0]
+        self.lt = 0
+
+    def update(self, t, midi):
+        command = Command.parse(midi)
+        if command.command != 'on':
+            return
+        anim = self.notes_to_animations.get(command.note)
+        if not anim or anim == self.anim:
+            return
+        self.lt = t
+        self.lanim, self.anim = self.anim, anim
+
+    def call(self, t, midi, **signals):
+        if midi:
+            self.update(t, midi)
+        v = (t - self.lt) / self.dt
+        signals = dict(t=t, midi=midi, **signals)
+        if v > 1:
+            return self.anim(**signals)
+        return self.lanim(**signals) * (1 - v) + v * self.anim(**signals)
+
+
 # animation combiners
 ###############################################################################
-
 
 def add(anims):
     """Reduces an iterable of animations by addition."""
@@ -158,7 +180,7 @@ class GaussianRain(L.Signal):
         return pixels
 
 
-# r-phi
+# phi-r
 ###############################################################################
 
 class R(L.Signal):
@@ -194,17 +216,53 @@ class Dist2D(L.Signal):
         return self.ldist
 
 
-class Spiral(L.Signal):
-    """Generates a time dependent spiral."""
-    
-    def init(self, dphi=1, dr=1.5, speed=1):
+class PhiRXY(L.Signal):
+    """X, Y cooordinates derived from phi_r_mapping.
+
+    Use in combination like `A.PhiRXY() | S.T() | S.ElementAt(0)`.
+    """
+
+    def init(self, dg):
         pass
-    
+
+    def call(self):
+        phi, r = phi_r_mapping.T
+        dphi = np.pi / 180 * self.dg
+        return np.vstack([
+            r * np.sin(phi + dphi),
+            r * np.cos(phi + dphi),
+        ]).T
+
+
+class Spiral(L.Signal):
+    """Static spiral."""
+
+    def init(self, dr=1, n=1):
+        pass
+
     def call(self, t):
-        return self.speed * t + (
-            phi_r_mapping[:, 0] * self.dphi +
-            phi_r_mapping[:, 1] * self.dr
+        phi, r = phi_r_mapping.T
+        return r * self.dr + phi / 2 / np.pi * self.n
+
+
+class Aliasing(L.Signal):
+    """Buggy spiral generating fancy aliasing patterns."""
+
+    def init(self, speed=1, aspect=0):
+        self.lt = None
+        self.value = np.zeros(len(phi_r_mapping))
+
+    def call(self, t):
+        if self.lt is None:
+            self.lt = t
+        dt = t - self.lt
+        self.lt = t
+        phi, r = phi_r_mapping.T
+        self.value += self.speed * dt * (
+            r + phi / 2 / np.pi * self.aspect
         )
+        return self.value
+
 
 # 3D
 ###############################################################################
@@ -245,7 +303,6 @@ class CompWave(L.Signal):
 
 # debug
 ###############################################################################
-testvar = 0
 
 class PositionIdentify(L.Signal):
 
