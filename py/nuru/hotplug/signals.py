@@ -1,6 +1,7 @@
 import importlib
 
 from smanmi import effects as E, midi, logic as L, signals as S
+from smanmi.midi import Note
 
 from .. import settings
 from .. import state
@@ -89,9 +90,15 @@ integrator_runner = L.SignalRunner(dict(
     css=state.Css(),
     valence=L.Named('css') | S.ElementAt(0) | S.Lin(0.5, 0.5),
     arousal=L.Named('css') | S.ElementAt(1) | S.Lin(0.5, 0.5),
+    heart_a=(
+        S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+        | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()
+    ),
 
     # generated
-    std2=S.Saw(hz=S.Arousal() | S.Lin(0.5, 0.5)),
+    saw_v=S.Saw(hz=L.Named('valence')),
+    saw_a=S.Saw(hz=L.Named('arousal')),
+    std2=S.Saw(hz=0.5),
     std22=S.Saw(hz=1.0),
     std2_cos2=L.Named('std2') | S.Lin(mult=2) | S.Tocos(),
     std3=S.Saw(hz=0.5),
@@ -115,6 +122,9 @@ integrator_runner = L.SignalRunner(dict(
 
     # non-audio input
     into=Into(),
+
+    # test
+    hearton=S.MidiSwitch(Note(0, 'B', 2)),
 
     # derived
     ooo=(
