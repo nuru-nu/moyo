@@ -5,7 +5,7 @@
 cd "$(dirname "$0")"
 
 tmux start-server
-tmux new-session
+tmux new-session -d -s nuru
 
 # row 1
 tmux splitw -v -p 75
@@ -18,3 +18,5 @@ tmux splitw -v
 # row 4
 tmux send-keys "./run nuru.midi" C-m
 tmux selectp -D
+
+tmux attach-session
