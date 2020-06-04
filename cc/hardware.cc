@@ -125,23 +125,20 @@ int Hardware::next() {
 }
 
 cv::Mat Hardware::get_user_pixels(){
-
   const nite::UserMap& userLabels = userTrackerFrame_.getUserMap();
 
-  cv::Mat user_pixels = cv::Mat::zeros(
-                                    depthFrame_.getHeight(), 
-                                    depthFrame_.getWidth(), 
-                                    CV_8UC1);
+  cv::Mat user_pixels(depthFrame_.getHeight(), 
+                      depthFrame_.getWidth(), 
+                      CV_8UC3, cv::Scalar(0,0,0));
 
   const nite::UserId* pLabels = userLabels.getPixels();
   for (int y = 0; y < depthFrame_.getHeight(); ++y) {
     for (int x = 0; x < depthFrame_.getWidth(); ++x, ++pLabels){
-      if (*pLabels != 0)
-        user_pixels.at<uint8_t>(y, x) = *pLabels;
+      if (*pLabels != 0){
+        user_pixels.at<cv::Vec3b>(y, x) = USER_COLORS[*pLabels - 1];
+      }
     }
   }
-
-  // std::cout << user_pixels << std::endl;
 
   return user_pixels;
 }

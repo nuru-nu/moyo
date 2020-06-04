@@ -130,7 +130,9 @@ void Viewer::update_graphs(const cv::Mat& img, const Features& features) {
   last_presence_x_ = presence_x;
 }
 
-void Viewer::update(const cv::Mat& img, const Features& features) {
+void Viewer::update(const cv::Mat& img, 
+                    const Features& features, 
+                    const cv::Mat user_pixels) {
   // Performs actual drawing. Read key every cycle for better ui.
   draw_process_key();
   update_graphs(img, features);
@@ -168,6 +170,14 @@ void Viewer::update(const cv::Mat& img, const Features& features) {
     cv::putText(
         img_brg, fps_string,
         cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+
+    // cv::circle(img_brg, cv::Point(100, 100), 50, cv::Scalar(0, 255, 0), 100, 8, 0);
+
+
+    if (user_pixels.cols == img.cols){
+
+      cv::addWeighted( img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
+    }
 
     apply_overlay(graphs_, &img_brg);
     if (gui_) {

@@ -83,7 +83,7 @@ int main(const int argc, const char** const argv) {
     if (bytes_sent < 0) {
       std::cerr << "### errno=" << errno << std::endl;
     }
-    viewer.update(depth, features);
+    viewer.update(depth, features, user_pixels);
     if (viewer.should_reset()) {
       features.reset();
     }

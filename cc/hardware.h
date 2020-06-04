@@ -17,6 +17,14 @@
 #define USER_MESSAGE(msg) \
     {printf("[%08llu] User #%d:\t%s\n",ts, user.getId(),msg);}
 
+const cv::Vec3b USER_COLORS[] = {cv::Vec3b(255, 0, 0),
+                                   cv::Vec3b(0, 255, 0),
+                                   cv::Vec3b(0, 0, 255),
+                                   cv::Vec3b(255, 255, 0),
+                                   cv::Vec3b(255, 0, 255),
+                                   cv::Vec3b(0, 255, 255),
+                                   cv::Vec3b(255, 255, 255)};
+                                   
 class Hardware {
   public:
     // Also initializes Kinect and exits program in case of error.
@@ -45,7 +53,7 @@ class Hardware {
     void convertDepthCoordinatesToJoint(int x, int y, int z, float* pOutX, float* pOutY) const;
     // Convert joint ot world
     void convertJointCoordinatesToWorld(float x, float y, float z, float &tx, float &ty, float &tz) const;
-    // Returns a depth map size matrix with tracked user ID elements
+    // Returns a depth map sized matrix with tracked user ID elements
     cv::Mat get_user_pixels();
     // Shuts down the device, irreversibly.
     void close();
