@@ -14,7 +14,9 @@
 class Viewer {
   public:
     Viewer(bool gui = true);
-    void update(const cv::Mat& img, const Features& features);
+    void update(const cv::Mat& img, 
+                const Features& features, 
+                const cv::Mat user_pixels);
     bool should_quit() const { return should_quit_; }
     bool should_store() const { return should_store_; }
     bool should_record() const { return should_record_; }
