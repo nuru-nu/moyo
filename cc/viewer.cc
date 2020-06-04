@@ -69,7 +69,7 @@ int getch() {
 
 }  // namespace
 
-Viewer::Viewer(const bool gui) : hz_(kHzSlow), gui_(gui) {
+Viewer::Viewer(const bool gui) : hz_(kHzFast), gui_(gui) {
   last_t_ = t0_ = std::chrono::high_resolution_clock::now();
   if (gui) {
     cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
@@ -171,13 +171,8 @@ void Viewer::update(const cv::Mat& img,
         img_brg, fps_string,
         cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
 
-    // cv::circle(img_brg, cv::Point(100, 100), 50, cv::Scalar(0, 255, 0), 100, 8, 0);
 
-
-    if (user_pixels.cols == img.cols){
-
-      cv::addWeighted( img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
-    }
+    cv::addWeighted( img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
 
     apply_overlay(graphs_, &img_brg);
     if (gui_) {

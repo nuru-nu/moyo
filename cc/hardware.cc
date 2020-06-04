@@ -135,7 +135,8 @@ cv::Mat Hardware::get_user_pixels(){
   for (int y = 0; y < depthFrame_.getHeight(); ++y) {
     for (int x = 0; x < depthFrame_.getWidth(); ++x, ++pLabels){
       if (*pLabels != 0){
-        user_pixels.at<cv::Vec3b>(y, x) = USER_COLORS[*pLabels - 1];
+        int nr_colors = (sizeof(USER_COLORS)/sizeof(*USER_COLORS));
+        user_pixels.at<cv::Vec3b>(y, x) = USER_COLORS[(*pLabels - 1)%nr_colors];
       }
     }
   }
@@ -255,17 +256,10 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth, float &
   // float* undistorted_data = (float *)undistorted->data;
 
   const float depth_val = depth/1000.0f; //scaling factor, so that value of 1 is one meter.
-  if (isnan(depth_val) || depth_val <= 0.001)
-  {
-    //depth value is not valid
-    x = y = z = bad_point;
-  }
-  else
-  {
-    x = (c + 0.5 - cx) * fx * depth_val / 100000.0f;
-    y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
-    z = depth_val;
-  }
+
+  x = (c + 0.5 - cx) * fx * depth_val / 100000.0f;
+  y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
+  z = depth_val;
 }
 
 void Hardware::convertJointCoordinatesToDepth(float x, float y, float z, 
@@ -284,6 +278,7 @@ void Hardware::convertJointCoordinatesToWorld(float x, float y, float z,
     tx = 0;
     ty = 0;
     tz = 0;
+    std::cout << "NaN" << std::endl;
     return;
   }
 
