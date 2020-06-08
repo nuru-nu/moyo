@@ -13,7 +13,7 @@ namespace {
 const float kHzSlow = 1;
 const float kHzFast = 30;
 const int kGraphDy = 2;
-const cv::Scalar kOriginCol4(255, 0, 0, 255);
+const cv::Scalar kOriginCol4(255, 255, 255, 255);
 const cv::Scalar kPresenceCol4(0, 0, 255, 255);
 const cv::Scalar kTextCol(0, 255, 0);
 
@@ -100,7 +100,9 @@ void Viewer::draw_process_key() {
   should_dump_ = key == 13;
 }
 
-void Viewer::update_graphs(const cv::Mat& img, const Features& features) {
+void Viewer::update_graphs(const cv::Mat& img, 
+                           const Features& features,
+                           const std::vector<person_t>& people) {
   if (graphs_.empty()) {
     graphs_ = cv::Mat::zeros(img.rows, img.cols, CV_8UC4);
   }
@@ -117,25 +119,48 @@ void Viewer::update_graphs(const cv::Mat& img, const Features& features) {
     cv::Scalar(0, 0, 0, 0),
     /*thickness=fill=*/-1);
 
+  for(int i = 0; i != people.size(); i++){
+    for(const auto& pair : people[i].depth) {
+
+      const int depth = graphs_.cols / 2 + static_cast<int>(
+                                  (pair.second / 1000) * graphs_.cols / 2);
+
+      std::cout << " id: " << i << " - " << depth << " - " << last_depths_[i] << std::endl;
+      cv::line(
+          graphs_,
+          cv::Point(depth, graphs_.rows - 1),
+          cv::Point(last_depths_[i], graphs_.rows - 1 - kGraphDy),
+          USER_LINE_COLORS[i]);
+
+      last_depths_[i] = depth;
+    }
+  }
+
   const int presence_x = graphs_.cols / 2 + static_cast<int>(
       features.presence() * graphs_.cols / 2);
   cv::line(
       graphs_, cv::Point(graphs_.cols / 2, graphs_.rows - 1),
-      cv::Point(graphs_.cols / 2, graphs_.rows - 1 - kGraphDy), kOriginCol4);
+      cv::Point(graphs_.cols / 2, graphs_.rows - 1 - kGraphDy), 
+      kOriginCol4,
+      /*int thickness=*/2);
   cv::line(
       graphs_,
       cv::Point(presence_x, graphs_.rows - 1),
       cv::Point(last_presence_x_, graphs_.rows - 1 - kGraphDy),
-      kPresenceCol4);
+      kPresenceCol4,
+      /*int thickness=*/2);
   last_presence_x_ = presence_x;
+
+  std::cout << "pres: " << presence_x << std::endl;
 }
 
 void Viewer::update(const cv::Mat& img, 
-                    const Features& features, 
+                    const Features& features,
+                    const std::vector<person_t>& people,
                     const cv::Mat user_pixels) {
   // Performs actual drawing. Read key every cycle for better ui.
   draw_process_key();
-  update_graphs(img, features);
+  update_graphs(img, features, people);
 
   if (!should_dump_ && !gui_) return;
 
