@@ -136,7 +136,13 @@ cv::Mat Hardware::get_user_pixels(){
     for (int x = 0; x < depthFrame_.getWidth(); ++x, ++pLabels){
       if (*pLabels != 0){
         int nr_colors = (sizeof(USER_COLORS)/sizeof(*USER_COLORS));
-        user_pixels.at<cv::Vec3b>(y, x) = USER_COLORS[(*pLabels - 1)%nr_colors];
+        cv::Scalar color = USER_COLORS[(*pLabels - 1)%nr_colors];
+        cv::Vec3b vec_color{
+          static_cast<unsigned char>(color(0)),
+          static_cast<unsigned char>(color(1)),
+          static_cast<unsigned char>(color(2))
+        };
+        user_pixels.at<cv::Vec3b>(y, x) = vec_color;
       }
     }
   }
@@ -167,10 +173,10 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                    user.getCenterOfMass().z, 
                                    x, y, z);
 
-    convertJointCoordinatesToDepth(user.getCenterOfMass().x, 
-                                   user.getCenterOfMass().y, 
-                                   user.getCenterOfMass().z, 
-                                   &xd, &yd);
+    // convertJointCoordinatesToDepth(user.getCenterOfMass().x, 
+    //                                user.getCenterOfMass().y, 
+    //                                user.getCenterOfMass().z, 
+    //                                &xd, &yd);
 
     if(isnan(xd) || isnan(yd)){
       std::cout << "NaN - " << xd << ", " << yd << std::endl;
@@ -182,7 +188,8 @@ std::vector<person_t> Hardware::get_tracking_data() {
     //                             (int)yd << " " <<
     //             " val " << cm_depth << std::endl;
 
-    person.depth.insert(std::pair<std::string, float>("cm_depth", cm_depth));
+    person.depth.insert(std::pair<std::string, float>("cm_depth", 
+                                                  user.getCenterOfMass().z));
 
     person.points3d.insert(std::pair<std::string, cv::Point3d>("cm", 
                                                       cv::Point3d(x, y, z)));
@@ -293,26 +300,29 @@ void Hardware::convertJointCoordinatesToDepth(float x, float y, float z,
 void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, 
                                               float &tx, float &ty, float &tz) const {
 
-  float dx, dy; 
-  convertJointCoordinatesToDepth(x, y, z, &dx, &dy);
+  // float dx, dy; 
+  // convertJointCoordinatesToDepth(x, y, z, &dx, &dy);
   
-  if(isnan(dx) || isnan(dy)){
-    tx = 0;
-    ty = 0;
-    tz = 0;
-    return;
-  }
+  // if(isnan(dx) || isnan(dy)){
+  //   tx = 0;
+  //   ty = 0;
+  //   tz = 0;
+  //   return;
+  // }
 
-  openni::DepthPixel *depthPixels = 
-            new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
-            
-  memcpy(depthPixels, depthFrame_.getData(), 
-                      depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
+  // openni::DepthPixel *depthPixels = 
+  //           new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
 
-  cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
+  // memcpy(depthPixels, depthFrame_.getData(), 
+  //                     depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
 
-  int depth_value = (int) depthImage.at<ushort>((int) dx, (int) dy);
-  convertDepthCoordinatesToWorld((int) dx, (int) dy, depth_value, tx, ty, tz);
+  // cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
+
+  // int depth_value = (int) depthImage.at<ushort>((int) dx, (int) dy);
+
+  std::cout << x << " " << y << " " << z << " " << tx << " " << ty << " " << tz << std::endl;
+
+  convertDepthCoordinatesToWorld(x, y, z, tx, ty, tz);
 
   cv::Matx41d loc(tx, ty, tz, 1);
   cv::Mat local_point = trafo_*loc;

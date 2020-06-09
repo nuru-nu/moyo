@@ -14,7 +14,7 @@ const float kHzSlow = 1;
 const float kHzFast = 30;
 const int kGraphDy = 2;
 const cv::Scalar kOriginCol4(255, 255, 255, 255);
-const cv::Scalar kPresenceCol4(0, 0, 255, 255);
+const cv::Scalar kPresenceCol4(255, 255, 255, 255);
 const cv::Scalar kTextCol(0, 255, 0);
 
 void apply_overlay(const cv::Mat& overlay, cv::Mat* const image) {
@@ -123,14 +123,17 @@ void Viewer::update_graphs(const cv::Mat& img,
     for(const auto& pair : people[i].depth) {
 
       const int depth = graphs_.cols / 2 + static_cast<int>(
-                                  (pair.second / 1000) * graphs_.cols / 2);
+                                  (pair.second / 10000) * graphs_.cols / 2);
 
-      std::cout << " id: " << i << " - " << depth << " - " << last_depths_[i] << std::endl;
+      // std::cout << " id: " << i << " - " << depth << " - " << last_depths_[i] << std::endl;
+      int nr_colors = (sizeof(USER_COLORS)/sizeof(*USER_COLORS));
+      cv::Scalar color = USER_COLORS[(people[i].id - 1)%nr_colors];
       cv::line(
           graphs_,
           cv::Point(depth, graphs_.rows - 1),
           cv::Point(last_depths_[i], graphs_.rows - 1 - kGraphDy),
-          USER_LINE_COLORS[i]);
+          color,
+          /*int thickness=*/2);
 
       last_depths_[i] = depth;
     }
@@ -142,7 +145,7 @@ void Viewer::update_graphs(const cv::Mat& img,
       graphs_, cv::Point(graphs_.cols / 2, graphs_.rows - 1),
       cv::Point(graphs_.cols / 2, graphs_.rows - 1 - kGraphDy), 
       kOriginCol4,
-      /*int thickness=*/2);
+      /*int thickness=*/1);
   cv::line(
       graphs_,
       cv::Point(presence_x, graphs_.rows - 1),
@@ -151,7 +154,7 @@ void Viewer::update_graphs(const cv::Mat& img,
       /*int thickness=*/2);
   last_presence_x_ = presence_x;
 
-  std::cout << "pres: " << presence_x << std::endl;
+  // std::cout << "pres: " << presence_x<< " - " << last_presence_x_ << std::endl;
 }
 
 void Viewer::update(const cv::Mat& img, 
