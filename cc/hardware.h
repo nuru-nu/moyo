@@ -17,14 +17,6 @@
 #define USER_MESSAGE(msg) \
     {printf("[%08llu] User #%d:\t%s\n",ts, user.getId(),msg);}
 
-const cv::Vec3b USER_COLORS[] = {cv::Vec3b(255, 0, 0),
-                                   cv::Vec3b(0, 255, 0),
-                                   cv::Vec3b(0, 0, 255),
-                                   cv::Vec3b(255, 255, 0),
-                                   cv::Vec3b(255, 0, 255),
-                                   cv::Vec3b(0, 255, 255),
-                                   cv::Vec3b(255, 255, 255)};
-                                   
 class Hardware {
   public:
     // Also initializes Kinect and exits program in case of error.
@@ -46,13 +38,17 @@ class Hardware {
     // Starts a recording of each frame when  next() is called
     void record_pcl(const std::string path, const int nr_frames);
     // Convert XYZ world coordinate from depth map val of kinect v2
-    void convertDepthCoordinatesToWorld(int r, int c, float depth, float &x, float &y, float &z) const;
-    // Convert joint to depth map value
-    void convertJointCoordinatesToDepth(float x, float y, float z, float* pOutX, float* pOutY) const;
+    void convertDepthCoordinatesToWorld(int r, int c, float depth, 
+                                        float &x, float &y, float &z) const;
+    // Convert joint to depth map value 
+    void convertJointCoordinatesToDepth(float x, float y, float z, 
+                                        float* pOutX, float* pOutY) const;
     // Convert depth map value to joint coordinate
-    void convertDepthCoordinatesToJoint(int x, int y, int z, float* pOutX, float* pOutY) const;
-    // Convert joint ot world
-    void convertJointCoordinatesToWorld(float x, float y, float z, float &tx, float &ty, float &tz) const;
+    void convertDepthCoordinatesToJoint(int x, int y, int z, 
+                                        float* pOutX, float* pOutY) const;
+    // Convert joint to world
+    void convertJointCoordinatesToWorld(float x, float y, float z, 
+                                        float &tx, float &ty, float &tz) const;
     // Returns a depth map sized matrix with tracked user ID elements
     cv::Mat get_user_pixels();
     // Shuts down the device, irreversibly.

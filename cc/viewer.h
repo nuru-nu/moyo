@@ -5,7 +5,9 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "settings.h"
 #include "features.h"
+
 
 // Shows Kinect data and lets change parameters via keyboard.
 // In the default GUI mode, the data is shown in a OpenCV window. If GUI mode
@@ -16,6 +18,7 @@ class Viewer {
     Viewer(bool gui = true);
     void update(const cv::Mat& img, 
                 const Features& features, 
+                const std::vector<person_t>& people,
                 const cv::Mat user_pixels);
     bool should_quit() const { return should_quit_; }
     bool should_store() const { return should_store_; }
@@ -24,7 +27,9 @@ class Viewer {
 
   private:
     void draw_process_key();
-    void update_graphs(const cv::Mat& img, const Features& features);
+    void update_graphs(const cv::Mat& img, 
+                       const Features& features,
+                       const std::vector<person_t>& people);
 
     const bool gui_;
     float hz_;
@@ -35,6 +40,9 @@ class Viewer {
     bool should_reset_ = false;
     bool should_dump_ = false;
     float last_presence_x_ = 0;
+    std::vector<float> last_depths_ = {0, 0, 0, 0, 0, 0, 
+                                       0, 0 ,0 ,0, 0, 0};
+
     cv::Mat graphs_;
 };
 

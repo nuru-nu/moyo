@@ -109,6 +109,12 @@ int SignalSender::send_tracking_data(
     id_value.set_string(std::to_string(person.id));
     person_jobject.add_property("id", id_value);
 
+    for(const auto& pair : person.depth) {
+      jute::jValue value(jute::JNUMBER);
+      value.set_string(std::to_string(pair.second));
+      person_jobject.add_property(pair.first, value);
+    }
+
     for(const auto& joint : person.points3d) {
       jute::jValue point3d(jute::JARRAY);
 
@@ -129,7 +135,7 @@ int SignalSender::send_tracking_data(
   json.add_property("people", people_jarray);
   const std::string msg = json.to_string();
 
-  std::cout << msg << std::endl;
+  // std::cout << msg << std::endl;
 
   return sendto(
       signal_sock_, msg.c_str(), msg.length(), 0, (sockaddr*)&signal_addr_,
