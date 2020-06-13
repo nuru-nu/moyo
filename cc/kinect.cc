@@ -8,10 +8,10 @@
 #include <opencv2/opencv.hpp>
 
 #include "features.h"
-#include "hardware.h"
 #include "network.h"
 #include "util.h"
 #include "viewer.h"
+#include "hardware.h"
 
 const int kSignalinPort = 6100;
 const int kCmdPort = 6111;
@@ -33,17 +33,14 @@ int main(const int argc, const char** const argv) {
   std::cout << "Compiled with USE_NITE" << std::endl;
 #endif
 
-  bool simulate = false, gui = true;
+  bool gui = true;
   const std::vector<std::string> args(argv + 1, argv + argc);
   for (const auto& arg : args) {
     if (arg == "--no-gui") {
       gui = false;
-    } else if (arg == "--simulate") {
-      simulate = true;
     } else if (arg == "--help") {
       std::cout << R"(kinect sensor; available options:
   --no-gui: don't show GUI; useful if X not available
-  --simulate: don't actually try to connect to Kinect
 )" << std::endl;
       return 0;
     } else {
@@ -66,8 +63,9 @@ int main(const int argc, const char** const argv) {
       return -1;
     } 
 
+    std::vector<person_t> people = hardware.get_tracking_data();
     const int bytesS = sender.send_tracking_data(
-                                  hardware.get_tracking_data(), 
+                                  people, 
                                   {{"presence", features.presence()},}); 
     if (bytesS < 0) {
       std::cerr << "### errno=" << errno << std::endl;
@@ -83,7 +81,7 @@ int main(const int argc, const char** const argv) {
     if (bytes_sent < 0) {
       std::cerr << "### errno=" << errno << std::endl;
     }
-    viewer.update(depth, features, user_pixels);
+    viewer.update(depth, features, people, user_pixels);
     if (viewer.should_reset()) {
       features.reset();
     }
