@@ -62,7 +62,7 @@ def phi_red():
     return (
         A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
         | C.Palette(P.super_red) | S.Lin(mult=0.2)
-    ) + heart()
+    )
 
 def std2_bw():
     return (
@@ -117,10 +117,10 @@ heart_palette = P.parse_colors_hex([
 ])
 
 
-def heart():
+def heart(name):
     return (
         A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -1)
-        | S.Lin(0, L.Named('heart_a'))
+        | S.Lin(0, L.Named(name))
         | C.Palette(heart_palette)
     ) | S.Lin(mult=0.3)
 
@@ -211,7 +211,7 @@ states = dict(
 
 def css_color_speed():
     return (
-        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
+        L.Named('saw_a') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
         | C.InterpolPalette(L.Named('valence'), (
             (0, P.gabe_red),
             (.5, P.black_white),
@@ -238,7 +238,8 @@ pixels = A.MidiMixer({
     Note(0, 'D', 2): css_spiral_speed(),
     Note(0, 'D#', 2): laser_spirals(),
     Note(0, 'E', 2): aliasing(),
+    Note(0, 'F', 2): heart('heart'),
 }, dt=5) + (
     # Note : animator.py does not handle MIDI as transient signals...
-    heart() * L.Named('hearton')
+    heart('heart_a') * L.Named('hearton')
 )
