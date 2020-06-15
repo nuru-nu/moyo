@@ -4,3 +4,4 @@
 
 cd "$(dirname "$0")"
 PYTHONPATH=py ./env/bin/python -m "$@"
+#PYTHONPATH=py ./env/bin/python -m smanmi.restarter ./env/bin/python -m "$@"
