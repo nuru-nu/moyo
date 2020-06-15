@@ -1,124 +1,42 @@
 #!/bin/bash
 
 cd "$(dirname "$0")"
-
-
-SESSION=nuru
-
-CM="${CM:-C-m}"
-LAYOUT="${LAYOUT:-LANDSCAPE}"
-
-MACHINE="${MACHINE:-$(uname -n)}"
-RESTARTER="./env/bin/python -m smanmi.restarter"
-INDEX0="${INDEX0:-1}"
-MIDI_ADDRESS=
-
-FCSERVER='fcserver'
-DMX=yes
-OUT2=yes
-FADECANDY=--fadecandy
-
-case "$MACHINE" in
-cervelat-nuru)
-  FCSERVER='./fadecandy/fcserver-osx'
-  DMX=
-  RESTARTER=
-  ;;
-cervelat*)
-  FCSERVER=
-  OUT2=
-  DMX=
-  FADECANDY=
-  RESTARTER=
-  MIDI_ADDRESS=127.0.0.1
-  ;;
-gabriel*)
-  FCSERVER=
-  OUT2=
-  DMX=
-  FADECANDY=
-  RESTARTER=
-  ;;
-sanduku)
-  FADECANDY=
-  DMX=
-  RESTARTER=
-  OUT2=
-  ;;
-esac
-
-
-function restarting_cmd() {
-  tmux send-keys "$RESTARTER $*" $CM
-}
-
-function restarting_py() {
-  restarting_cmd "./run $*"
-}
+CM=${CM:-C-m}
+SERVER=${SERVER:-127.0.0.1}
 
 tmux start-server
-tmux new-session -d -s "$SESSION" -n prod
+tmux new-session -d -s nuru
 
-# start everything
-if [ $LAYOUT == LANDSCAPE ]; then
-  # create columns
-  tmux selectp -t $INDEX0
-  tmux splitw -h
-  tmux selectp -L
+# cmd
 
-  # column 1 : recorder, cmd/arduino, integrator
-  restarting_py nuru.recorder
+## column 1
+tmux splitw -h
+tmux selectp -L
+# row 1
+tmux send-keys '(cd cc/build; ./kinect)' $CM
+# row 2
+tmux splitw -p 75
+tmux send-keys './run nuru.recorder' $CM
+# row 3
+tmux splitw -p 66
+tmux send-keys './run nuru.sonar' $CM
+# row 4
+tmux splitw mux send-keys './run nuru.integrator' $CM
 
-  tmux splitw -v -p 66
-  #restarting_py nuru.cmd
-  tmux splitw -v
-  tmux selectp -U
-  tmux splitw -h -p 50
-  restarting_py nuru.sonar
+## column 2
+tmux selectp -R
+# row 1
+tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
+# row 2
+tmux splitw -p 75
+tmux send-keys '(cd fc; ./fcserver config.json)' $CM
+# row 3
+tmux splitw -p 66
+tmux send-keys './run nuru.dmx' $CM
+# row 4
+tmux splitw -p 66
+tmux send-keys './run nuru.midi' $CM
 
-  tmux selectp -D
-  restarting_py nuru.integrator
+# player out1; player out2
 
-
-  # column 2 : server, fc server, dmx, players
-  tmux selectp -R
-  restarting_py nuru.server "$FADECANDY"
-
-  if [ ! -z "$FCSERVER" ]; then
-    restarting_cmd "$FCSERVER" fadecandy/config.json
-    tmux splitw -v -p 75
-  fi
-
-  if [ ! -z "$DMX" ]; then
-    tmux splitw -v -p 66
-    restarting_py nuru.dmx
-  fi
-
-  tmux splitw -v
-  if [ -z "$MIDI_ADDRESS" ]; then
-    restarting_py nuru.player out1
-  else
-    restarting_py nuru.midi --address=$MIDI_ADDRESS
-  fi
-  if [ ! -z "$OUT2" ]; then
-    tmux splitw -h
-    restarting_py nuru.player out2
-  fi
-fi
-
-# start minimum
-if [ $LAYOUT == PORTRAIT ]; then
-  # row 1
-  tmux splitw -v -p 75
-  # row 2
-  restarting_py nuru.integrator
-  tmux splitw -v -p 66
-  # row 3
-  restarting_py nuru.server
-  tmux splitw -v
-  # row 4
-  restarting_py nuru.midi
-  tmux selectp -D
-fi
-
-tmux attach-session -t "$SESSION"
+tmux attach-session
