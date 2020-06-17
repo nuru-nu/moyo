@@ -13,6 +13,27 @@
             "env": {
                 "PYTHONPATH": "py"
             }
+        },
+        {
+            "name": "nuru.integrator",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.integrator",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "py"
+            }
+        },
+        {
+            "name": "nuru.server",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.server",
+            "console": "integratedTerminal",
+            "args": ["--server_address=0.0.0.0"],
+            "env": {
+                "PYTHONPATH": "py"
+            }
         }
     ]
 }
