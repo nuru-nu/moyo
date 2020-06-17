@@ -539,3 +539,24 @@ export const Animation = (output, defs) => {
     sendto,
   }
 }
+
+export const Sound = (output, defs) => {
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('sound'),
+    ui.hw(
+      defs.sounds.map(a => h.button(a).of(a))
+    )
+  ).into(output).els
+  let sender = null
+  defs.sounds.forEach(a => {
+    disp[a].addEventListener('click', () => {
+      sender({action: `sound=${a}`})
+    })
+  })
+  function sendto(sender_) {
+    sender = sender_
+  }
+  return {
+    sendto,
+  }
+}

@@ -108,6 +108,7 @@ async def send_defs(request):
             states=list(animator.hp_animations.states.keys()),
             recordings=recordings,
             animations=list(animator.hp_animations.animations.keys()),
+            sounds=animator.hp_animations.sounds,
         ))))
 
 
