@@ -232,14 +232,13 @@ def css_direction_speed():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
-pixels = A.MidiMixer({
-    Note(0, 'C', 2): css_color_speed(),
-    Note(0, 'C#', 2): css_direction_speed(),
-    Note(0, 'D', 2): css_spiral_speed(),
-    Note(0, 'D#', 2): laser_spirals(),
-    Note(0, 'E', 2): aliasing(),
-    Note(0, 'F', 2): heart('heart'),
-}, dt=5) + (
-    # Note : animator.py does not handle MIDI as transient signals...
-    heart('heart_a') * L.Named('hearton')
+animations = dict(
+    css_color_speed=css_color_speed(),
+    css_direction_speed=css_direction_speed(),
+    css_spiral_speed=css_spiral_speed(),
+    laser_spirals=laser_spirals(),
+    aliasing=aliasing(),
+    heart=heart('heart_a'),
 )
+
+pixels = A.ActionMixer(animations)
