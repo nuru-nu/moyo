@@ -74,7 +74,7 @@ class Integrator:
 
     def schedule(self):
         if hasattr(self, 'handle'):
-            self.handle.cancel()
+            self.handle.cancel()  # pylint: disable=access-member-before-definition
         self.handle = asyncio.get_event_loop().call_later(
             1 / args.idle_fps, self.integrate)
 
