@@ -1,4 +1,4 @@
-import { h, u, ui, colors, Lines } from './smanmi/util.js'
+import { h, ui, colors, Lines } from './smanmi/util.js'
 
 export const Sonar = (output) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -28,107 +28,6 @@ export const Sonar = (output) => {
   function listener(data) {
     if (override) return
     if (data.sonar) disp.sonar.value = 100 * data.sonarsig
-  }
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    listener,
-    sendto,
-  }
-}
-
-export const Kinect = (output) => {
-  const width = 200
-  const height = 200
-  const xlim = [-2.5, 2.5]
-  const ylim = [-4, 1]
-  const r = 8
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('kinect'),
-    ui.v(
-      ui.h(
-        'presence ',
-        h.button('override').of('override'),
-        h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
-      ),
-      h.span('nosig').of('no signal'),
-      h.canvas('xy .h', {width, height}),
-    ),
-  ).into(output).els
-  const ctx = disp.xy.getContext('2d')
-
-  let override = false
-  disp.presence.disabled = true
-  disp.override.addEventListener('click', () => {
-    override = !override
-    disp.override.classList.toggle('on')
-    disp.presence.disabled = !override
-    update()
-  })
-  disp.presence.addEventListener('change', update)
-
-  let sender
-  function update() {
-    if (!override) {
-      if (sender) sender({presence: null})
-      return
-    }
-    if (sender) sender({presence: parseFloat(disp.presence.value)})
-  }
-  const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
-  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
-  function grid() {
-    ctx.lineWidth = 2
-    ctx.strokeStyle = '#444'
-    ctx.beginPath()
-    ctx.moveTo(0, toy(0))
-    ctx.lineTo(width, toy(0))
-    ctx.moveTo(tox(0), 0)
-    ctx.lineTo(tox(0), height)
-    ctx.stroke()
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {
-      if (x < xlim[0]) continue
-      ctx.moveTo(tox(x), 0)
-      ctx.lineTo(tox(x), height)
-    }
-    for (let y = Math.floor(ylim[0] - 1); y <= ylim[1]; ++y) {
-      if (y < ylim[0]) continue
-      ctx.moveTo(0, toy(y))
-      ctx.lineTo(height, toy(y))
-    }
-    ctx.stroke()
-  }
-
-  const palette = colors.strong_palette
-  const cmap = new Map()
-  const lcm = new Map()
-  function listener(data) {
-    if (data.hasOwnProperty('people')) {
-      disp.nosig.classList.add('h')
-      disp.xy.classList.remove('h')
-
-      ctx.clearRect(0, 0, width, height)
-      grid()
-      data.people.forEach(p => {
-        if (!cmap.has(p.id)) {
-          cmap.set(p.id, palette[cmap.size % palette.length])
-        }
-        ctx.fillStyle = cmap.get(p.id)
-        ctx.beginPath()
-        if (p.cm[0] == 0 && p.cm[1] == 0 && lcm.has(p.id)) {
-          ctx.arc(tox(lcm.get(p.id)[0]), toy(lcm.get(p.id)[1]), r, 0, 2 * Math.PI)
-        } else {
-          ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
-          lcm.set(p.id, p.cm)
-        }
-        ctx.fill()
-      })
-    }
-    if (override) return
-    if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
   }
   function sendto(sender_) {
     sender = sender_
@@ -463,7 +362,6 @@ export const Css = (output) => {
   const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
   disp.xy.addEventListener('click', e => {
-    console.log(e)
     update([fromx(e.offsetX), fromy(e.offsetY)])
   })
 
