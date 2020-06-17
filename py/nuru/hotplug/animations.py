@@ -238,7 +238,18 @@ animations = dict(
     css_spiral_speed=css_spiral_speed(),
     laser_spirals=laser_spirals(),
     aliasing=aliasing(),
-    heart=heart('heart_a'),
+    heart=heart('heart'),
+)
+
+# for convenience
+sounds = (
+    'scene1',
+    'scene2',
+    'scene3',
+    'scene4',
+    'sirene',
+    'head',
+    'stop',
 )
 
 pixels = A.ActionMixer(animations)
