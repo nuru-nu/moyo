@@ -107,6 +107,7 @@ async def send_defs(request):
             colors=state.Rizhom.COLORS,
             states=list(animator.hp_animations.states.keys()),
             recordings=recordings,
+            animations=list(animator.hp_animations.animations.keys()),
         ))))
 
 

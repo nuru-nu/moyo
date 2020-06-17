@@ -519,12 +519,23 @@ export const Css = (output) => {
   }
 }
 
-export const Animation = output => {
+export const Animation = (output, defs) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('animation'),
-    ui.h(
+    ui.hw(
+      defs.animations.map(a => h.button(a).of(a))
     )
-  ).els
+  ).into(output).els
+  let sender = null
+  defs.animations.forEach(a => {
+    disp[a].addEventListener('click', () => {
+      sender({action: `animation=${a}`})
+    })
+  })
+  function sendto(sender_) {
+    sender = sender_
+  }
   return {
+    sendto,
   }
 }
