@@ -1,9 +1,9 @@
 import { h, colors, ui } from './smanmi/util.js'
 import { Scene, Nuru } from './nuru.js';
 
-export const Leds = (output, opts) => {
+export const Leds = (output, defs, opts) => {
 
-  let phi_r_mapping = null
+  let phi_r_mapping = defs.mapping.phi_r
 
   opts = opts || {}
   const min_value = opts.min_value || 20
@@ -39,10 +39,7 @@ export const Leds = (output, opts) => {
 
   const scene = Scene(disp.xyz, {width, height})
   const nuru = Nuru(scene)
-  fetch('/mapping').then(res => res.json()).then(mapping => {
-    phi_r_mapping = mapping.phi_r
-    nuru.mapping(mapping.xyz)
-  })
+  nuru.mapping(defs.mapping.xyz)
 
   let view = null
   disp.view.change(value => {

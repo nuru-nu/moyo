@@ -148,7 +148,7 @@ export const Debug = (output, { network, record_timestamps }) => {
   disp.download.style.display = record_timestamps ? 'inline-block' : 'none'
 }
 
-export const Recorder = (output) => {
+export const Recorder = (output, defs) => {
   const disp = h.div({class: 'flex'}).of(
     h.div({class: 'flex widget'}).of(
       h.div({class: 'header'}).of('recorder'),
@@ -194,15 +194,12 @@ export const Recorder = (output) => {
     disp.record.classList.toggle('recording')
   })
 
-  let recs, playback, bari
-  fetch('/recordings').then(res => res.json()).then(recordings => {
-    recs = recordings
-    const names = Object.keys(recs)
-    names.sort()
-    names.reverse()
-    names.forEach(name => {
-      h.option({value: name}).of(name).into(disp.sel)
-    })
+  let recs=defs.recordings, playback, bari
+  const names = Object.keys(recs)
+  names.sort()
+  names.reverse()
+  names.forEach(name => {
+    h.option({value: name}).of(name).into(disp.sel)
   })
   disp.sel.addEventListener('change', e => {
     playback = e.target.value || null
@@ -307,39 +304,37 @@ export const Subsample = output => {
   }
 }
 
-export const Cmd = (output) => {
+export const Cmd = (output, defs) => {
   const cont = h.div().into(output).el
-  fetch('/setstates').then(res => res.json()).then(setstates => {
-    let {colors, states} = setstates
-    colors.unshift('')
-    states.unshift('')
-    const fcs = [0, 1, 2, 3]
-    let disp = h.div({class: 'flex widget'}).of(
-      h.div({class: 'header'}).of('cmd'),
-      ui.h(
-        'fc',
-        h.select('fc').of(fcs.map(value =>
-          h.option({value}).of(value))),
-        'color',
-        h.select('color').of(colors.map(value =>
-          h.option({value}).of(value))),
-        'state',
-        h.select('state').of(states.map(value =>
-          h.option({value}).of(value))),
-      ),
-    ).into(cont).els
+  let {colors, states} = defs
+  colors.unshift('')
+  states.unshift('')
+  const fcs = [0, 1, 2, 3]
+  let disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('cmd'),
+    ui.h(
+      'fc',
+      h.select('fc').of(fcs.map(value =>
+        h.option({value}).of(value))),
+      'color',
+      h.select('color').of(colors.map(value =>
+        h.option({value}).of(value))),
+      'state',
+      h.select('state').of(states.map(value =>
+        h.option({value}).of(value))),
+    ),
+  ).into(cont).els
 
-    disp.fc.addEventListener('change', e => {
-      sender({fc: e.target.value === '' ? null : parseInt(e.target.value)})
-    })
-    disp.color.addEventListener('change', e => {
-      const color = e.target.value === '' ? null : e.target.value
-      sender({setstate: { color }})
-    })
-    disp.state.addEventListener('change', e => {
-      const state = e.target.value === '' ? null : e.target.value
-      sender({setstate: { state }})
-    })
+  disp.fc.addEventListener('change', e => {
+    sender({fc: e.target.value === '' ? null : parseInt(e.target.value)})
+  })
+  disp.color.addEventListener('change', e => {
+    const color = e.target.value === '' ? null : e.target.value
+    sender({setstate: { color }})
+  })
+  disp.state.addEventListener('change', e => {
+    const state = e.target.value === '' ? null : e.target.value
+    sender({setstate: { state }})
   })
 
   let sender
@@ -524,3 +519,12 @@ export const Css = (output) => {
   }
 }
 
+export const Animation = output => {
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('animation'),
+    ui.h(
+    )
+  ).els
+  return {
+  }
+}
