@@ -65,7 +65,7 @@ class Integrator:
         self.overrides = {}
         self.transients = {
             name: collections.deque()
-            for name in ('midi',)
+            for name in ('midi', 'action')
         }
 
     def start(self):
@@ -94,7 +94,7 @@ class Integrator:
             del self.overrides[name]
 
     def oncmd(self, cmd):
-        # Note : MIDI commands are sent and their echo received in midi.py.
+        self.onsignal(cmd)  # loop back commands into signals
         if 'setstate' in cmd:
             self.signals['setstate'] = cmd['setstate']
         if 'fc' in cmd:
