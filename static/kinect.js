@@ -112,9 +112,9 @@ export const Kinect = (output) => {
   const ctx = disp.xy.getContext('2d')
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
-  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
+  const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => x / width * (xlim[1] - xlim[0]) + xlim[0]
-  const fromy = y => y / height * (ylim[1] - ylim[0]) + ylim[0]
+  const fromy = y => (height - y) / height * (ylim[1] - ylim[0]) + ylim[0]
 
   disp.xy.addEventListener('click', e => {
     if (!simulate) return
