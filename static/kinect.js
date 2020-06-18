@@ -128,13 +128,6 @@ export const Kinect = (output) => {
       simulating.el.classList[simulate ? 'remove' : 'add']('h')
   })
 
-  disp.presence.addEventListener('change', e => {
-      if (simulate) {
-          sender({presence: parseFloat(e.target.value)})
-      }
-      e.target.value = presence
-  })
-
   let sender
   function grid() {
     ctx.lineWidth = 2
@@ -163,6 +156,13 @@ export const Kinect = (output) => {
   const cmap = new Map()
   const lcm = new Map()
   function listener(data) {
+    if (simulate) {
+      simulating.tick()
+      sender({
+        people: simulating.people(),
+        presence: parseFloat(disp.presence.value),
+      }, 'silent')
+    }
     ctx.clearRect(0, 0, width, height)
     grid()
     if (data.hasOwnProperty('people')) {
@@ -182,10 +182,6 @@ export const Kinect = (output) => {
       })
     }
     if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
-    if (simulate) {
-      simulating.tick()
-      sender({people: simulating.people()}, 'silent')
-    }
   }
   function sendto(sender_) {
     sender = sender_
