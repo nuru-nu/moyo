@@ -458,3 +458,59 @@ export const Sound = (output, defs) => {
     sendto,
   }
 }
+
+export const Transients = (output, {network}) => {
+
+  const limit = 100
+  let include = [], exclude = []
+  const transients = ['action', 'event']
+  const disp = h.div().of(
+    ui.h(
+      'transients - filter:',
+      h.input('include', {type: 'text'}), '\\',
+      h.input('exclude', {type: 'text'}),
+      h.button('reset').of('reset')
+    ),
+    h.div('.scrollable').of(h.div('output')),
+  ).into(output).els
+
+  const matches = s => (
+    !include.length || include.some(token => s.search(token) >= 0)
+  ) && (
+    !exclude.length || exclude.every(token => s.search(token) == -1)
+  )
+  function update() {
+    Array.from(disp.output.children).forEach(el => 
+      el.classList[matches(el.textContent) ? 'remove' : 'add']('h'))
+  }
+  disp.include.addEventListener('change', e => {
+    include = e.target.value.split(/\s+/g).filter(x => x !== '')
+    update()
+  })
+  disp.exclude.addEventListener('change', e => {
+    exclude = e.target.value.split(/\s+/g).filter(x => x !== '')
+    update()
+  })
+  disp.reset.addEventListener('click', () => {
+    disp.include.value = disp.exclude.value = ''
+    include = exclude = []
+    update()
+  })
+
+  function listener(data) {
+    let now = new Date().toTimeString().substr(0, 9)
+    transients.forEach(transient => {
+      if (data[transient]) {
+        const text = `${now} ${transient}: ${data[transient]}`
+        const el = h.div().of(text).el
+        if (!matches(text)) el.classList.add('h')
+        disp.output.insertBefore(el, disp.output.firstChild)
+        while (disp.output.children.length > limit) {
+          disp.output.removeChild(disp.output.lastChild)
+        }
+      }
+    })
+  }
+
+  network.listenJson('signals', listener)
+}
