@@ -113,12 +113,7 @@ integrator_runner = L.SignalRunner(dict(
         | S.InState('std') | S.MovingAverage(secs=0.5)
     ),
     drone3=S.RndRamp(),
-    heart=(
-        S.MidiPulse(midi.Note(2, 'C', 1))
-        + S.MidiPulse(midi.Note(2, 'E', 1))
-        + S.MidiPulse(midi.Note(2, 'G#', 1))
-        + S.MidiPulse(midi.Note(2, 'C', 2))
-    ) | S.Lin(-5, 10) | S.Int(),
+    heart=S.TransientPulse('event', 'heart') | S.Lin(-5, 10) | S.Int(),
 
     # non-audio input
     into=Into(),

@@ -20,7 +20,7 @@ def onoff(note, port=0):
     )
 
 
-def signal2midi(data):
+def signal2midi(data, logger):
     action = data.get('action')
     if action and action.startswith('sound='):
         sound = action.split('=')[1]
@@ -43,6 +43,14 @@ def signal2midi(data):
     return ()
 
 
+def midi2signal(command, logger):
+    for cmd in ('on', 'off'):
+        for note in ('C', 'E', 'G#', 'C'):
+            if command == midi.Command.parse(f'2: {note}1 {cmd}'):
+                return (dict(event=f'heart {cmd}'),)
+    return ()
+
+
 cmd_address = args.integrator_address
 if cmd_address != '127.0.0.1':
     cmd_address = '0.0.0.0'
@@ -53,5 +61,6 @@ forwarder = midi.MidiForwarder(
         args.integrator_address, settings.integrator_sig_port),
     logger=logger,
 )
-forwarder.register_signal2midi(signal2midi)
+forwarder.signal2midis.add(signal2midi)
+forwarder.midi2signals.add(midi2signal)
 forwarder.start()

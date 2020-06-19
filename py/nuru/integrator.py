@@ -65,7 +65,7 @@ class Integrator:
         self.overrides = {}
         self.transients = {
             name: collections.deque()
-            for name in ('midi', 'action')
+            for name in ('midi', 'action', 'event')
         }
 
     def start(self):
