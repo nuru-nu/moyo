@@ -12,12 +12,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   window.console = Console('#console')
   let dump = Dump('#dump')
 
-  let monitor = Monitor('#monitor', {
-    presets: {
-      default: new Set(['loud', 'low', 'high']),
-      states: new Set(['drone1', 'drone2', 'into']),
-    },
-  })
+  let monitor = Monitor('#monitor', defs)
   let leds = Leds('#leds', defs)
 
   const record_timestamps = true

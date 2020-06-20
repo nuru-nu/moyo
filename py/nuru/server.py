@@ -30,6 +30,9 @@ parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
                     help='Address of machine running `smanmi.integrator`.')
 args = parser.parse_args()
 
+logger = util.createLogger('server')
+hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
+
 
 class Animator:
 
@@ -109,11 +112,9 @@ async def send_defs(request):
             recordings=recordings,
             animations=list(animator.hp_animations.animations.keys()),
             sounds=animator.hp_animations.sounds,
+            monitor_def=hp_signals.monitor_def,
         ))))
 
-
-logger = util.createLogger('server')
-hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 client = None
 if args.fadecandy:

@@ -51,21 +51,11 @@ class Integrator:
         )
         self.server.onsignal(self.onsignal)
         self.server.oncmd(self.oncmd)
-        self.signals = dict(
-            t=0,
-            iso=0,
-            rawloud=0,
-            loud=0,
-            sonar=1,
-            state=state.State(),
-            setstate={},
-            target_css=None,
-            fc=0,
-        )
+        self.signals = hp_signals.defaults
         self.overrides = {}
         self.transients = {
             name: collections.deque()
-            for name in ('midi', 'action', 'event')
+            for name in hp_signals.transients
         }
 
     def start(self):
