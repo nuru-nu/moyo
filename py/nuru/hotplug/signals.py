@@ -146,13 +146,18 @@ animation = dict(
     ),
 )
 
+kinect = dict(
+    closest=S.KinectDistance() | S.Min(5) | S.Lin(1, -0.2) | S.Clip(),
+)
+
 numbers = dict(
     fc=L.Constant(0),
+    n_people=L.Named('people') | S.Length(),
 )
 
 audio_runner = make_runner(audio)
 integrator_runner = make_runner(
-    generated, states, ooo, actions, test, animation, numbers,
+    generated, states, ooo, actions, test, animation, numbers, kinect,
 )
 
 defaults = dict(
@@ -164,6 +169,7 @@ defaults = dict(
     state=state.State(),
     target_css=None,
     fc=0,
+    people=[],
 )
 
 transients = ('action', 'midi', 'signal')
@@ -174,12 +180,13 @@ cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
 monitor_def = dict(
     graphs=dict(
         audio=audio.keys(),
-        test=test.keys(),
         ooo=ooo.keys(),
+        sensor=['sonar', 'presence'],
+        kinect=kinect.keys(),
         generated=generated.keys(),
         animation=animation.keys(),
         actions=actions.keys(),
-        sensor=['sonar', 'presence'],
+        test=test.keys(),
     ),
     features=dict(
         numbers=numbers.keys(),
