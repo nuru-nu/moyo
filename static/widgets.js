@@ -1,4 +1,4 @@
-import { h, ui, colors, Lines } from './smanmi/util.js'
+import { h, ui, colors } from './smanmi/util.js'
 
 export const Sonar = (output) => {
   const disp = h.div({class: 'flex widget'}).of(
