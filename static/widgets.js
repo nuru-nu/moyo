@@ -417,28 +417,33 @@ export const Css = (output) => {
   }
 }
 
-export const Animation = (output, defs) => {
+export const Animation = (output, {network, defs}) => {
+  let current = null
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('animation'),
     ui.hw(
       defs.animations.map(a => h.button(a).of(a))
     )
   ).into(output).els
-  let sender = null
   defs.animations.forEach(a => {
     disp[a].addEventListener('click', () => {
-      sender({action: `animation=${a}`})
+      network.sender({action: `animation=${a}`})
     })
   })
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    sendto,
-  }
+  network.listenJson('signals', data => {
+    const a = data.animation
+    if (a && a != current) {
+      if (current) {
+        disp[current].classList.remove('on')
+      }
+      disp[a].classList.add('on')
+      current = a
+    }
+  })
 }
 
-export const Sound = (output, defs) => {
+export const Sound = (output, {network, defs}) => {
+  let scene = null
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('sound'),
     ui.hw(
@@ -448,15 +453,19 @@ export const Sound = (output, defs) => {
   let sender = null
   defs.sounds.forEach(a => {
     disp[a].addEventListener('click', () => {
-      sender({action: `sound=${a}`})
+      network.sender({action: `sound=${a}`})
     })
   })
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    sendto,
-  }
+  network.listenJson('signals', data => {
+    const s = data.scene
+    if (s && s != scene) {
+      if (scene) {
+        disp[scene].classList.remove('on')
+      }
+      disp[s].classList.add('on')
+      scene = s
+    }
+  })
 }
 
 export const Transients = (output, {network}) => {
