@@ -173,20 +173,11 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                    user.getCenterOfMass().z, 
                                    x, y, z);
 
-    // convertJointCoordinatesToDepth(user.getCenterOfMass().x, 
-    //                                user.getCenterOfMass().y, 
-    //                                user.getCenterOfMass().z, 
-    //                                &xd, &yd);
-
     if(isnan(xd) || isnan(yd)){
       std::cout << "NaN - " << xd << ", " << yd << std::endl;
       cm_depth = 0;
     } else
       cm_depth = depthImage.at<ushort>(xd, yd);
-
-    // std::cout << "Depth co " << (int)xd << " " << 
-    //                             (int)yd << " " <<
-    //             " val " << cm_depth << std::endl;
 
     person.depth.insert(std::pair<std::string, float>("cm_depth", 
                                                   user.getCenterOfMass().z));
@@ -299,28 +290,6 @@ void Hardware::convertJointCoordinatesToDepth(float x, float y, float z,
 
 void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, 
                                               float &tx, float &ty, float &tz) const {
-
-  // float dx, dy; 
-  // convertJointCoordinatesToDepth(x, y, z, &dx, &dy);
-  
-  // if(isnan(dx) || isnan(dy)){
-  //   tx = 0;
-  //   ty = 0;
-  //   tz = 0;
-  //   return;
-  // }
-
-  // openni::DepthPixel *depthPixels = 
-  //           new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
-
-  // memcpy(depthPixels, depthFrame_.getData(), 
-  //                     depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
-
-  // cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
-
-  // int depth_value = (int) depthImage.at<ushort>((int) dx, (int) dy);
-
-  std::cout << x << " " << y << " " << z << " " << tx << " " << ty << " " << tz << std::endl;
 
   convertDepthCoordinatesToWorld(x, y, z, tx, ty, tz);
 
