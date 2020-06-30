@@ -1,22 +1,22 @@
 #!/bin/bash
 
-# WIP more minimal launch.sh
-
 cd "$(dirname "$0")"
+CM=${CM:-C-m}
+SERVER=${SERVER:-127.0.0.1}
 
 tmux start-server
 tmux new-session -d -s nuru
 
 # row 1
-tmux splitw -v -p 75
 # row 2
-tmux send-keys "./run nuru.integrator" C-m
-tmux splitw -v -p 66
+tmux splitw -v -p 75
+tmux send-keys "./run nuru.integrator" $CM
 # row 3
-tmux send-keys "./run nuru.server" C-m
-tmux splitw -v
+tmux splitw -v -p 66
+tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
 # row 4
-tmux send-keys "./run nuru.midi" C-m
-tmux selectp -D
+tmux splitw -v
+tmux send-keys "./run nuru.midi" $CM
 
+tmux selectp -D
 tmux attach-session

@@ -88,15 +88,16 @@ class Rizhom(L.Signal):
     def init(self):
         self.last_change = 0
 
-    def call(self, t, state, into, ooo_intensity, setstate):
+    def call(self, t, state, into, ooo_intensity, action):
         oldstate = state.state
         dt = t - self.last_change
 
-        if setstate.get('color'):
-            state.color = setstate['color']
-        if setstate.get('state'):
-            state.state = setstate['state']
-            return state
+        if action:
+            if action.startswith('color='):
+                state.color = action.split('=')[1]
+            if action.startswith('state='):
+                state.state = action.split('=')[1]
+                return state
 
         if not state.state.startswith('std') and not into:
             state.goto(random.choice(['std', 'std2']))

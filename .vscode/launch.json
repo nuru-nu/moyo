@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "nuru.midi",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.midi",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "py"
+            }
+        },
+        {
+            "name": "nuru.integrator",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.integrator",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "py"
+            }
+        },
+        {
+            "name": "nuru.server",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.server",
+            "console": "integratedTerminal",
+            "args": ["--server_address=0.0.0.0"],
+            "env": {
+                "PYTHONPATH": "py"
+            }
+        }
+    ]
+}

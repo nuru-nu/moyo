@@ -9,6 +9,10 @@ from smanmi.midi import Command
 from . import mapping, pixel_functions as pf, settings
 
 
+# Members are set inside L.Signal.__init__() ...
+# pylint: disable=no-member
+
+
 # mapping
 ###############################################################################
 
@@ -35,6 +39,31 @@ def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
 
 # state related
 ###############################################################################
+
+class ActionMixer(L.Signal):
+    """Transitions between animations switched by `action`."""
+
+    def init(self, animations, default_dt=1, dt_by_state={}):
+        self.t0 = 0
+        self.current = self.last = list(animations)[0]
+
+    def call(self, t, action, **signals):
+        signals['action'] = action
+        signals['t'] = t
+        if action and action.startswith('animation='):
+            animation = action.split('=')[1]
+            if animation != self.current:
+                self.last = self.current
+                self.current = animation
+                self.t0 = t
+        pixels = self.animations[self.current](**signals)
+        dt = self.dt_by_state.get(self.current, self.default_dt)
+        if t - self.t0 < dt:
+            v = (t - self.t0) / dt
+            last_pixels = self.animations[self.last](**signals)
+            pixels = v * pixels + (1 - v) * last_pixels
+        return pixels
+
 
 class StateMixer(L.Signal):
     """Mixes signals by state.state with some interpolation."""
