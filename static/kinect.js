@@ -61,17 +61,19 @@ const Simulating = () => {
       attractors.push({ms: Date.now(), x, y, ids: new Set(selids)})
     }
   }
-  function step(from, to, dt) {
-    return (to - from) / Math.abs(to - from) / 30 / Math.max(1, dt/1000)
-  }
   function tick() {
-    attractors = attractors.filter(a => Date.now() - a.ms < 1e4)
+    attractors = attractors.filter(a => Date.now() - a.ms < 3e3)
     for(let p of people.values()) {
       attractors.forEach(a => {
         if (a.ids.has(p.data.id)) {
           const dt = Date.now() - a.ms
-          p.data.x += step(p.data.x, a.x, dt)
-          p.data.y += step(p.data.y, a.y, dt)
+          let dx = (a.x - p.data.x)
+          let dy = (a.y - p.data.y)
+          const d = Math.sqrt(dx * dx + dy * dy)
+          dx /= d * (1 + dt / 1e9) * 30
+          dy /= d * (1 + dt / 1e9) * 30
+          p.data.x += dx
+          p.data.y += dy
         }
       })
     }
