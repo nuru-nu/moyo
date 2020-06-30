@@ -41,8 +41,8 @@ export const Sonar = (output) => {
 export const Kinect = (output) => {
   const width = 200
   const height = 200
-  const xlim = [-2.5, 2.5]
-  const ylim = [-4, 1]
+  const xlim = [-5, 5]
+  const ylim = [-5, 5]
   const r = 8
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('kinect'),
@@ -102,7 +102,7 @@ export const Kinect = (output) => {
     ctx.stroke()
   }
 
-  const palette = colors.strong_palette
+  const palette = colors.user_colors
   const cmap = new Map()
   const lcm = new Map()
   function listener(data) {
@@ -114,7 +114,7 @@ export const Kinect = (output) => {
       grid()
       data.people.forEach(p => {
         if (!cmap.has(p.id)) {
-          cmap.set(p.id, palette[cmap.size % palette.length])
+          cmap.set(p.id, palette[(p.id - 1) % palette.length])
         }
         ctx.fillStyle = cmap.get(p.id)
         ctx.beginPath()
