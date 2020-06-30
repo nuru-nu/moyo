@@ -1,4 +1,4 @@
-import { h, u, ui, colors, Lines } from './smanmi/util.js'
+import { h, ui, colors } from './smanmi/util.js'
 
 export const Sonar = (output) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -38,107 +38,6 @@ export const Sonar = (output) => {
   }
 }
 
-export const Kinect = (output) => {
-  const width = 200
-  const height = 200
-  const xlim = [-5, 5]
-  const ylim = [-5, 5]
-  const r = 8
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('kinect'),
-    ui.v(
-      ui.h(
-        'presence ',
-        h.button('override').of('override'),
-        h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
-      ),
-      h.span('nosig').of('no signal'),
-      h.canvas('xy .h', {width, height}),
-    ),
-  ).into(output).els
-  const ctx = disp.xy.getContext('2d')
-
-  let override = false
-  disp.presence.disabled = true
-  disp.override.addEventListener('click', () => {
-    override = !override
-    disp.override.classList.toggle('on')
-    disp.presence.disabled = !override
-    update()
-  })
-  disp.presence.addEventListener('change', update)
-
-  let sender
-  function update() {
-    if (!override) {
-      if (sender) sender({presence: null})
-      return
-    }
-    if (sender) sender({presence: parseFloat(disp.presence.value)})
-  }
-  const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
-  const toy = y => height * (y - ylim[0]) / (ylim[1] - ylim[0])
-  function grid() {
-    ctx.lineWidth = 2
-    ctx.strokeStyle = '#444'
-    ctx.beginPath()
-    ctx.moveTo(0, toy(0))
-    ctx.lineTo(width, toy(0))
-    ctx.moveTo(tox(0), 0)
-    ctx.lineTo(tox(0), height)
-    ctx.stroke()
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {
-      if (x < xlim[0]) continue
-      ctx.moveTo(tox(x), 0)
-      ctx.lineTo(tox(x), height)
-    }
-    for (let y = Math.floor(ylim[0] - 1); y <= ylim[1]; ++y) {
-      if (y < ylim[0]) continue
-      ctx.moveTo(0, toy(y))
-      ctx.lineTo(height, toy(y))
-    }
-    ctx.stroke()
-  }
-
-  const palette = colors.user_colors
-  const cmap = new Map()
-  const lcm = new Map()
-  function listener(data) {
-    if (data.hasOwnProperty('people')) {
-      disp.nosig.classList.add('h')
-      disp.xy.classList.remove('h')
-
-      ctx.clearRect(0, 0, width, height)
-      grid()
-      data.people.forEach(p => {
-        if (!cmap.has(p.id)) {
-          cmap.set(p.id, palette[(p.id - 1) % palette.length])
-        }
-        ctx.fillStyle = cmap.get(p.id)
-        ctx.beginPath()
-        if (p.cm[0] == 0 && p.cm[1] == 0 && lcm.has(p.id)) {
-          ctx.arc(tox(lcm.get(p.id)[0]), toy(lcm.get(p.id)[1]), r, 0, 2 * Math.PI)
-        } else {
-          ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
-          lcm.set(p.id, p.cm)
-        }
-        ctx.fill()
-      })
-    }
-    if (override) return
-    if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
-  }
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    listener,
-    sendto,
-  }
-}
-
 export const Debug = (output, { network, record_timestamps }) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('debug'),
@@ -148,7 +47,7 @@ export const Debug = (output, { network, record_timestamps }) => {
   disp.download.style.display = record_timestamps ? 'inline-block' : 'none'
 }
 
-export const Recorder = (output) => {
+export const Recorder = (output, defs) => {
   const disp = h.div({class: 'flex'}).of(
     h.div({class: 'flex widget'}).of(
       h.div({class: 'header'}).of('recorder'),
@@ -194,15 +93,12 @@ export const Recorder = (output) => {
     disp.record.classList.toggle('recording')
   })
 
-  let recs, playback, bari
-  fetch('/recordings').then(res => res.json()).then(recordings => {
-    recs = recordings
-    const names = Object.keys(recs)
-    names.sort()
-    names.reverse()
-    names.forEach(name => {
-      h.option({value: name}).of(name).into(disp.sel)
-    })
+  let recs=defs.recordings, playback, bari
+  const names = Object.keys(recs)
+  names.sort()
+  names.reverse()
+  names.forEach(name => {
+    h.option({value: name}).of(name).into(disp.sel)
   })
   disp.sel.addEventListener('change', e => {
     playback = e.target.value || null
@@ -307,39 +203,37 @@ export const Subsample = output => {
   }
 }
 
-export const Cmd = (output) => {
+export const Cmd = (output, defs) => {
   const cont = h.div().into(output).el
-  fetch('/setstates').then(res => res.json()).then(setstates => {
-    let {colors, states} = setstates
-    colors.unshift('')
-    states.unshift('')
-    const fcs = [0, 1, 2, 3]
-    let disp = h.div({class: 'flex widget'}).of(
-      h.div({class: 'header'}).of('cmd'),
-      ui.h(
-        'fc',
-        h.select('fc').of(fcs.map(value =>
-          h.option({value}).of(value))),
-        'color',
-        h.select('color').of(colors.map(value =>
-          h.option({value}).of(value))),
-        'state',
-        h.select('state').of(states.map(value =>
-          h.option({value}).of(value))),
-      ),
-    ).into(cont).els
+  let {colors, states} = defs
+  colors.unshift('')
+  states.unshift('')
+  const fcs = [0, 1, 2, 3]
+  let disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('cmd'),
+    ui.h(
+      'fc',
+      h.select('fc').of(fcs.map(value =>
+        h.option({value}).of(value))),
+      'color',
+      h.select('color').of(colors.map(value =>
+        h.option({value}).of(value))),
+      'state',
+      h.select('state').of(states.map(value =>
+        h.option({value}).of(value))),
+    ),
+  ).into(cont).els
 
-    disp.fc.addEventListener('change', e => {
-      sender({fc: e.target.value === '' ? null : parseInt(e.target.value)})
-    })
-    disp.color.addEventListener('change', e => {
-      const color = e.target.value === '' ? null : e.target.value
-      sender({setstate: { color }})
-    })
-    disp.state.addEventListener('change', e => {
-      const state = e.target.value === '' ? null : e.target.value
-      sender({setstate: { state }})
-    })
+  disp.fc.addEventListener('change', e => {
+    sender({fc: e.target.value === '' ? null : parseInt(e.target.value)})
+  })
+  disp.color.addEventListener('change', e => {
+    const color = e.target.value === '' ? null : e.target.value
+    sender({setstate: { color }})
+  })
+  disp.state.addEventListener('change', e => {
+    const state = e.target.value === '' ? null : e.target.value
+    sender({setstate: { state }})
   })
 
   let sender
@@ -468,7 +362,6 @@ export const Css = (output) => {
   const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
   disp.xy.addEventListener('click', e => {
-    console.log(e)
     update([fromx(e.offsetX), fromy(e.offsetY)])
   })
 
@@ -524,3 +417,109 @@ export const Css = (output) => {
   }
 }
 
+export const Animation = (output, {network, defs}) => {
+  let current = null
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('animation'),
+    ui.hw(
+      defs.animations.map(a => h.button(a).of(a))
+    )
+  ).into(output).els
+  defs.animations.forEach(a => {
+    disp[a].addEventListener('click', () => {
+      network.sender({action: `animation=${a}`})
+    })
+  })
+  network.listenJson('signals', data => {
+    const a = data.animation
+    if (a && a != current) {
+      if (current) {
+        disp[current].classList.remove('on')
+      }
+      disp[a].classList.add('on')
+      current = a
+    }
+  })
+}
+
+export const Sound = (output, {network, defs}) => {
+  let scene = null
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('sound'),
+    ui.hw(
+      defs.sounds.map(a => h.button(a).of(a))
+    )
+  ).into(output).els
+  let sender = null
+  defs.sounds.forEach(a => {
+    disp[a].addEventListener('click', () => {
+      network.sender({action: `sound=${a}`})
+    })
+  })
+  network.listenJson('signals', data => {
+    const s = data.scene
+    if (s && s != scene) {
+      if (scene) {
+        disp[scene].classList.remove('on')
+      }
+      disp[s].classList.add('on')
+      scene = s
+    }
+  })
+}
+
+export const Transients = (output, {network}) => {
+
+  const limit = 100
+  let include = [], exclude = []
+  const transients = ['action', 'event']
+  const disp = h.div().of(
+    ui.h(
+      'transients - filter:',
+      h.input('include', {type: 'text'}), '\\',
+      h.input('exclude', {type: 'text'}),
+      h.button('reset').of('reset')
+    ),
+    h.div('.scrollable').of(h.div('output')),
+  ).into(output).els
+
+  const matches = s => (
+    !include.length || include.some(token => s.search(token) >= 0)
+  ) && (
+    !exclude.length || exclude.every(token => s.search(token) == -1)
+  )
+  function update() {
+    Array.from(disp.output.children).forEach(el => 
+      el.classList[matches(el.textContent) ? 'remove' : 'add']('h'))
+  }
+  disp.include.addEventListener('change', e => {
+    include = e.target.value.split(/\s+/g).filter(x => x !== '')
+    update()
+  })
+  disp.exclude.addEventListener('change', e => {
+    exclude = e.target.value.split(/\s+/g).filter(x => x !== '')
+    update()
+  })
+  disp.reset.addEventListener('click', () => {
+    disp.include.value = disp.exclude.value = ''
+    include = exclude = []
+    update()
+  })
+
+  function listener(data) {
+    let now = new Date().toTimeString().substr(0, 9)
+    transients.forEach(transient => {
+      if (data[transient]) {
+        const text = `${now} ${transient}: ${data[transient]}`
+        const el = h.div().of(text).el
+        if (!matches(text)) el.classList.add('h')
+        disp.output.insertBefore(el, disp.output.firstChild)
+        while (disp.output.children.length > limit) {
+          disp.output.removeChild(disp.output.lastChild)
+        }
+      }
+    })
+  }
+
+  network.listenJson('signals', listener)
+}

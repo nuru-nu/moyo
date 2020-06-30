@@ -51,21 +51,11 @@ class Integrator:
         )
         self.server.onsignal(self.onsignal)
         self.server.oncmd(self.oncmd)
-        self.signals = dict(
-            t=0,
-            iso=0,
-            rawloud=0,
-            loud=0,
-            sonar=1,
-            state=state.State(),
-            setstate={},
-            target_css=None,
-            fc=0,
-        )
+        self.signals = hp_signals.defaults
         self.overrides = {}
         self.transients = {
             name: collections.deque()
-            for name in ('midi',)
+            for name in hp_signals.transients
         }
 
     def start(self):
@@ -74,7 +64,7 @@ class Integrator:
 
     def schedule(self):
         if hasattr(self, 'handle'):
-            self.handle.cancel()
+            self.handle.cancel()  # pylint: disable=access-member-before-definition
         self.handle = asyncio.get_event_loop().call_later(
             1 / args.idle_fps, self.integrate)
 
@@ -94,7 +84,7 @@ class Integrator:
             del self.overrides[name]
 
     def oncmd(self, cmd):
-        # Note : MIDI commands are sent and their echo received in midi.py.
+        self.onsignal(cmd)  # loop back commands into signals
         if 'setstate' in cmd:
             self.signals['setstate'] = cmd['setstate']
         if 'fc' in cmd:

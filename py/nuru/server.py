@@ -30,6 +30,9 @@ parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
                     help='Address of machine running `smanmi.integrator`.')
 args = parser.parse_args()
 
+logger = util.createLogger('server')
+hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
+
 
 class Animator:
 
@@ -86,26 +89,6 @@ class Animator:
         return data.tostring()
 
 
-async def send_mapping(request):
-    del request
-    return web.Response(
-        content_type='Application/JSON',
-        text=json.dumps(util.pythonize(dict(
-            phi_r=animations.phi_r_mapping,
-            xyz=animations.xyz_mapping,
-        ))))
-
-
-async def send_setstate(request):
-    del request
-    return web.Response(
-        content_type='Application/JSON',
-        text=json.dumps(dict(
-            colors=state.Rizhom.COLORS,
-            states=list(animator.hp_animations.states.keys()),
-        )))
-
-
 recordings = {
     rec.name: dict(
         secs=rec.secs,
@@ -115,15 +98,23 @@ recordings = {
 }
 
 
-async def get_recordings(request):
+async def send_defs(request):
+    del request
     return web.Response(
         content_type='Application/JSON',
-        text=json.dumps(recordings),
-    )
+        text=json.dumps(util.pythonize(dict(
+            mapping=dict(
+                phi_r=animations.phi_r_mapping,
+                xyz=animations.xyz_mapping,
+            ),
+            colors=state.Rizhom.COLORS,
+            states=list(animator.hp_animations.states.keys()),
+            recordings=recordings,
+            animations=list(animator.hp_animations.animations.keys()),
+            sounds=animator.hp_animations.sounds,
+            monitor_def=hp_signals.monitor_def,
+        ))))
 
-
-logger = util.createLogger('server')
-hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 client = None
 if args.fadecandy:
@@ -144,8 +135,6 @@ server.forward_udp(UdpForwarding(
 ))
 server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
-server.routes.append(web.get('/mapping', send_mapping))
-server.routes.append(web.get('/setstates', send_setstate))
-server.routes.append(web.get('/recordings', get_recordings))
+server.routes.append(web.get('/defs', send_defs))
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())
