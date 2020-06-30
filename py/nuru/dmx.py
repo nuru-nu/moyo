@@ -42,8 +42,9 @@ paths = [
 for path in paths:
     if path not in sys.path:
         sys.path.append(path)
-from ola.ClientWrapper import ClientWrapper  # NOQA
 
+from ola.ClientWrapper import ClientWrapper  # NOQA
+# from DMXEnttecPro import Controller
 
 # stage1 = dmx_devices.StageLight()
 # stage1.intensity = 255
