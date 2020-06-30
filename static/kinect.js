@@ -2,7 +2,7 @@
 import { h, ui, colors } from './smanmi/util.js'
 
 const color = id => (
-  colors.strong_palette[(id - 1) % colors.strong_palette.length])
+  colors.user_colors[(id - 1) % colors.user_colors.length])
 
 function Person(id) {
   const data = {id, x: 0, y: -3.5, selected: false}
