@@ -62,7 +62,7 @@ def phi_red():
     return (
         A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
         | C.Palette(P.super_red) | S.Lin(mult=0.2)
-    ) + heart()
+    )
 
 def std2_bw():
     return (
@@ -119,10 +119,10 @@ heart_palette = P.parse_colors_hex([
 
 def heart():
     return (
-        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -1)
-        | S.Lin(0, L.Named('heart_a'))
+        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.2)
+        | S.Lin(0, L.Named('heart'))
         | C.Palette(heart_palette)
-    ) | S.Lin(mult=0.3)
+    ) | S.Lin(mult=0.2)
 
 
 def frozen():
@@ -159,7 +159,7 @@ def laser_spiral(palette, dt):
     return (
         (
             A.Spiral(
-                dr=0.1,
+                dr=L.Named('valence') | S.Lin(-0.5, 2),
                 n=8,
                 # aspect=0,#L.Named('valence'),
                 # speed=L.Named('arousal') | S.Lin(mult=8)
@@ -184,13 +184,13 @@ def css_spiral_speed():
                 n=4,
             )
             + (L.Named('saw_a') | S.Lin(0, 2))
-        ) | S.Mod(1) | C.Palette(P.funny_rainbow)
+        ) | S.Mod(1) | C.Palette(P.peak_green)
     )
 
 
 def aliasing():
     return A.Aliasing(
-    ) | S.Mod(1) | C.Palette(P.peak_green)
+    ) | S.Mod(1) | C.Palette(P.peak_blue)
 
 
 states = dict(
@@ -211,12 +211,12 @@ states = dict(
 
 def css_color_speed():
     return (
-        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
+        L.Named('std2') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
         | C.InterpolPalette(L.Named('valence'), (
-            (0, P.gabe_red),
-            (.5, P.black_white),
-            (1, P.funny_rainbow),
-        )) | S.Lin(mult=0.5)
+            (0, P.black_violet),
+            #(.5, P.black_white),
+            (1, P.coolors_rainbow),
+        )) | S.Lin(mult=L.Named('arousal')) | S.Lin(0, 0.5)
     )
 
 
@@ -233,12 +233,22 @@ def css_direction_speed():
 
 
 pixels = A.MidiMixer({
+    Note(0, 'C', 0): css_color_speed() | S.Lin(0, 0.5),
     Note(0, 'C', 2): css_color_speed(),
     Note(0, 'C#', 2): css_direction_speed(),
     Note(0, 'D', 2): css_spiral_speed(),
     Note(0, 'D#', 2): laser_spirals(),
     Note(0, 'E', 2): aliasing(),
+    Note(0, 'F', 2): (A.Ones() | C.RGB(0, 0, 0)),
 }, dt=5) + (
+heart()
     # Note : animator.py does not handle MIDI as transient signals...
-    heart() * L.Named('hearton')
+    #heart() * L.Named('hearton')
 )
+
+pixels = laser_spirals() + heart()
+# pixels = css_spiral_speed()
+
+#pixels = css_color_speed() + heart()
+#pixels = laser_spirals()
+#pixels = aliasing()
