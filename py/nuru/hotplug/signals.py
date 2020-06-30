@@ -98,6 +98,7 @@ integrator_runner = L.SignalRunner(dict(
     # generated
     saw_v=S.Saw(hz=L.Named('valence')),
     saw_a=S.Saw(hz=L.Named('arousal')),
+    saw_ac2=L.Named('saw_a') | S.Lin(0, 2) | S.Tocos(),
     std2=S.Saw(hz=0.5),
     std22=S.Saw(hz=1.0),
     std2_cos2=L.Named('std2') | S.Lin(mult=2) | S.Tocos(),
