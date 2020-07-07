@@ -18,7 +18,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   const record_timestamps = true
   let network = Network('#connection_state', { record_timestamps })
 
-  let cmd = Cmd('#cmd', defs)
+  Cmd('#cmd', {network, defs})
   Animation('#animation', {network, defs})
   Sound('#sound', {network, defs})
   let subsample = Subsample('#subsample')
@@ -42,7 +42,6 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   .listenJson('signals', midi.listener)
 
   Debug('#debug', { network, record_timestamps })
-  cmd.sendto(network.sender)
   kinect.sendto(network.sender)
   css.sendto(network.sender)
   midi.sendto(network.sender)

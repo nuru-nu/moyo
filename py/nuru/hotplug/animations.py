@@ -239,6 +239,7 @@ animations = dict(
     laser_spirals=laser_spirals(),
     aliasing=aliasing(),
     heart=heart('heart'),
+    identify=A.PositionIdentify(),
 )
 
 # for convenience

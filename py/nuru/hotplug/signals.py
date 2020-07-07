@@ -154,7 +154,7 @@ kinect = dict(
 )
 
 numbers = dict(
-    fc=L.Constant(0),
+    fc=S.ActionLatch('fc=(.*)', 0, int),
     n_people=L.Named('people') | S.Length(),
 )
 
