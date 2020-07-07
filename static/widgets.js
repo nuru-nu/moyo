@@ -203,46 +203,35 @@ export const Subsample = output => {
   }
 }
 
-export const Cmd = (output, defs) => {
+export const Cmd = (output, {network, defs}) => {
   const cont = h.div().into(output).el
   let {colors, states} = defs
   colors.unshift('')
   states.unshift('')
   const fcs = [0, 1, 2, 3]
-  let disp = h.div({class: 'flex widget'}).of(
+  let fc = -1
+  let disp = h.div('cont', {class: 'flex widget'}).of(
     h.div({class: 'header'}).of('cmd'),
     ui.h(
       'fc',
-      h.select('fc').of(fcs.map(value =>
-        h.option({value}).of(value))),
-      'color',
-      h.select('color').of(colors.map(value =>
-        h.option({value}).of(value))),
-      'state',
-      h.select('state').of(states.map(value =>
-        h.option({value}).of(value))),
+      fcs.map(fc => h.button(`fc${fc} .fcb`).of(fc)),
     ),
   ).into(cont).els
 
-  disp.fc.addEventListener('change', e => {
-    sender({fc: e.target.value === '' ? null : parseInt(e.target.value)})
-  })
-  disp.color.addEventListener('change', e => {
-    const color = e.target.value === '' ? null : e.target.value
-    sender({setstate: { color }})
-  })
-  disp.state.addEventListener('change', e => {
-    const state = e.target.value === '' ? null : e.target.value
-    sender({setstate: { state }})
+  fcs.forEach(fc => {
+    disp[`fc${fc}`].addEventListener('click', () => {
+      network.sender({action: `fc=${fc}`})
+    })
   })
 
-  let sender
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    sendto,
-  }
+  network.listenJson('signals', data => {
+    if (data.fc != fc) {
+      fc = data.fc
+      disp.cont.querySelectorAll('.fcb').forEach(
+        el => el.classList.remove('on'))
+      disp[`fc${fc}`].classList.add('on')
+    }
+  })
 }
 
 export const Midi = (output) => {
