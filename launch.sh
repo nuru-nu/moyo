@@ -21,15 +21,16 @@ tmux send-keys './run nuru.recorder' $CM
 tmux splitw -p 66
 tmux send-keys './run nuru.sonar' $CM
 # row 4
-tmux splitw mux send-keys './run nuru.integrator' $CM
+tmux splitw
+tmux send-keys './run nuru.integrator' $CM
 
 ## column 2
 tmux selectp -R
 # row 1
-tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
+tmux send-keys "./run nuru.server --server_address=${SERVER}" --fadecandy $CM
 # row 2
 tmux splitw -p 75
-tmux send-keys '(cd fc; ./fcserver config.json)' $CM
+tmux send-keys '(cd fadecandy; sudo ./fcserver config.json)' $CM
 # row 3
 tmux splitw -p 66
 tmux send-keys './run nuru.dmx' $CM
