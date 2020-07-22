@@ -68,6 +68,7 @@ def wav2features(wav, hop_size):
     assert len(wav) == settings.buf_size, len(wav)
     spectrogram = np.abs(scipy.fft.rfft(hann_window * wav))
     logmel = np.log(spectrogram.reshape((1, -1)).dot(mel_matrix))
+    logmel[logmel == -np.inf] = 0
     return Features(
         wav=wav[:hop_size],
         logmel=logmel[0],
