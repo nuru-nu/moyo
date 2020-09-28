@@ -4,7 +4,7 @@ Shared doc : https://docs.google.com/document/d/1DKIEItOe5IRh6JfeMJ1ERkpSYmWZ7JR
 
 ## Installation
 
-check out the git repository : `git clone rizhom@figur.li:rizhom.git`
+check out the git repository : `git clone smanmi@figur.li:nuru.git`
 
 Note that you also need to check out submodules:
 - `git submodule init && git submodule update`
@@ -13,15 +13,15 @@ Note that you also need to check out submodules:
 ### Python packages
 
 ```
-python3 -m virtualenv env
-. env/bin/activate
+python3 -m virtualenv env &&
+. env/bin/activate &&
 pip install -r requirements.txt
 ```
 
 note that on OS X you have to install portaudio & specify some extra parameters:
 
 ```
-brew install portaudio
+brew install portaudio &&
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
 ```
 
@@ -86,6 +86,10 @@ then there are two standalone programs to be run on the remote server:
 For an overview, see [Slides]
 
 [Slides]: https://docs.google.com/presentation/d/1kWKOjcJiLdcVQkaqHcMZZdBt3DM2olypaQvjHZF1c8I
+
+### vscode settings
+
+- Python linter: flake8
 
 ### Open ligthning architecture
 
