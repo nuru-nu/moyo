@@ -45,8 +45,8 @@ def signal2midi(data, logger):
 
 def midi2signal(command, logger):
     for cmd in ('on', 'off'):
-        for note in ('C', 'E', 'G#', 'C'):
-            if command == midi.Command.parse(f'2: {note}1 {cmd}'):
+        for note in ('A', 'C', 'E', 'G#', 'C'):
+            if command == midi.Command.parse(f'0: {note}1 {cmd}'):
                 return (dict(event=f'heart {cmd}'),)
     return ()
 
