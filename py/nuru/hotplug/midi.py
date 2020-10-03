@@ -3,14 +3,14 @@ from typing import Dict, Sequence
 from smanmi import midi
 
 
-def onoff(note: str, port: int = 0) -> Sequence[midi.Note]:
+def onoff(note: str, channel: int = 1) -> Sequence[midi.Command]:
     return (
-        midi.Command.parse(f'{port}: {note} on'),
-        midi.Command.parse(f'{port}: {note} off'),
+        midi.Command(f'{channel}: {note} on'),
+        midi.Command(f'{channel}: {note} off'),
     )
 
 
-def signal2midi(sound: str) -> Sequence[midi.Note]:
+def signal2midi(sound: str) -> Sequence[midi.Command]:
     if sound == 'S1':
         return onoff('C2')
     elif sound == 'S2':
@@ -36,6 +36,6 @@ def midi2signal(command: str) -> Sequence[Dict[str, str]]:
     # Heart
     for cmd in ('on', 'off'):
         for note in ('A', 'C', 'E', 'G#', 'C'):
-            if command == midi.Command.parse(f'0: {note}1 {cmd}'):
+            if command == midi.Command(f'2: {note}1 {cmd}'):
                 return (dict(event=f'heart {cmd}'),)
     return ()
