@@ -240,14 +240,17 @@ animations = dict(
     aliasing=aliasing(),
     heart=heart('heart'),
     identify=A.PositionIdentify(),
+    off=A.Ones() | C.RGB(0, 0, 0),
 )
 
 # for convenience
 sounds = (
-    'scene1',
-    'scene2',
-    'scene3',
-    'scene4',
+    'S1',
+    'S2',
+    'S3',
+    'S4',
+    'S5',
+    'S6',
     'sirene',
     'head',
     'stop',
