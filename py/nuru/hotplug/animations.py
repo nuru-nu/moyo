@@ -243,7 +243,7 @@ animations = dict(
     off=A.Ones() | C.RGB(0, 0, 0),
 )
 
-# for convenience
+# For convenience to pipe them through to UI, no connection to animations.
 sounds = (
     'S1',
     'S2',
@@ -251,8 +251,6 @@ sounds = (
     'S4',
     'S5',
     'S6',
-    'sirene',
-    'head',
     'stop',
 )
 

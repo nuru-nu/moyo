@@ -23,10 +23,6 @@ def signal2midi(sound: str) -> Sequence[midi.Command]:
         return onoff('E2')
     elif sound == 'S6':
         return onoff('F2')
-    elif sound == 'sirene':
-        return onoff('G2')
-    elif sound == 'head':
-        return onoff('A2')
     elif sound == 'stop':
         return onoff('B2')
     return ()
