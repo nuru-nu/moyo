@@ -137,10 +137,6 @@ actions = dict(
     into=Into(),
 )
 
-test = dict(
-    hearton=S.MidiSwitch(Note(0, 'B', 2)),
-)
-
 animation = dict(
     heart=S.TransientPulse('event', 'heart') | S.Lin(-5, 10) | S.Int(),
     heart_a=(
