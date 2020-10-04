@@ -330,11 +330,37 @@ class CompWave(L.Signal):
         return 0.5 + 0.5 * np.sin(u)
 
 
+
+# noise
+###############################################################################
+
+class NoiseCycle(L.Signal):
+    """Cycles through noise patterns."""
+
+    def init(self, hz):
+        self.dt = 0
+        self.t0 = None
+        self.pattern1 = self._create_noise()
+        self.pattern2 = self._create_noise()
+
+    def _create_noise(self):
+        return np.random.uniform(size=len(phi_r_mapping))
+
+    def call(self, t):
+        if self.t0 is not None:
+            self.dt += (t - self.t0) * self.hz
+        self.t0 = t
+        if self.dt > 1:
+            self.pattern1 = self.pattern2
+            self.pattern2 = self._create_noise()
+            self.dt -= int(self.dt)
+        return self.pattern1 * (1 - self.dt) + self.pattern2 * self.dt
+
+
 # debug
 ###############################################################################
 
 class PositionIdentify(L.Signal):
-
     """Color cycle for each of the 8 positions of a given fadecandy."""
 
     ZEROS = np.zeros((8 * 60, 3), dtype='uint8')
