@@ -20,6 +20,7 @@ html, body, #container, #left, #right {
 }
 
 #left, #right {
+  width: 50%;
   overflow: scroll;
   scrollbar-width: none;  /* FF */
 }
