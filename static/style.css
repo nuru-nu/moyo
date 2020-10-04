@@ -12,8 +12,22 @@
   margin: 0;
 }
 
+html, body, #container, #left, #right {
+  height: 100%;
+}
 #container {
   display:flex;
+}
+
+#left, #right {
+  overflow: scroll;
+  scrollbar-width: none;  /* FF */
+}
+
+#left::-webkit-scrollbar,
+#right::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
 }
 
 #right > * {
