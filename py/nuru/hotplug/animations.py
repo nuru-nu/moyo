@@ -232,6 +232,16 @@ def css_direction_speed():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
+def noise_speed_color():
+    return A.NoiseCycle(
+        hz=L.Named('arousal') | S.To(0, 3),
+    ) | C.InterpolPalette(L.Named('valence'), (
+        (0, P.black_violet),
+        #(.5, P.black_white),
+        (1, P.coolors_rainbow),
+    ))  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
+
+
 animations = dict(
     css_color_speed=css_color_speed(),
     css_direction_speed=css_direction_speed(),
@@ -241,6 +251,7 @@ animations = dict(
     heart=heart('heart'),
     identify=A.PositionIdentify(),
     off=A.Ones() | C.RGB(0, 0, 0),
+    noise_speed_color=noise_speed_color(),
 )
 
 # For convenience to pipe them through to UI, no connection to animations.
