@@ -3,7 +3,6 @@ import importlib
 import numpy as np
 
 from smanmi import colors as C, logic as L, palette as P, signals as S
-from smanmi.midi import Note
 from .. import animations as A, settings
 
 
