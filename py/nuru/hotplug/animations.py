@@ -1,3 +1,4 @@
+import glob
 import importlib
 
 import numpy as np
@@ -14,10 +15,11 @@ importlib.reload(C)
 importlib.reload(P)
 
 
-images = dict(
-    autumn_forest=np.array(PIL.Image.open(
-        'images/autumn_forest.png'))[..., :3] / 256,
-)
+images = {
+    path.split('/')[-1].split('.')[0]: np.array(PIL.Image.open(
+        path))[..., :3] / 256
+    for path in glob.glob('images/*')
+}
 
 ooo_hue = (
     S.Saw(hz=(L.Named('ooo_intensity') | S.Lin(shift=0.0025, mult=0.5)))
@@ -242,8 +244,10 @@ def noise_speed_color():
         hz=L.Named('arousal') | S.To(0, 3),
     ) | C.InterpolPalette(L.Named('valence'), (
         (0, P.brownish_palette),
-        (1, P.ultra_rainbows),
-    ))  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
+        (1, P.black_violet),
+        # (1, P.black_white),
+        # (1, P.ultra_rainbows),
+    )) | S.To(0, 0.6)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
 
 
 def autumn_forest():
@@ -252,7 +256,19 @@ def autumn_forest():
         scale=L.Named('arousal'),
         rotate=L.Named('valence') | S.To(-180, 180),
         dx=L.Named('std2_cos2') | S.To(-.01, .01),
-    )
+    ) | S.To(0, .3)
+
+def make_image(image):
+    return A.Proj(
+        image,
+        # scale=1,
+        scale=L.Named('arousal') | S.To(0.1, 1),
+        # dy=L.Named('arousal') | S.To(.5, -.5),
+        # dx=L.Named('valence') | S.To(-.5, .5),
+        # rotate=L.Named('valence') | S.To(-180, 180),
+        rotate=L.Named('t'),
+        # dx=L.Named('std2_cos2') | S.To(-.01, .01),
+    ) | S.To(0, .3)
 
 animations = dict(
     css_color_speed=css_color_speed(),
@@ -265,7 +281,11 @@ animations = dict(
     off=A.Ones() | C.RGB(0, 0, 0),
     noise_speed_color=noise_speed_color(),
     autumn_forest=autumn_forest(),
+    mandala=mandala(),
 )
+animations.update({
+    f'p_{name}': make_image(image) for name, image in images.items()
+})
 
 # For convenience to pipe them through to UI, no connection to animations.
 sounds = (
