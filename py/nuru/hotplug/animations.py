@@ -232,6 +232,7 @@ def css_direction_speed():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
+
 animations = dict(
     css_color_speed=css_color_speed(),
     css_direction_speed=css_direction_speed(),
@@ -240,6 +241,7 @@ animations = dict(
     aliasing=aliasing(),
     heart=heart('heart'),
     identify=A.PositionIdentify(),
+    off=A.Ones() | C.RGB(0, 0, 0)
 )
 
 # for convenience
