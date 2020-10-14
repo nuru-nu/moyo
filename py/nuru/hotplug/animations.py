@@ -1,9 +1,9 @@
 import importlib
 
 import numpy as np
+import PIL.Image
 
 from smanmi import colors as C, logic as L, palette as P, signals as S
-from smanmi.midi import Note
 from .. import animations as A, settings
 
 
@@ -13,6 +13,11 @@ importlib.reload(A)
 importlib.reload(C)
 importlib.reload(P)
 
+
+images = dict(
+    autumn_forest=np.array(PIL.Image.open(
+        'images/autumn_forest.png'))[..., :3] / 256,
+)
 
 ooo_hue = (
     S.Saw(hz=(L.Named('ooo_intensity') | S.Lin(shift=0.0025, mult=0.5)))
@@ -232,6 +237,22 @@ def css_direction_speed():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
+def noise_speed_color():
+    return A.NoiseCycle(
+        hz=L.Named('arousal') | S.To(0, 3),
+    ) | C.InterpolPalette(L.Named('valence'), (
+        (0, P.brownish_palette),
+        (1, P.ultra_rainbows),
+    ))  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
+
+
+def autumn_forest():
+    return A.Proj(
+        images['autumn_forest'],
+        scale=L.Named('arousal'),
+        rotate=L.Named('valence') | S.To(-180, 180),
+        dx=L.Named('std2_cos2') | S.To(-.01, .01),
+    )
 
 animations = dict(
     css_color_speed=css_color_speed(),
@@ -241,17 +262,19 @@ animations = dict(
     aliasing=aliasing(),
     heart=heart('heart'),
     identify=A.PositionIdentify(),
-    off=A.Ones() | C.RGB(0, 0, 0)
+    off=A.Ones() | C.RGB(0, 0, 0),
+    noise_speed_color=noise_speed_color(),
+    autumn_forest=autumn_forest(),
 )
 
-# for convenience
+# For convenience to pipe them through to UI, no connection to animations.
 sounds = (
-    'scene1',
-    'scene2',
-    'scene3',
-    'scene4',
-    'sirene',
-    'head',
+    'S1',
+    'S2',
+    'S3',
+    'S4',
+    'S5',
+    'S6',
     'stop',
 )
 

@@ -138,7 +138,7 @@ class Recording:
         d = max(1, n / length)
         arr = np.array([
             self.logmel[int(i): int(i + d)].mean()
-            for i in np.linspace(0, n, length, endpoint=False)
+            for i in np.linspace(0, n, int(length), endpoint=False)
         ])
         return (arr - arr.min())
 

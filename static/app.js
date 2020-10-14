@@ -24,7 +24,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   let subsample = Subsample('#subsample')
   let sonar = Sonar('#sonar')
   let kinect = Kinect('#kinect')
-  let css = Css('#kinect')
+  let css = Css('#css')
   let recorder = Recorder('#recorder', defs)
   let midi = Midi('#midi')
   Transients('#transients', {network})
