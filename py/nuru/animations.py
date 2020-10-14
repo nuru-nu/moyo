@@ -330,11 +330,109 @@ class CompWave(L.Signal):
         return 0.5 + 0.5 * np.sin(u)
 
 
+
+# noise
+###############################################################################
+
+class NoiseCycle(L.Signal):
+    """Cycles through noise patterns."""
+
+    def init(self, hz):
+        self.dt = 0
+        self.t0 = None
+        self.pattern1 = self._create_noise()
+        self.pattern2 = self._create_noise()
+
+    def _create_noise(self):
+        return np.random.uniform(size=len(phi_r_mapping))
+
+    def call(self, t):
+        if self.t0 is not None:
+            self.dt += (t - self.t0) * self.hz
+        self.t0 = t
+        if self.dt > 1:
+            self.pattern1 = self.pattern2
+            self.pattern2 = self._create_noise()
+            self.dt -= int(self.dt)
+        return self.pattern1 * (1 - self.dt) + self.pattern2 * self.dt
+
+
+# image
+###############################################################################
+
+class Proj(L.Signal):
+    """Projects xyz onto 2D image, then applies linear transforms."""
+    
+    def init(self, image, scale=1, rotate=0, dx=0, dy=0):
+        """Applies in order : scale -> rotate (deg) -> translate."""
+        h, w, _ = self.h, self.w, _ = image.shape
+        xmin, _, zmin = xyz_mapping.min(axis=0)
+        xmax, _, zmax = xyz_mapping.max(axis=0)
+
+        # Center to center, scale to fit.
+        fx =  (w/2 -1) / max(abs(xmin), abs(xmax))
+        fy = -(h/2 -1) / max(abs(zmin), abs(zmax))
+        proj = np.array([
+            [fx, 0, 0, w/2],
+            [0, 0, fy, h/2],
+            [0, 0, 0, 1],
+        ])
+        xyz1 = np.hstack([xyz_mapping, np.ones((len(xyz_mapping), 1))])
+        self.xy1 = xyz1 @ proj.T
+
+    def scaleT(self):
+        return np.array([
+            [self.scale, 0, (self.w - self.w*self.scale)/2],
+            [0, self.scale, (self.h - self.h*self.scale)/2],
+            [0, 0, 1],
+        ]).T
+
+    def translateT(self, dx=None, dy=None):
+        """Note : dx points rightwards, dy upwards (mathematical convention)."""
+        if dx is None: dx = self.dx
+        if dy is None: dy = self.dy
+        return np.array([
+            [1, 0,  dx * self.w],
+            [0, 1, -dy * self.h],
+            [0, 0, 1],
+        ]).T
+
+    def rotateT(self):
+        # Remember : translateT(-.5, .5) moves center to origin (y "inverted").
+        phi = self.rotate / 180 * np.pi
+        return self.translateT(-.5, .5) @ np.array([
+            [np.cos(phi), -np.sin(phi), 0],
+            [np.sin(phi),  np.cos(phi), 0],
+            [0, 0, 1],
+        ]).T @ self.translateT(.5, -.5)
+
+    def xy(self):
+        xy1 = self.xy1 @ self.scaleT() @ self.rotateT() @ self.translateT()
+        return xy1[:, :2]
+
+    def debug(self, k=10):
+        # Inpaint it black.
+        image = np.array(self.image)
+        for x, y in self.xy():
+            x, y = int(x), int(y)
+            if 0 <= x <= self.w - 1 and 0 <= y <= self.h - 1:
+                image[y:y+k, x:x+k, :] = 0
+        return image
+
+    def call(self):
+        xy = self.xy()
+        x = np.clip(xy[:, 0], 0, self.w - 1)
+        y = np.clip(xy[:, 1], 0, self.h - 1)
+        pixels = self.image[y.astype(int), x.astype(int)]
+        if pixels.max() > 1:
+            raise AssertionError('Make sure `image` has normalized RGB!')
+        return pixels
+
+
 # debug
 ###############################################################################
 
 class PositionIdentify(L.Signal):
-
     """Color cycle for each of the 8 positions of a given fadecandy."""
 
     ZEROS = np.zeros((8 * 60, 3), dtype='uint8')

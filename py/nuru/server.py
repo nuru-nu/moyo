@@ -86,7 +86,7 @@ class Animator:
                 ok &= client.put_pixels(fc_data[i0: i0 + 512], channel + 1)
                 if ok and self.stats:
                     self.stats('fc_animation', fc_data)
-        return data.tostring()
+        return data.tobytes()
 
 
 recordings = {

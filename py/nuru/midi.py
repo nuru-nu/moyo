@@ -1,5 +1,6 @@
 import argparse
 
+from smanmi import hotplug
 from smanmi import midi
 from smanmi import util
 
@@ -12,43 +13,22 @@ parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
 args = parser.parse_args()
 logger = util.createLogger('midi')
 
-
-def onoff(note, port=0):
-    return (
-        midi.Command.parse(f'{port}: {note} on'),
-        midi.Command.parse(f'{port}: {note} off'),
-    )
+hp_midi = hotplug.HotPlug('.hotplug.midi', logger)
 
 
 def signal2midi(data, logger):
     action = data.get('action')
-    if action and action.startswith('sound='):
-        sound = action.split('=')[1]
-        if sound == 'scene1':
-            return onoff('C2')
-        elif sound == 'scene2':
-            return onoff('D2')
-        elif sound == 'scene3':
-            return onoff('E2')
-        elif sound == 'scene4':
-            return onoff('F2')
-        elif sound == 'sirene':
-            return onoff('G2')
-        elif sound == 'head':
-            return onoff('A2')
-        elif sound == 'stop':
-            return onoff('B2')
-        else:
-            logger.warning('Unknown sound: %s', sound)
-    return ()
+    if not action or not action.startswith('sound='):
+        return ()
+    sound = action.split('=')[1]
+    notes = hp_midi.signal2midi(sound)
+    if not notes:
+        logger.info('Cannot translate sound: %s', sound)
+    return notes
 
 
 def midi2signal(command, logger):
-    for cmd in ('on', 'off'):
-        for note in ('C', 'E', 'G#', 'C'):
-            if command == midi.Command.parse(f'2: {note}1 {cmd}'):
-                return (dict(event=f'heart {cmd}'),)
-    return ()
+    return hp_midi.midi2signal(command)
 
 
 cmd_address = args.integrator_address

@@ -3,7 +3,6 @@ import importlib
 import operator
 
 from smanmi import effects as E, midi, logic as L, signals as S
-from smanmi.midi import Note
 
 from .. import settings
 from .. import state
@@ -137,10 +136,6 @@ actions = dict(
     into=Into(),
 )
 
-test = dict(
-    hearton=S.MidiSwitch(Note(0, 'B', 2)),
-)
-
 animation = dict(
     heart=S.TransientPulse('event', 'heart') | S.Lin(-5, 10) | S.Int(),
     heart_a=(
@@ -160,7 +155,7 @@ numbers = dict(
 
 audio_runner = make_runner(audio)
 integrator_runner = make_runner(
-    generated, states, ooo, actions, test, animation, numbers, kinect,
+    generated, states, ooo, actions, animation, numbers, kinect,
 )
 
 defaults = dict(
@@ -189,8 +184,8 @@ monitor_def = dict(
         generated=generated.keys(),
         animation=animation.keys(),
         actions=actions.keys(),
-        test=test.keys(),
     ),
+    selected=['heart', 'sonar'],
     features=dict(
         numbers=numbers.keys(),
     ),
