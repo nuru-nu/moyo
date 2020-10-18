@@ -20,7 +20,7 @@ New improved mapping with both 16x `SphereStripe` (=16x 60 RGB LEDs) and 6x
   surface from a single camera point
 """
 
-from typing import Dict, Sequence
+from typing import Dict, Mapping, Sequence
 
 import numpy as np  # type: ignore
 
@@ -96,7 +96,7 @@ def generate_arm_configs(arm_configs, r=lambda x: 1 + (x - 1) * 2, dphi=3):
 
 def generate_xyz_mapping(
         kinect_mapping: Sequence[Dict[str, str]],
-        arm_mapping: Dict[str, Sequence[settings.FcPos]],
+        arm_mapping: Mapping[str, Sequence[settings.FcPos]],
         sphere_rotate: int = 0):
     """Generates xyz_mapping.
 
