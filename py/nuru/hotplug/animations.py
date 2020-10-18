@@ -281,7 +281,6 @@ animations = dict(
     off=A.Ones() | C.RGB(0, 0, 0),
     noise_speed_color=noise_speed_color(),
     autumn_forest=autumn_forest(),
-    mandala=mandala(),
 )
 animations.update({
     f'p_{name}': make_image(image) for name, image in images.items()
