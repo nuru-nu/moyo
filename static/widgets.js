@@ -15,7 +15,7 @@ export const Sonar = (output) => {
     disp.sonar.style.display = override ? 'block' : 'none'
     update()
   })
-  disp.sonar.addEventListener('change', update)
+  disp.sonar.addEventListener('input', update)
 
   let sender
   function update() {

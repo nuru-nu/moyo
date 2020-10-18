@@ -131,6 +131,12 @@ export const Kinect = (output) => {
   })
 
   let sender
+  disp.presence.addEventListener('input', e => {
+      sender({
+        presence: parseFloat(disp.presence.value),
+      })
+  })
+
   function grid() {
     ctx.lineWidth = 2
     ctx.strokeStyle = '#444'
@@ -162,7 +168,6 @@ export const Kinect = (output) => {
       simulating.tick()
       sender({
         people: simulating.people(),
-        presence: parseFloat(disp.presence.value),
       }, 'silent')
     }
     ctx.clearRect(0, 0, width, height)
