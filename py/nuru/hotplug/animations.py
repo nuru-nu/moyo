@@ -96,9 +96,6 @@ def std3():
 #     ) | S.Lin(mult=0.2)
 
 
-def identify():
-    return A.PositionIdentify()
-
 def test():
     return (
         L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
@@ -176,14 +173,14 @@ def laser_spiral(palette, dt):
     )
 
 
-def laser_spirals():
+def laser():
     return (
         laser_spiral(P.peak_blue, 0)
         + laser_spiral(P.peak_green, 0.5)
     )
 
 
-def css_spiral_speed():
+def spiral():
     return (
         (
             A.Spiral(
@@ -206,7 +203,6 @@ states = dict(
     std2_bw=std2_bw(),
     phi_red=phi_red(),
     std3=std3(),
-    identify=identify(),
     test=test(),
     test2=test2(),
     frozen=frozen(),
@@ -216,7 +212,7 @@ states = dict(
 )
 
 
-def css_color_speed():
+def cwave():
     return (
         L.Named('std2') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
         | C.InterpolPalette(L.Named('valence'), (
@@ -227,7 +223,7 @@ def css_color_speed():
     )
 
 
-def css_direction_speed():
+def stripes():
     return (
         (
             A.PhiRXY(dg=L.Named('valence') | S.Lin(0, 90))
@@ -239,7 +235,7 @@ def css_direction_speed():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
-def noise_speed_color():
+def noise():
     return A.NoiseCycle(
         hz=L.Named('arousal') | S.To(0, 3),
     ) | C.InterpolPalette(L.Named('valence'), (
@@ -250,7 +246,7 @@ def noise_speed_color():
     )) | S.To(0, 0.6)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
 
 
-def autumn_forest():
+def img():
     return A.Proj(
         images['autumn_forest'],
         scale=L.Named('arousal'),
@@ -271,16 +267,16 @@ def make_image(image):
     ) | S.To(0, .3)
 
 animations = dict(
-    css_color_speed=css_color_speed(),
-    css_direction_speed=css_direction_speed(),
-    css_spiral_speed=css_spiral_speed(),
-    laser_spirals=laser_spirals(),
+    off=A.Ones() | C.RGB(0, 0, 0),
+    ident=A.PositionIdentify(),
+    cwave=cwave(),
+    stripes=stripes(),
+    spiral=spiral(),
+    laser=laser(),
     aliasing=aliasing(),
     heart=heart('heart'),
-    identify=A.PositionIdentify(),
-    off=A.Ones() | C.RGB(0, 0, 0),
-    noise_speed_color=noise_speed_color(),
-    autumn_forest=autumn_forest(),
+    noise=noise(),
+    img=img(),
 )
 animations.update({
     f'p_{name}': make_image(image) for name, image in images.items()
