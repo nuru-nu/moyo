@@ -44,8 +44,30 @@ state_palette = S.Apply(C.StatePalette(
         earth_life=P.earth_life,
     )))
 
+animations = dict()
 
-def std():
+
+def anim(func):
+    animations[func.__name__] = func()
+
+
+@anim
+def off():
+    return A.Ones() | C.RGB(0, 0, 0)
+
+
+@anim
+def ident():
+    return A.PositionIdentify()
+
+
+@anim
+def frozen():
+    return A.Ones() | C.RGB(0, .1, 0)
+
+
+@anim
+def drone():
     return A.add([
         A.GaussianDroplet(
             sigma=(
@@ -59,59 +81,28 @@ def std():
     ])
 
 
-def std2():
+@anim
+def into():
     return (
         A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
         | state_palette | S.Lin(mult=0.2)
     )
 
-def phi_red():
+
+@anim
+def wheel():
     return (
         A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
         | C.Palette(P.super_red) | S.Lin(mult=0.2)
     )
 
-def std2_bw():
-    return (
-        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
-        | C.Palette(P.black_white) | S.Lin(mult=0.2)
-    )
 
-
-
-def std3():
-    return (
-        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
-        | C.Palette(P.coolors_rainbow) | S.Lin(mult=0.2)
-    )
-
-
-# def std3():
-#     colors = get_state_colors(C.StatePalette)
-#     return A.PhiPalette(
-#         shift=L.Named('std2'),
-#         mult=1,
-#         # mult=S.Sin(hz=.1) | S.Lin(shift=0.75, mult=0.25),
-#         palette=colors
-#     ) | S.Lin(mult=0.2)
-
-
-def test():
-    return (
-        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
-        | C.Palette(P.quite_bright) | S.Lin(mult=0.5)
-    )
-
-def test2():
-    return (
-        L.Named('std2_cos2') | A.CompWave(1.8, 2.5)
-        | C.Palette(P.gabe_red) | S.Lin(mult=0.5)
-    )
-    # return A.CalibrationPattern()
+@anim
+def songrad():
     # Just for fun : set 3D gradient with sonar sensor...
     return A.Dist3D() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=1 / 5),
-    ) | C.Palette(P.blue_purple)
+    ) | C.Palette(P.coolors_rainbow)
 
 
 heart_palette = P.parse_colors_hex([
@@ -121,16 +112,14 @@ heart_palette = P.parse_colors_hex([
 ])
 
 
-def heart(name):
+@anim
+def heart():
     return (
         A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.2)
         | S.Lin(0, L.Named('heart'))
         | C.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
 
-
-def frozen():
-    return A.Ones() | C.RGB(0, .1, 0)
 
 
 def into():
@@ -173,6 +162,7 @@ def laser_spiral(palette, dt):
     )
 
 
+@anim
 def laser():
     return (
         laser_spiral(P.peak_blue, 0)
@@ -180,6 +170,7 @@ def laser():
     )
 
 
+@anim
 def spiral():
     return (
         (
@@ -192,26 +183,13 @@ def spiral():
     )
 
 
+@anim
 def aliasing():
     return A.Aliasing(
     ) | S.Mod(1) | C.Palette(P.peak_blue)
 
 
-states = dict(
-    std=std(),
-    std2=std2(),
-    std2_bw=std2_bw(),
-    phi_red=phi_red(),
-    std3=std3(),
-    test=test(),
-    test2=test2(),
-    frozen=frozen(),
-    into=into(),
-    ooo=ooo(),
-    flash=flash(),
-)
-
-
+@anim
 def cwave():
     return (
         L.Named('std2') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
@@ -223,6 +201,7 @@ def cwave():
     )
 
 
+@anim
 def stripes():
     return (
         (
@@ -235,6 +214,7 @@ def stripes():
     ) | S.Mod(1) | C.Palette(P.funny_rainbow)
 
 
+@anim
 def noise():
     return A.NoiseCycle(
         hz=L.Named('arousal') | S.To(0, 3),
@@ -246,6 +226,7 @@ def noise():
     )) | S.To(0, 0.6)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
 
 
+@anim
 def img():
     return A.Proj(
         images['autumn_forest'],
@@ -253,6 +234,7 @@ def img():
         rotate=L.Named('valence') | S.To(-180, 180),
         dx=L.Named('std2_cos2') | S.To(-.01, .01),
     ) | S.To(0, .3)
+
 
 def make_image(image):
     return A.Proj(
@@ -266,20 +248,10 @@ def make_image(image):
         # dx=L.Named('std2_cos2') | S.To(-.01, .01),
     ) | S.To(0, .3)
 
-animations = dict(
-    off=A.Ones() | C.RGB(0, 0, 0),
-    ident=A.PositionIdentify(),
-    cwave=cwave(),
-    stripes=stripes(),
-    spiral=spiral(),
-    laser=laser(),
-    aliasing=aliasing(),
-    heart=heart('heart'),
-    noise=noise(),
-    img=img(),
-)
+
 animations.update({
     f'p_{name}': make_image(image) for name, image in images.items()
 })
+
 
 pixels = A.ActionMixer(animations)

@@ -203,11 +203,8 @@ export const Subsample = output => {
   }
 }
 
-export const Cmd = (output, {network, defs}) => {
+export const Cmd = (output, {network}) => {
   const cont = h.div().into(output).el
-  let {colors, states} = defs
-  colors.unshift('')
-  states.unshift('')
   const fcs = [0, 1, 2, 3]
   let fc = -1
   let disp = h.div('cont', {class: 'flex widget'}).of(
