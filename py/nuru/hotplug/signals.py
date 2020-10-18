@@ -116,7 +116,7 @@ states = dict(
     arousal=L.Named('css') | S.ElementAt(1) | S.Lin(0.5, 0.5),
     state=state.Rizhom(),
     animation=S.ActionLatch('animation=(.*)'),
-    scene=S.ActionLatch('sound=(scene.*)'),
+    scene=S.ActionLatch('sound=scene=(.*)'),
 )
 
 ooo = dict(
