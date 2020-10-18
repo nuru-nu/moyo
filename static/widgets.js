@@ -239,14 +239,14 @@ export const Midi = (output) => {
     'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
   ]
   const re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
-  const ports = new Map()
+  const channels = new Map()
   const keys = new Map()
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('midi'),
     ui.v(
       ui.h(
-        'port ',
-        ui.choice('port', {values: ['0', '1', '2']}),
+        'channel ',
+        ui.choice('channel', {values: ['1', '2', '3', '4']}),
         'octave ',
         ui.choice('octave', {values: ['0', '1', '2', '3', '4'], initial: '2'}),
       ),
@@ -255,18 +255,18 @@ export const Midi = (output) => {
     ),
   ).into(output).els
 
-  let port, octave
-  disp.port.change(value => port = value)
+  let channel, octave
+  disp.channel.change(value => channel = value)
   disp.octave.change(value => octave = value)
 
   notes.forEach(note => {
     disp[note].addEventListener('mousedown', function() {
       this.classList.add('on')
-      sender({midi: `${port}: ${note}${octave} on`})
+      sender({midi: `${channel}: ${note}${octave} on`})
     })
     disp[note].addEventListener('mouseup', function() {
       this.classList.remove('on')
-      sender({midi: `${port}: ${note}${octave} off`})
+      sender({midi: `${channel}: ${note}${octave} off`})
     })
   })
 
@@ -290,20 +290,20 @@ export const Midi = (output) => {
       console.warn('Could not parse signals.midi', signals.midi)
       return
     }
-    let [_, port, letter, octave, command] = m
-    if (!ports.has(port)) {
-      ports.set(port, ui.h(
-        `${port}:`,
+    let [_, channel, letter, octave, command] = m
+    if (!channels.has(channel)) {
+      channels.set(channel, ui.h(
+        `${channel}:`,
         h.div('cont'),
       ).into(disp.cont).els.cont)
     }
-    const key = `${port}:${letter}${octave}`
+    const key = `${channel}:${letter}${octave}`
     if (!keys.has(key)) {
       keys.set(
         key, h.span('.key').of(
           `${letter}${octave}`,
-        ).into(ports.get(port)).el)
-      sort(ports.get(port))
+        ).into(channels.get(channel)).el)
+      sort(channels.get(channel))
     }
     if (command === 'on') {
       keys.get(key).classList.add('on')
