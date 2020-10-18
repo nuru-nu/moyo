@@ -46,7 +46,8 @@ class State:
 class Css(L.Signal):
     """Continuous State Space."""
 
-    def init(self, alpha: float = 10, beta: float = 200):
+    def init(self, alpha=10, beta=200):
+        """Time constants for target (alpha) and zero (beta)."""
         self.valence = self.arousal = 0.5
 
     def call(self, target_css):

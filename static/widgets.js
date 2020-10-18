@@ -331,6 +331,7 @@ export const Css = (output) => {
       h.div().of(
         ui.toggle('show', true),
         h.button('clear').of('clear'),
+        h.input('alpha', {type: 'range', min: 5, max: 100, value: 10}),
       ),
       h.canvas('xy .css', {width, height}),
     ),
@@ -341,6 +342,9 @@ export const Css = (output) => {
     disp.xy.classList[value ? 'remove' : 'add']('h')
   })
   disp.clear.addEventListener('click', () => update(null))
+  disp.alpha.addEventListener('input', e => {
+    if (sender) sender({css_alpha: parseFloat(e.target.value)})
+  })
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
