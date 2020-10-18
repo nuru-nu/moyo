@@ -111,7 +111,7 @@ generated = dict(
 )
 
 states = dict(
-    css=state.Css(),
+    css=state.Css(alpha=L.Named('css_alpha')),
     valence=L.Named('css') | S.ElementAt(0) | S.Lin(0.5, 0.5),
     arousal=L.Named('css') | S.ElementAt(1) | S.Lin(0.5, 0.5),
     state=state.Rizhom(),
@@ -168,6 +168,7 @@ defaults = dict(
     target_css=None,
     fc=0,
     people=[],
+    css_alpha=10,
 )
 
 transients = ('action', 'midi', 'signal')
