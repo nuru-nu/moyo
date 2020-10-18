@@ -286,15 +286,4 @@ animations.update({
     f'p_{name}': make_image(image) for name, image in images.items()
 })
 
-# For convenience to pipe them through to UI, no connection to animations.
-sounds = (
-    'S1',
-    'S2',
-    'S3',
-    'S4',
-    'S5',
-    'S6',
-    'stop',
-)
-
 pixels = A.ActionMixer(animations)

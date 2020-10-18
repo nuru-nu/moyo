@@ -11,19 +11,19 @@ def onoff(note: str, channel: int = 1) -> Sequence[midi.Command]:
 
 
 def signal2midi(sound: str) -> Sequence[midi.Command]:
-    if sound == 'S1':
+    if sound == 'scene=S1':
         return onoff('C2')
-    elif sound == 'S2':
+    elif sound == 'scene=S2':
         return onoff('C#2')
-    elif sound == 'S3':
+    elif sound == 'scene=S3':
         return onoff('D2')
-    elif sound == 'S4':
+    elif sound == 'scene=S4':
         return onoff('D#2')
-    elif sound == 'S5':
+    elif sound == 'scene=S5':
         return onoff('E2')
-    elif sound == 'S6':
+    elif sound == 'scene=S6':
         return onoff('F2')
-    elif sound == 'stop':
+    elif sound == 'scene=stop':
         return onoff('B2')
     return ()
 
@@ -35,3 +35,14 @@ def midi2signal(command: str) -> Sequence[Dict[str, str]]:
             if command == midi.Command(f'2: {note}1 {cmd}'):
                 return (dict(event=f'heart {cmd}'),)
     return ()
+
+
+scenes = (
+    'S1',
+    'S2',
+    'S3',
+    'S4',
+    'S5',
+    'S6',
+    'stop',
+)

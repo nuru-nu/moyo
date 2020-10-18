@@ -436,13 +436,12 @@ export const Sound = (output, {network, defs}) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('sound'),
     ui.hw(
-      defs.sounds.map(a => h.button(a).of(a))
+      defs.scenes.map(s => h.button(s).of(s))
     )
   ).into(output).els
-  let sender = null
-  defs.sounds.forEach(a => {
-    disp[a].addEventListener('click', () => {
-      network.sender({action: `sound=${a}`})
+  defs.scenes.forEach(s => {
+    disp[s].addEventListener('click', () => {
+      network.sender({action: `sound=scene=${s}`})
     })
   })
   network.listenJson('signals', data => {

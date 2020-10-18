@@ -41,6 +41,8 @@ class Animator:
         self.logger = logger
         self.hp_animations = hotplug.HotPlug(
             '.hotplug.animations', logger, autoreload=False)
+        self.hp_midi = hotplug.HotPlug(
+            '.hotplug.midi', logger, autoreload=False)
         self.signals = None
         self.stats = None
         self.subsample = 1
@@ -111,7 +113,7 @@ async def send_defs(request):
             states=list(animator.hp_animations.states.keys()),
             recordings=recordings,
             animations=list(animator.hp_animations.animations.keys()),
-            sounds=animator.hp_animations.sounds,
+            scenes=animator.hp_midi.scenes,
             monitor_def=hp_signals.monitor_def,
         ))))
 
