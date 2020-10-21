@@ -27,7 +27,7 @@ tmux send-keys './run nuru.integrator' $CM
 ## column 2
 tmux selectp -R
 # row 1
-tmux send-keys "./run nuru.server --server_address=${SERVER}" --fadecandy $CM
+tmux send-keys "./run nuru.server --server_address=${SERVER} --fadecandy" $CM
 # row 2
 tmux splitw -p 75
 tmux send-keys '(cd fadecandy; sudo ./fcserver config.json)' $CM
