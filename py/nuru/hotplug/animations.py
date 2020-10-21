@@ -52,7 +52,16 @@ def anim(func):
 
 
 @anim
+def fotos():
+    return (
+        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
+        | C.AllPalettes(L.Named('valence')) | S.Lin(mult=L.Named('arousal'))
+    )
+
+
+@anim
 def off():
+    # TODO this (and others) return wrong shape !
     return A.Ones() | C.RGB(0, 0, 0)
 
 
