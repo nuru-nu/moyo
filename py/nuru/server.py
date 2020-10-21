@@ -72,6 +72,7 @@ class Animator:
             return
         try:
             data = self.hp_animations.pixels(**self.signals)
+            assert data.shape == (1920, 3), f'Invalid shape: {data.shape}'
         except Exception as e:
             self.faulty_mtime = self.hp_animations._reload_mtime
             self.logger.error('Animator() ERROR: %r', e)
