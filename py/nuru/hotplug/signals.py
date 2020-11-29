@@ -169,11 +169,15 @@ defaults = dict(
     fc=0,
     people=[],
     css_alpha=10,
+    palette='gabe_red',
+    image='w',
+    v0=0, v1=0, v2=0,
 )
 
 transients = ('action', 'midi', 'signal')
-hidden = ('people', 'target_css')
+hidden = ('people', 'target_css', 'css_alpha')
 special = ('logmel', 'mfccs', 't')
+vars_ = ('image', 'palette', 'v0', 'v1', 'v2')
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
 monitor_def = dict(
@@ -190,5 +194,5 @@ monitor_def = dict(
     features=dict(
         numbers=numbers.keys(),
     ),
-    hidden=cc(states, transients, hidden, special),
+    hidden=cc(states, transients, hidden, special, vars_),
 )

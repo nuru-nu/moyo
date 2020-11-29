@@ -21,28 +21,19 @@ images = {
     for path in glob.glob('images/*')
 }
 
+palettes = {
+    name: value
+    for name, value in P.__dict__.items()
+    if P.is_palette(value) and not name.startswith('_')
+}
+
 ooo_hue = (
     S.Saw(hz=(L.Named('ooo_intensity') | S.Lin(shift=0.0025, mult=0.5)))
     | S.Tocos() | S.Lin(shift=0.25, mult=0.5)
 )
 
-
-state_palette = S.Apply(C.StatePalette(
-    P.brownish_palette,
-    dict(
-        brownish_palette=P.brownish_palette,
-        coolors_rainbow=P.coolors_rainbow,
-        just_greens=P.just_greens,
-        blue_purple=P.blue_purple,
-        funny_rainbow=P.funny_rainbow,
-        # barbie=P.barbie,
-        # purple_haze=P.purple_haze,
-        red_death=P.red_death,
-        gabe_red=P.gabe_red,
-        super_red=P.super_red,
-        ultra_rainbows=P.ultra_rainbows,
-        earth_life=P.earth_life,
-    )))
+state_palette = S.Apply(P.StatePalette(P.brownish, palettes))
+palette = S.Apply(P.NamedPalette(L.Named('palette')))
 
 animations = dict()
 
@@ -52,10 +43,13 @@ def anim(func):
 
 
 @anim
-def fotos():
+def R():
     return (
         A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
-        | C.AllPalettes(L.Named('valence')) | S.Lin(mult=L.Named('arousal'))
+        # | P.AllPalettes(L.Named('valence'))
+        # | P.Palette(P.gabe_red)
+        | palette
+        | S.Lin(mult=L.Named('arousal'))
     )
 
 
@@ -84,7 +78,7 @@ def drone():
             ),
             phi=phi,
             r=1,
-        ) | C.Palette(P.black_violet)
+        ) | P.Palette(P.black_violet)
         for i, phi in enumerate((np.pi / 2, 3 * np.pi / 2))
     ])
 
@@ -101,7 +95,7 @@ def into():
 def wheel():
     return (
         A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
-        | C.Palette(P.super_red) | S.Lin(mult=0.2)
+        | P.Palette(P.super_red) | S.Lin(mult=0.2)
     )
 
 
@@ -110,7 +104,7 @@ def songrad():
     # Just for fun : set 3D gradient with sonar sensor...
     return A.Dist3D() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=1 / 5),
-    ) | C.Palette(P.coolors_rainbow)
+    ) | P.Palette(P.coolors_rainbow)
 
 
 heart_palette = P.parse_colors_hex([
@@ -125,7 +119,7 @@ def heart():
     return (
         A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.2)
         | S.Lin(0, L.Named('heart'))
-        | C.Palette(heart_palette)
+        | P.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
 
 
@@ -166,7 +160,7 @@ def laser_spiral(palette, dt):
                 # speed=L.Named('arousal') | S.Lin(mult=8)
             )
             + L.Named('saw_a') + L.Constant(dt)
-        ) | S.Mod(1) | C.Palette(palette)
+        ) | S.Mod(1) | P.Palette(palette)
     )
 
 
@@ -187,21 +181,21 @@ def spiral():
                 n=4,
             )
             + (L.Named('saw_a') | S.Lin(0, 2))
-        ) | S.Mod(1) | C.Palette(P.peak_green)
+        ) | S.Mod(1) | P.Palette(P.peak_green)
     )
 
 
 @anim
 def aliasing():
     return A.Aliasing(
-    ) | S.Mod(1) | C.Palette(P.peak_blue)
+    ) | S.Mod(1) | P.Palette(P.peak_blue)
 
 
 @anim
 def cwave():
     return (
         L.Named('std2') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
-        | C.InterpolPalette(L.Named('valence'), (
+        | P.InterpolPalette(L.Named('valence'), (
             (0, P.black_violet),
             #(.5, P.black_white),
             (1, P.coolors_rainbow),
@@ -219,15 +213,15 @@ def stripes():
         ) + (
             L.Named('saw_a') | S.Lin(0, 2)
         )
-    ) | S.Mod(1) | C.Palette(P.funny_rainbow)
+    ) | S.Mod(1) | P.Palette(P.funny_rainbow)
 
 
 @anim
 def noise():
     return A.NoiseCycle(
         hz=L.Named('arousal') | S.To(0, 3),
-    ) | C.InterpolPalette(L.Named('valence'), (
-        (0, P.brownish_palette),
+    ) | P.InterpolPalette(L.Named('valence'), (
+        (0, P.brownish),
         (1, P.black_violet),
         # (1, P.black_white),
         # (1, P.ultra_rainbows),
@@ -237,10 +231,10 @@ def noise():
 @anim
 def img():
     return A.Proj(
-        images['autumn_forest'],
-        scale=L.Named('arousal'),
-        rotate=L.Named('valence') | S.To(-180, 180),
-        dx=L.Named('std2_cos2') | S.To(-.01, .01),
+        S.Dict(L.Named('image'), images),
+        scale=L.Named('v0'),
+        rotate=L.Named('v1') | S.To(-180, 180),
+        dx=L.Named('v2') | S.To(-.01, .01),
     ) | S.To(0, .3)
 
 
@@ -257,9 +251,9 @@ def make_image(image):
     ) | S.To(0, .3)
 
 
-animations.update({
-    f'p_{name}': make_image(image) for name, image in images.items()
-})
+# animations.update({
+#     f'p_{name}': make_image(image) for name, image in images.items()
+# })
 
 
 pixels = A.ActionMixer(animations)
