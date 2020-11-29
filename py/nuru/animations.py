@@ -375,7 +375,12 @@ class Proj(L.Signal):
     
     def init(self, image, scale=1, rotate=0, dx=0, dy=0):
         """Applies in order : scale -> rotate (deg) -> translate."""
-        h, w, _ = self.h, self.w, _ = image.shape
+        self.current = None
+
+    def _init(self):
+        if self.image is self.current:
+            return
+        h, w, _ = self.h, self.w, _ = self.image.shape
         xmin, _, zmin = xyz_mapping.min(axis=0)
         xmax, _, zmax = xyz_mapping.max(axis=0)
 
@@ -389,6 +394,7 @@ class Proj(L.Signal):
         ])
         xyz1 = np.hstack([xyz_mapping, np.ones((len(xyz_mapping), 1))])
         self.xy1 = xyz1 @ proj.T
+        self.current = self.image
 
     def scaleT(self):
         return np.array([
@@ -430,6 +436,7 @@ class Proj(L.Signal):
         return image
 
     def call(self):
+        self._init()
         xy = self.xy()
         x = np.clip(xy[:, 0], 0, self.w - 1)
         y = np.clip(xy[:, 1], 0, self.h - 1)
