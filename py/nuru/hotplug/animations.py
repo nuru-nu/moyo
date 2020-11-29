@@ -61,8 +61,7 @@ def fotos():
 
 @anim
 def off():
-    # TODO this (and others) return wrong shape !
-    return A.Ones() | C.RGB(0, 0, 0)
+    return A.FullOn(C.RGB(0, 0, 0))
 
 
 @anim
@@ -72,7 +71,7 @@ def ident():
 
 @anim
 def frozen():
-    return A.Ones() | C.RGB(0, .1, 0)
+    return A.FullOn(C.RGB(0, .15, 0))
 
 
 @anim

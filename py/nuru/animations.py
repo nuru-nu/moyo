@@ -137,6 +137,16 @@ class Ones(L.Signal):
         return self.value
 
 
+class FullOn(L.Signal):
+    """Single color for all pixels."""
+
+    def init(self, color):
+        self.ones = np.ones([len(phi_r_mapping)], float)[:, None]
+
+    def call(self):
+        return self.color[None] * self.ones
+
+
 class RPalette(L.Signal):
     """Computes palette along r."""
 
