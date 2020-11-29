@@ -1,4 +1,5 @@
 import { h, ui, colors } from './smanmi/util.js'
+import { Uint8Attribute } from './threejs/three.module.js'
 
 export const Sonar = (output) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -253,8 +254,8 @@ export const Midi = (output) => {
   ).into(output).els
 
   let channel, octave
-  disp.channel.change(value => channel = value)
-  disp.octave.change(value => octave = value)
+  disp.channel.change(value => channel = value).init()
+  disp.octave.change(value => octave = value).init()
 
   notes.forEach(note => {
     disp[note].addEventListener('mousedown', function() {
@@ -340,7 +341,7 @@ export const Css = (output) => {
 
   disp.show.change(value => {
     disp.xy.classList[value ? 'remove' : 'add']('h')
-  })
+  }).init()
   disp.clear.addEventListener('click', () => update(null))
   disp.alpha.addEventListener('input', e => {
     if (sender) sender({css_alpha: parseFloat(e.target.value)})
@@ -429,6 +430,44 @@ export const Animation = (output, {network, defs}) => {
       disp[a].classList.add('on')
       current = a
     }
+  })
+}
+
+export const Vars = (output, {network, defs}) => {
+  const uninitialized = new Set()
+  function dropdown(name, values) {
+    uninitialized.add(name)
+    const dropdown = ui.dropdown(name, {values})
+    dropdown.change(value => {
+      network.sender({[name]: value})
+    })
+    return dropdown
+  }
+  function range(name) {
+    uninitialized.add(name)
+    const range = ui.range(name).change(value => {
+      network.sender({[name]: parseFloat(value)})
+    })
+    return h.div().of(name, range)
+  }
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('vars'),
+    ui.hw(
+      dropdown('palette', defs.palettes),
+      dropdown('image', defs.images),
+      range('v0'), range('v1'), range('v2')
+    ),
+  ).into(output).els
+  function send(name) {
+    return value => network.sender({name: value})
+  }
+  network.listenJson('signals', data => {
+    uninitialized.forEach(name => {
+      if (data.hasOwnProperty(name)) {
+        disp[name].value = data[name]
+        uninitialized.delete(name)
+      }
+    })
   })
 }
 

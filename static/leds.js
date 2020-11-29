@@ -55,14 +55,14 @@ export const Leds = (output, defs, opts) => {
       disp.rphi.style.display = 'none'
       scene.start()
     }
-  })
+  }).init()
   disp.size.change(value => {
     width = sizes[value].width
     height = sizes[value].height
     scene.size(width, height)
     disp.rphi.setAttribute('width', width)
     disp.rphi.setAttribute('height', height)
-  })
+  }).init()
 
   disp.fps.change(fps => scene.fps(parseFloat(fps)))
   disp.wireframe.change(nuru.wireframe)
