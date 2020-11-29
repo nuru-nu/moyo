@@ -48,6 +48,7 @@ class Animator:
         self.subsample = 1
         self.i = 0
         self.faulty_mtime = None
+        self.faulty_animation = None
 
     def received_from_udp(self, data):
         self.signals = util.deserialize(data)
@@ -67,7 +68,8 @@ class Animator:
             return
 
         self.hp_animations.hotplug_reload()
-        if self.faulty_mtime == self.hp_animations._reload_mtime:
+        if (self.faulty_mtime == self.hp_animations._reload_mtime and
+            self.faulty_animation == self.signals.get('animation')):
             # Don't generate an exception every frame - wait for next reload.
             return
         try:
@@ -75,6 +77,7 @@ class Animator:
             assert data.shape == (1920, 3), f'Invalid shape: {data.shape}'
         except Exception as e:
             self.faulty_mtime = self.hp_animations._reload_mtime
+            self.faulty_animation = self.signals.get('animation')
             self.logger.error('Animator() ERROR: %r', e)
             self.logger.warning(traceback.format_exc())
             self.logger.info('Waiting for next `hp_animations` reload.')
