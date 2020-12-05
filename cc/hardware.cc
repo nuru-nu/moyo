@@ -34,6 +34,7 @@ Hardware::Hardware(void) {
   }
   
   std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
+  printf("Found trafo %s \n", default_trafo_path);
   if (load_extrinsic_matrix(default_trafo_path) < 0){
       printf("Couldnt find trafo at default path %s \n", default_trafo_path);
       printf("Needs to be explicitly defined with load_extrinsic_matrix(std::string path)\n");
@@ -167,23 +168,33 @@ std::vector<person_t> Hardware::get_tracking_data() {
     }
     person.id = user.getId();
 
-    float x, y, z, xd, yd, cm_depth;
-    convertJointCoordinatesToWorld(user.getCenterOfMass().x, 
+    float x, y, z, xd, yd;
+    convertJointCoordinatesToDepth(user.getCenterOfMass().x, 
                                    user.getCenterOfMass().y, 
                                    user.getCenterOfMass().z, 
-                                   x, y, z);
+                                   &xd, &yd);
+                                   
+    convertDepthCoordinatesToWorld(int(yd), int(xd), user.getCenterOfMass().z , x, y, z);
 
-    if(isnan(xd) || isnan(yd)){
-      std::cout << "NaN - " << xd << ", " << yd << std::endl;
-      cm_depth = 0;
-    } else
-      cm_depth = depthImage.at<ushort>(xd, yd);
+    cv::Matx41d loc(x, y, z, 1);
+    cv::Mat local_point = trafo_*loc;
+
+    x = local_point.at<double>(0,0);
+    y = local_point.at<double>(0,1);
+    z = local_point.at<double>(0,2);
 
     person.depth.insert(std::pair<std::string, float>("cm_depth", 
                                                   user.getCenterOfMass().z));
 
     person.points3d.insert(std::pair<std::string, cv::Point3d>("cm", 
-                                                      cv::Point3d(x, y, z)));
+                                                  cv::Point3d((float) x, 
+                                                              (float) y, 
+                                                              (float) z)));
+
+    std::cout << "Point3d - " << 
+                    (float) x << ", " << 
+                    (float) y << ", " << 
+                    (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
 
     // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
     // {
@@ -223,14 +234,14 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){
   pointcloud->width = depthImage.size().width; //Dimensions must be initialized to use 2-D indexing 
   pointcloud->height = depthImage.size().height;
 
-  for (int i = 0; i< pointcloud->width; i++){
-    for(int j = 0; j < pointcloud->height; j++){
+  for (int xd = 0; xd < pointcloud->width; xd++){
+    for(int yd = 0; yd < pointcloud->height; yd++){
       pcl::PointXYZ vertex;
 
       // find the world coordinates
-      float x,y,z;
-      int depth_value = (int) depthImage.at<unsigned short>(j,i);
-      convertDepthCoordinatesToWorld(j, i, depth_value, x, y, z);
+      float x, y, z;
+      int depth_value = (int) depthImage.at<unsigned short>(yd, xd);  ///                     PROPABLY SWITCHED I AND J. FIX later...
+      convertDepthCoordinatesToWorld(yd, xd, depth_value, x, y, z);
 
       vertex.x   = (float) x;
       vertex.y   = (float) y;
@@ -275,9 +286,11 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth,
   // const float fx(1/depth.fx), fy(1/depth.fy);
   // float* undistorted_data = (float *)undistorted->data;
 
-  const float depth_val = depth/1000.0f; //scaling factor, so that value of 1 is one meter.
+  const float depth_val = depth / 1000.0f; //scaling factor, so that value of 1 is one meter.
 
-  x = (c + 0.5 - cx) * fx * depth_val / 100000.0f;
+  std::cout << "depth_val: " << depth_val << std::endl; 
+  
+  x = -(c + 0.5 - cx) * fx * depth_val / 100000.0f;
   y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
   z = depth_val;
 }
