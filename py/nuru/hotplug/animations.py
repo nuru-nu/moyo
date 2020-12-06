@@ -159,7 +159,7 @@ def laser_spiral(palette, dt):
                 # aspect=0,#L.Named('valence'),
                 # speed=L.Named('arousal') | S.Lin(mult=8)
             )
-            + L.Named('saw_a') + L.Constant(dt)
+            + L.Named('saw_a') + S.Const(dt)
         ) | S.Mod(1) | P.Palette(palette)
     )
 
@@ -256,4 +256,4 @@ def make_image(image):
 # })
 
 
-pixels = A.ActionMixer(animations)
+pixels = A.Mixer(animations)

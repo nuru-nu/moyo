@@ -50,9 +50,9 @@ audio = dict(
     #tf=ml.KerasDetector(model='tmo_wp_20_50_linear'),
     #tf2=ml.KerasDetector(model='s2_linear_wp_10_10'),
     #tf3=ml.KerasDetector(model='s2_linear_wp_20_20'),
-    tf=L.Constant(0),
-    tf2=L.Constant(0),
-    tf3=L.Constant(0),
+    tf=S.Const(0),
+    tf2=S.Const(0),
+    tf3=S.Const(0),
     iso=(
         L.Named('tf') |
         S.Median(n=10, threshold=0.7)
@@ -115,7 +115,6 @@ states = dict(
     valence=L.Named('css') | S.ElementAt(0) | S.Lin(0.5, 0.5),
     arousal=L.Named('css') | S.ElementAt(1) | S.Lin(0.5, 0.5),
     state=state.Rizhom(),
-    animation=S.ActionLatch('animation=(.*)'),
     scene=S.ActionLatch('sound=scene=(.*)'),
 )
 
@@ -137,7 +136,7 @@ actions = dict(
 )
 
 animation = dict(
-    heart=S.TransientPulse('event', 'heart') | S.Lin(-5, 10) | S.Int(),
+    heart=S.TransientPulse('event', 'heart') | S.Lin(-5, 10) | S.Int() | S.Clip(),
     heart_a=(
         S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
         | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()
@@ -165,6 +164,8 @@ defaults = dict(
     loud=0,
     sonar=1,
     state=state.State(),
+    animation='off',
+    scene='S1',
     target_css=None,
     fc=0,
     people=[],
