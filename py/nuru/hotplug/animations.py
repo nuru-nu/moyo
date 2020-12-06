@@ -235,7 +235,15 @@ def img():
         scale=L.Named('v0'),
         rotate=L.Named('v1') | S.To(-180, 180),
         dx=L.Named('v2') | S.To(-.01, .01),
-    ) | S.To(0, .3)
+    ) #| S.To(0, .3)
+
+@anim
+def rotimg():
+    return A.Proj(
+        S.Dict(L.Named('image'), images),
+        scale=L.Named('v0')  | S.Int(mod=2) | S.Tocos() | S.To(1, 1.5),
+        rotate=L.Named('v1') | S.To(0, 50) | S.Int(mod=360),
+    )
 
 
 def make_image(image):
