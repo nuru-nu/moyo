@@ -144,7 +144,7 @@ animation = dict(
 )
 
 kinect = dict(
-    closest=S.KinectDistance() | S.Min(5) | S.Lin(1, -0.2) | S.Clip(),
+    closest=S.KinectDistance() | S.Min(5) | S.To(1, 0, 0, 5),
 )
 
 numbers = dict(
