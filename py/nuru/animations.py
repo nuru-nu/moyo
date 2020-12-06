@@ -3,6 +3,7 @@ import json
 import time
 
 import numpy as np  # type: ignore
+from scipy import stats
 
 from smanmi import logic as L, util
 from smanmi.midi import Command
@@ -144,6 +145,17 @@ class PhiPalette(L.Signal):
 
 # gaussians
 ###############################################################################
+
+
+class RGauss(L.Signal):
+    """Applies radial denormalized normal-shaped activation to value."""
+
+    def init(self, sigma):
+        pass
+
+    def call(self, value):
+        g = stats.norm(0, self.sigma).pdf
+        return value * g(phi_r_mapping[:, 1])[:, None] / g(0)
 
 class GaussianDroplet(L.Signal):
 
