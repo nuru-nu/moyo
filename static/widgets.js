@@ -434,41 +434,51 @@ export const Animation = (output, {network, defs}) => {
 }
 
 export const Vars = (output, {network, defs}) => {
-  const uninitialized = new Set()
+
   function dropdown(name, values) {
-    uninitialized.add(name)
     const dropdown = ui.dropdown(name, {values})
     dropdown.change(value => {
       network.sender({[name]: value})
     })
-    return dropdown
-  }
-  function range(name) {
-    uninitialized.add(name)
-    const range = ui.range(name).change(value => {
-      network.sender({[name]: parseFloat(value)})
-    })
-    return h.div().of(name, range)
-  }
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('vars'),
-    ui.hw(
-      dropdown('palette', defs.palettes),
-      dropdown('image', defs.images),
-      range('v0'), range('v1'), range('v2')
-    ),
-  ).into(output).els
-  function send(name) {
-    return value => network.sender({name: value})
-  }
-  network.listenJson('signals', data => {
-    uninitialized.forEach(name => {
-      if (data.hasOwnProperty(name)) {
-        disp[name].value = data[name]
-        uninitialized.delete(name)
+    let initialized = false
+    network.listenJson('signals', data => {
+      if (!initialized && data.hasOwnProperty(name)) {
+        dropdown.value = data[name]
+        initialized = true
       }
     })
-  })
+    return dropdown
+  }
+
+  function range(name, value) {
+    value = value || 0.5
+    const span = h.span().of(`${name}=0.50`).el
+    const range = ui.range(name, {value: .5}).change(value => {
+      value = parseFloat(value)
+      span.textContent = `${name}=${value.toFixed(2)}`
+      network.sender({[name]: value})
+    })
+    const el = h.div().of(span, range).el
+    let initialized = false
+    network.listenJson('signals', data => {
+      if (!initialized && data.hasOwnProperty(name)) {
+        range.value = data[name]
+        span.textContent = `${name}=${data[name].toFixed(2)}`
+        initialized = true
+      }
+    })
+    return el
+  }
+
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('vars'),
+    // ui.hw(
+    ui.v(
+      dropdown('palette', defs.palettes),
+      dropdown('image', defs.images),
+      'v0 v1 v2'.split(' ').map(name => range(name)),
+    ),
+  ).into(output).els
 }
 
 export const Sound = (output, {network, defs}) => {
