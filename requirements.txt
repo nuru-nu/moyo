@@ -14,3 +14,4 @@ rtmidi_python
 scipy
 serial
 #tensorflow==2.1.0
+yapf
