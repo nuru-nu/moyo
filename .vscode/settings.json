@@ -1,7 +1,10 @@
 {
     "python.pythonPath": "env/bin/python",
-    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
     "python.linting.flake8Enabled": false,
     "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintPath": "pylint",
+    "editor.formatOnSave": false,
+    "python.formatting.provider": "yapf",
 }
