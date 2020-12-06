@@ -418,7 +418,7 @@ export const Animation = (output, {network, defs}) => {
   ).into(output).els
   defs.animations.forEach(a => {
     disp[a].addEventListener('click', () => {
-      network.sender({action: `animation=${a}`})
+      network.sender({animation: a})
     })
   })
   network.listenJson('signals', data => {
