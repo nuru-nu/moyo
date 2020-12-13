@@ -40,6 +40,7 @@ animations = dict()
 
 def anim(func):
     animations[func.__name__] = func()
+    return func
 
 
 @anim
@@ -83,6 +84,14 @@ def drone():
     ])
 
 
+# def into():
+#     return (
+#         A.R() | S.Lin(L.Named('std22'), -1) | S.Mod(1)
+#         | state_palette
+#         | S.Lin(mult=L.Named('into')) | S.Lin(shift=0.3, mult=0.7)
+#     )
+
+
 @anim
 def into():
     return (
@@ -121,15 +130,6 @@ def heart():
         | S.Lin(0, L.Named('heart'))
         | P.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
-
-
-
-def into():
-    return (
-        A.R() | S.Lin(L.Named('std22'), -1) | S.Mod(1)
-        | state_palette
-        | S.Lin(mult=L.Named('into')) | S.Lin(shift=0.3, mult=0.7)
-    )
 
 
 def ooo():
@@ -219,13 +219,16 @@ def stripes():
 @anim
 def noise():
     return A.NoiseCycle(
-        hz=L.Named('arousal') | S.To(0, 3),
-    ) | P.InterpolPalette(L.Named('valence'), (
-        (0, P.brownish),
-        (1, P.black_violet),
+        # hz=L.Named('arousal') | S.To(0, 3),
+        hz=0.2,
+    # ) | (palette
+    ) | (P.Palette(P.peak_green)
+    # ) | P.InterpolPalette(L.Named('valence'), (
+    #     (0, P.brownish),
+    #     (1, P.black_violet),
         # (1, P.black_white),
         # (1, P.ultra_rainbows),
-    )) | S.To(0, 0.6)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
+    ) | S.To(0, 0.5) | A.RGauss(2)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
 
 
 @anim
@@ -266,6 +269,6 @@ def make_image(image):
 
 @anim
 def S1():
-    return heart()
+    return noise() + heart()
 
 pixels = A.Mixer(animations)
