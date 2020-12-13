@@ -51,12 +51,14 @@ class Css(L.Signal):
         self.valence = self.valence0 = 0
         self.arousal = self.arousal0 = -0.9
 
-    def call(self, target_css, randval):
+    def call(self, target_css, randval, closest, n_people):
         # Reversal to the mean.
         self.valence -= (self.valence - self.valence0) / self.beta
         self.arousal -= (self.arousal - self.arousal0) / self.beta
         # Moodswings.
         self.valence += 2 * (randval - 0.5) / self.gamma
+        # Kinect -> arousal.
+        self.arousal = self.arousal0 + closest * (1 - self.arousal0)
         if target_css:
             valence, arousal = target_css
             self.valence += (valence - self.valence) / self.alpha
