@@ -34,9 +34,9 @@ Hardware::Hardware(void) {
   }
   
   std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
-  printf("Found trafo %s \n", default_trafo_path);
+  printf("Found trafo %s \n", default_trafo_path.c_str());
   if (load_extrinsic_matrix(default_trafo_path) < 0){
-      printf("Couldnt find trafo at default path %s \n", default_trafo_path);
+      printf("Couldnt find trafo at default path\n");
       printf("Needs to be explicitly defined with load_extrinsic_matrix(std::string path)\n");
   }
 }
@@ -51,7 +51,6 @@ int Hardware::load_extrinsic_matrix(std::string path){
 
   while (getline(in, tmp)) str += tmp;
   jute::jValue v = jute::parser::parse(str);
-
   for(int rdx=0; rdx<v["world_matrix"].size(); rdx++) {
     for(int cdx=0; cdx<v["world_matrix"][0].size(); cdx++) {
       trafo_.at<double>(rdx, cdx) = v["world_matrix"][rdx][cdx].as_double();
