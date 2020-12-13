@@ -222,13 +222,17 @@ def noise():
         # hz=L.Named('arousal') | S.To(0, 3),
         hz=0.2,
     # ) | (palette
-    ) | (P.Palette(P.peak_green)
-    # ) | P.InterpolPalette(L.Named('valence'), (
+    # ) | (P.Palette(P.peak_green)
+    ) | P.InterpolPalette(L.Named('valence'), (
+        (0, P.peak_green),
+        (0.5, P.peak_blue),
+        (1, P.peak_vio),
+    )
     #     (0, P.brownish),
     #     (1, P.black_violet),
         # (1, P.black_white),
         # (1, P.ultra_rainbows),
-    ) | S.To(0, 0.5) | A.RGauss(2)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
+    ) | S.To(0, 0.8) | A.RGauss(2)  #| S.Lin(mult=L.Named('valence')) | S.Lin(0, 0.5)
 
 
 @anim
