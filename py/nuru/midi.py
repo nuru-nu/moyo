@@ -1,4 +1,5 @@
 import argparse
+import re
 
 from smanmi import hotplug
 from smanmi import midi
@@ -6,6 +7,8 @@ from smanmi import util
 
 from . import settings
 
+
+SOUND_RE = re.compile('^sound=(.*)')
 
 parser = argparse.ArgumentParser(description='Bridges UDP to MIDI.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
@@ -18,9 +21,12 @@ hp_midi = hotplug.HotPlug('.hotplug.midi', logger)
 
 def signal2midi(data, logger):
     action = data.get('action')
-    if not action or not action.startswith('sound='):
+    if not action:
         return ()
-    sound = action.split('=')[1]
+    m = SOUND_RE.match(action)
+    if not m:
+        return ()
+    sound = m.group(1)
     notes = hp_midi.signal2midi(sound)
     if not notes:
         logger.info('Cannot translate sound: %s', sound)
