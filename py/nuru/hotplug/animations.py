@@ -264,4 +264,8 @@ def make_image(image):
 # })
 
 
+@anim
+def S1():
+    return heart()
+
 pixels = A.Mixer(animations)
