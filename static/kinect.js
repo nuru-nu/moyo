@@ -92,8 +92,8 @@ const Simulating = () => {
 export const Kinect = (output) => {
   const width = 200
   const height = 200
-  const xlim = [-2.5, 2.5]
-  const ylim = [-4, 1]
+  const xlim = [-5, 5]
+  const ylim = [-5, 5]
   const r = 8
   let presence = 0
   const simulating = Simulating()

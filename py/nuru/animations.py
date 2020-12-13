@@ -147,6 +147,27 @@ class PhiPalette(L.Signal):
 ###############################################################################
 
 
+class GaussianActivation(L.Signal):
+
+    def init(self, min=0.3, std=1):
+        self.first = True
+
+    def call(self, value, people):
+        tot = np.ones(len(xyz_mapping)) * self.min
+        g = stats.norm(0, self.std)
+        for p in people:
+            if 'cm' not in p: continue
+            xyz = np.array(p['cm'])
+            xyz[0] *= -1
+            dist = ((xyz_mapping - xyz)**2).sum(axis=1)**.5
+            act = g.pdf(dist) / g.pdf(0)
+            tot += act
+            if self.first:
+                print(p, dist)
+                print(p, act)
+        self.first = False
+        return value * tot[:, None]
+
 class RGauss(L.Signal):
     """Applies radial denormalized normal-shaped activation to value."""
 
