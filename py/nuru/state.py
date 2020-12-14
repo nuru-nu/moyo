@@ -79,8 +79,26 @@ class CssAction(L.Signal):
     def call(self, css, scene):
         if scene == 'S1' and css[1] > 0:
             return ['scene=S3', 'animation=S3']
+        if scene == 'S3' and css[1] < 0:
+            return ['scene=S1', 'animation=S1']
         return []
 
+
+class SonarAction(L.Signal):
+    """Emits sonar related actions."""
+
+    def init(self, threshold=0.5):
+        self.on = False
+
+    def call(self, sonar):
+        if sonar is not None:
+            if sonar < self.threshold and not self.on:
+                self.on = True
+                return ['growl=on']
+            if sonar > self.threshold and self.on:
+                self.on = False
+                return ['growl=off']
+        return []
 
 class Rizhom(L.Signal):
     """Updates the state, Rizhom-style."""

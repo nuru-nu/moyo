@@ -1,3 +1,4 @@
+import re
 from typing import Dict, Sequence
 
 from smanmi import midi
@@ -10,21 +11,37 @@ def onoff(note: str, channel: int = 1) -> Sequence[midi.Command]:
     )
 
 
-def signal2midi(sound: str) -> Sequence[midi.Command]:
-    if sound == 'scene=S1':
+def off(note: str, channel: int = 1) -> Sequence[midi.Command]:
+    return (
+        midi.Command(f'{channel}: {note} off'),
+    )
+
+
+def on(note: str, channel: int = 1) -> Sequence[midi.Command]:
+    return (
+        midi.Command(f'{channel}: {note} on'),
+    )
+
+
+def signal2midi(action: str) -> Sequence[midi.Command]:
+    if action == 'scene=S1':
         return onoff('C2')
-    elif sound == 'scene=S2':
+    elif action == 'scene=S2':
         return onoff('C#2')
-    elif sound == 'scene=S3':
+    elif action == 'scene=S3':
         return onoff('D2')
-    elif sound == 'scene=S4':
+    elif action == 'scene=S4':
         return onoff('D#2')
-    elif sound == 'scene=S5':
+    elif action == 'scene=S5':
         return onoff('E2')
-    elif sound == 'scene=S6':
+    elif action == 'scene=S6':
         return onoff('F2')
-    elif sound == 'scene=stop':
+    elif action == 'scene=stop':
         return onoff('B2')
+    elif action == 'growl=on':
+        return on('C3')
+    elif action == 'growl=off':
+        return off('C3')
     return ()
 
 

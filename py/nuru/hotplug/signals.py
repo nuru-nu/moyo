@@ -146,6 +146,7 @@ actions = dict(
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
     css_action=state.CssAction(),
+    sonar_action=state.SonarAction(threshold=0.3),
 )
 
 animation = dict(
@@ -194,6 +195,7 @@ special = ('logmel', 'mfccs', 't')
 vars_ = ('image', 'palette', 'v0', 'v1', 'v2')
 loops = dict(
     css_action='action',
+    sonar_action='action',
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
