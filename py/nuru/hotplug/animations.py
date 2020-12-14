@@ -275,4 +275,16 @@ def make_image(image):
 def S1():
     return noise() + heart()
 
+@anim
+def S3():
+    return (
+        (A.R() + (S.Const(1) | S.Int(mod=1))) | S.Mod(1)
+        | P.InterpolPalette(L.Named('valence'), (
+            (0, P.white_violet),
+            (1, P.ultra_rainbows),
+        ))
+        # | palette
+        | S.Lin(mult=L.Named('arousal'))
+    )
+
 pixels = A.Mixer(animations)

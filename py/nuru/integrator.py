@@ -104,6 +104,10 @@ class Integrator:
             name: self.overrides.get(name, value)
             for name, value in signals.items()
         })
+        for name, value in signals.items():
+            if name in hp_signals.loops:
+                transient = hp_signals.loops[name]
+                self.transients[transient] += value
         self.server.send(signals)
 
 

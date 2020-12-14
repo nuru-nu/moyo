@@ -491,7 +491,7 @@ export const Sound = (output, {network, defs}) => {
   ).into(output).els
   defs.scenes.forEach(s => {
     disp[s].addEventListener('click', () => {
-      network.sender({action: `sound=scene=${s}`})
+      network.sender({action: `scene=${s}`})
     })
   })
   network.listenJson('signals', data => {
@@ -506,11 +506,11 @@ export const Sound = (output, {network, defs}) => {
   })
 }
 
-export const Transients = (output, {network}) => {
+export const Transients = (output, {network, defs}) => {
 
   const limit = 100
   let include = [], exclude = []
-  const transients = ['action', 'event']
+  const transients = defs.monitor_def.transients
   const disp = h.div().of(
     ui.h(
       'transients - filter:',
@@ -547,7 +547,7 @@ export const Transients = (output, {network}) => {
   function listener(data) {
     let now = new Date().toTimeString().substr(0, 9)
     transients.forEach(transient => {
-      if (data[transient]) {
+      if (data[transient] && data[transient].length !== 0) {
         const text = `${now} ${transient}: ${data[transient]}`
         const el = h.div().of(text).el
         if (!matches(text)) el.classList.add('h')
