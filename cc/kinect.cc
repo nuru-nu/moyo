@@ -71,8 +71,8 @@ int main(const int argc, const char** const argv) {
       std::cerr << "### errno=" << errno << std::endl;
     }
 
-    const cv::Mat depth = hardware.depth(); 
-    const cv::Mat user_pixels = hardware.get_user_pixels();
+    cv::Mat depth = hardware.depth(); 
+    cv::Mat user_pixels = hardware.get_user_pixels();
 
     features.process(depth);
     const int bytes_sent = sender.send({
@@ -94,6 +94,9 @@ int main(const int argc, const char** const argv) {
     if (viewer.should_record()) {
       hardware.record_pcl("../../data/pcls", 60);
     }
+    delete depth.data;
+    // delete user_pixels.data;
+    // depth.release();
   }
 
   hardware.close();
