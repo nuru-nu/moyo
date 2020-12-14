@@ -57,16 +57,29 @@ class Css(L.Signal):
         self.arousal -= (self.arousal - self.arousal0) / self.beta
         # Moodswings.
         self.valence += 2 * (randval - 0.5) / self.gamma
-        # Kinect -> arousal.
-        self.arousal = self.arousal0 + closest * (1 - self.arousal0)
         if target_css:
             valence, arousal = target_css
             self.valence += (valence - self.valence) / self.alpha
             self.arousal += (arousal - self.arousal) / self.alpha
+        else:
+            # Kinect -> arousal.
+            self.arousal = self.arousal0 + closest * (1 - self.arousal0)
         return [
             self.valence,
             self.arousal,
         ]
+
+
+class CssAction(L.Signal):
+    """Emits CSS related actions."""
+
+    def init(self):
+        pass
+
+    def call(self, css, scene):
+        if scene == 'S1' and css[1] > 0:
+            return ['scene=S3', 'animation=S3']
+        return []
 
 
 class Rizhom(L.Signal):

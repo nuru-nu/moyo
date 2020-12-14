@@ -28,7 +28,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   let css = Css('#css')
   let recorder = Recorder('#recorder', defs)
   let midi = Midi('#midi')
-  Transients('#transients', {network})
+  Transients('#transients', {network, defs})
 
   network
   .listen('animation', Stats('#animation_stats'))

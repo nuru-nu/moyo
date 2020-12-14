@@ -125,7 +125,9 @@ css = dict(
 states = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
-    scene=S.ActionLatch('sound=scene=(.*)', 'S1'),
+    scene=S.ActionLatch('scene=(.*)', 'S1'),
+    animation=S.ActionLatch('animation=(.*)', 'S1'),
+    print_action=S.Print('action', L.Named('action')),
 )
 
 ooo = dict(
@@ -143,6 +145,7 @@ actions = dict(
     flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
+    css_action=state.CssAction(),
 )
 
 animation = dict(
@@ -189,6 +192,9 @@ transients = ('action', 'midi', 'signal')
 hidden = ('people', 'target_css', 'css_alpha')
 special = ('logmel', 'mfccs', 't')
 vars_ = ('image', 'palette', 'v0', 'v1', 'v2')
+loops = dict(
+    css_action='action',
+)
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
 monitor_def = dict(
@@ -202,6 +208,7 @@ monitor_def = dict(
         actions=actions.keys(),
         css=css.keys(),
     ),
+    transients=transients + ('css_action',),
     selected=['heart', 'sonar'],
     features=dict(
         numbers=numbers.keys(),
