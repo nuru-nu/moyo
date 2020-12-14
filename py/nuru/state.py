@@ -73,13 +73,13 @@ class Css(L.Signal):
 class CssAction(L.Signal):
     """Emits CSS related actions."""
 
-    def init(self):
+    def init(self, threshold):
         pass
 
     def call(self, css, scene):
-        if scene == 'S1' and css[1] > 0:
+        if scene == 'S1' and css[1] > self.threshold:
             return ['scene=S3', 'animation=S3']
-        if scene == 'S3' and css[1] < 0:
+        if scene == 'S3' and css[1] < self.threshold:
             return ['scene=S1', 'animation=S1']
         return []
 
