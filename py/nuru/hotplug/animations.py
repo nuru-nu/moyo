@@ -46,12 +46,16 @@ def anim(func):
 @anim
 def R():
     return (
-        A.R() | S.Lin(L.Named('std2')) | S.Mod(1)
+        # A.R() | L.Named('v0')  | S.Int(mod=1)
+        A.R() | S.Lin(
+            L.Named('closest') | S.To(0, 3) | S.Int(mod=1)
+            # L.Named('std2')
+        ) | S.Mod(1)
         # | P.AllPalettes(L.Named('valence'))
         # | P.Palette(P.gabe_red)
         | palette
-        | S.Lin(mult=L.Named('arousal'))
-    )
+        | S.Lin(mult=L.Named('closest'))
+    ) | A.GaussianActivation(std=1)
 
 
 @anim
@@ -180,7 +184,8 @@ def spiral():
                 dr=L.Named('valence') | S.Lin(1, 2),
                 n=4,
             )
-            + (L.Named('saw_a') | S.Lin(0, 2))
+            + (L.Named('closest') | S.To(-2, 2) | S.Int(mod=1))
+            # + (L.Named('saw_a') | S.Lin(0, 2))
         ) | S.Mod(1) | P.Palette(P.peak_green)
     )
 
@@ -249,8 +254,8 @@ def rotimg():
     return A.Proj(
         S.Dict(L.Named('image'), images),
         scale=L.Named('v0')  | S.Int(mod=2) | S.Tocos() | S.To(1, 1.5),
-        rotate=L.Named('v1') | S.To(0, 50) | S.Int(mod=360),
-    ) | S.To(0, L.Named('arousal'))
+        rotate=L.Named('closest') | S.To(0, 50) | S.Int(mod=360),
+    ) | S.To(0, L.Named('closest'))
 
 
 def make_image(image):
