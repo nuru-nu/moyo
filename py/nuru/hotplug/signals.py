@@ -143,7 +143,7 @@ actions = dict(
     flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
-    css_action=state.CssAction(),
+    css_action=state.CssAction(threshold=0.5),
     sonar_action=state.SonarAction(threshold=0.3),
 )
 
