@@ -1,6 +1,8 @@
 #!/bin/bash
 
 cd "$(dirname "$0")"
+. ./utils.sh
+
 CM=${CM:-C-m}
 SERVER=${SERVER:-127.0.0.1}
 
