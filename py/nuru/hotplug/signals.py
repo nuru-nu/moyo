@@ -125,8 +125,6 @@ css = dict(
 states = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
-    scene=S.ActionLatch('scene=(.*)', 'S1'),
-    animation=S.ActionLatch('animation=(.*)', 'S1'),
     print_action=S.Print('action', L.Named('action')),
 )
 
@@ -178,7 +176,7 @@ defaults = dict(
     loud=0,
     sonar=1,
     state=state.State(),
-    animation='off',
+    animation='S1',
     scene='S1',
     target_css=None,
     fc=0,
