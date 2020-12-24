@@ -39,9 +39,9 @@ def signal2midi(action: str) -> Sequence[midi.Command]:
     elif action == 'scene=stop':
         return onoff('B2')
     elif action == 'growl=on':
-        return on('C3')
+        return on('C3', channel=2)
     elif action == 'growl=off':
-        return off('C3')
+        return off('C3', channel=2)
     return ()
 
 
