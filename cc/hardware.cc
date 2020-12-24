@@ -24,7 +24,7 @@ const bool kEnableDepth = true;
 
 Hardware::Hardware(void) {
 
-  nite::NiTE::initialize(); 
+  nite::NiTE::initialize();
   nite::Status niteRc = userTracker_.create();
 
   if (niteRc != nite::STATUS_OK)
@@ -32,7 +32,7 @@ Hardware::Hardware(void) {
       printf("niteRc %d \n", niteRc);
       printf("Couldn't create user tracker\n");
   }
-  
+
   std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
   printf("Found trafo %s \n", default_trafo_path.c_str());
   if (load_extrinsic_matrix(default_trafo_path) < 0){
@@ -127,8 +127,8 @@ int Hardware::next() {
 cv::Mat Hardware::get_user_pixels(){
   const nite::UserMap& userLabels = userTrackerFrame_.getUserMap();
 
-  cv::Mat user_pixels(depthFrame_.getHeight(), 
-                      depthFrame_.getWidth(), 
+  cv::Mat user_pixels(depthFrame_.getHeight(),
+                      depthFrame_.getWidth(),
                       CV_8UC3, cv::Scalar(0,0,0));
 
   const nite::UserId* pLabels = userLabels.getPixels();
@@ -146,7 +146,7 @@ cv::Mat Hardware::get_user_pixels(){
       }
     }
   }
-
+  delete pLabels;
   return user_pixels;
 }
 
@@ -158,7 +158,7 @@ std::vector<person_t> Hardware::get_tracking_data() {
   for (int i = 0; i < users.getSize(); ++i)
   {
     person_t person;
-    
+
     const nite::UserData& user = users[i];
     update_user_state(user, userTrackerFrame_.getTimestamp());
     if (user.isNew())
@@ -168,11 +168,11 @@ std::vector<person_t> Hardware::get_tracking_data() {
     person.id = user.getId();
 
     float x, y, z, xd, yd;
-    convertJointCoordinatesToDepth(user.getCenterOfMass().x, 
-                                   user.getCenterOfMass().y, 
-                                   user.getCenterOfMass().z, 
+    convertJointCoordinatesToDepth(user.getCenterOfMass().x,
+                                   user.getCenterOfMass().y,
+                                   user.getCenterOfMass().z,
                                    &xd, &yd);
-                                   
+
     convertDepthCoordinatesToWorld(int(yd), int(xd), user.getCenterOfMass().z , x, y, z);
 
     cv::Matx41d loc(x, y, z, 1);
@@ -182,17 +182,17 @@ std::vector<person_t> Hardware::get_tracking_data() {
     y = local_point.at<double>(0,1);
     z = local_point.at<double>(0,2);
 
-    person.depth.insert(std::pair<std::string, float>("cm_depth", 
+    person.depth.insert(std::pair<std::string, float>("cm_depth",
                                                   user.getCenterOfMass().z));
 
-    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm", 
-                                                  cv::Point3d((float) x, 
-                                                              (float) y, 
+    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm",
+                                                  cv::Point3d((float) x,
+                                                              (float) y,
                                                               (float) z)));
 
-    std::cout << "Point3d - " << 
-                    (float) x << ", " << 
-                    (float) y << ", " << 
+    std::cout << "Point3d - " <<
+                    (float) x << ", " <<
+                    (float) y << ", " <<
                     (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
 
     // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
@@ -208,15 +208,15 @@ std::vector<person_t> Hardware::get_tracking_data() {
   }
 
   return people;
-} 
+}
 
 cv::Mat Hardware::depth() {
   depthFrame_ = userTrackerFrame_.getDepthFrame();
 
-  openni::DepthPixel *depthPixels = 
+  openni::DepthPixel *depthPixels =
             new openni::DepthPixel[depthFrame_.getHeight()*depthFrame_.getWidth()];
 
-  memcpy(depthPixels, depthFrame_.getData(), 
+  memcpy(depthPixels, depthFrame_.getData(),
                       depthFrame_.getHeight()*depthFrame_.getWidth()*sizeof(uint16_t));
 
   cv::Mat depthImage(depthFrame_.getHeight(), depthFrame_.getWidth(), CV_16U, depthPixels);
@@ -224,13 +224,13 @@ cv::Mat Hardware::depth() {
   return depthImage;
 }
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){  
+pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){
 
   cv::Mat depthImage = Hardware::depth();
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-  pointcloud->width = depthImage.size().width; //Dimensions must be initialized to use 2-D indexing 
+  pointcloud->width = depthImage.size().width; //Dimensions must be initialized to use 2-D indexing
   pointcloud->height = depthImage.size().height;
 
   for (int xd = 0; xd < pointcloud->width; xd++){
@@ -248,9 +248,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr Hardware::pcl(){
 
       // the point is pushed back in the cloud
       pointcloud->points.push_back( vertex );
-    }  
+    }
   }
-  
+
   return pointcloud;
 }
 
@@ -272,7 +272,7 @@ void Hardware::close() {
   nite::NiTE::shutdown();
 }
 
-void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth, 
+void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth,
                                               float &x, float &y, float &z) const {
 
   const float cx = 256.684;
@@ -287,20 +287,20 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth,
 
   const float depth_val = depth / 1000.0f; //scaling factor, so that value of 1 is one meter.
 
-  std::cout << "depth_val: " << depth_val << std::endl; 
-  
+  std::cout << "depth_val: " << depth_val << std::endl;
+
   x = -(c + 0.5 - cx) * fx * depth_val / 100000.0f;
   y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
   z = depth_val;
 }
 
-void Hardware::convertJointCoordinatesToDepth(float x, float y, float z, 
+void Hardware::convertJointCoordinatesToDepth(float x, float y, float z,
                                               float* pOutX, float* pOutY) const {
 
   userTracker_.convertJointCoordinatesToDepth(x, y, z, pOutX, pOutY);
 }
 
-void Hardware::convertJointCoordinatesToWorld(float x, float y, float z, 
+void Hardware::convertJointCoordinatesToWorld(float x, float y, float z,
                                               float &tx, float &ty, float &tz) const {
 
   convertDepthCoordinatesToWorld(x, y, z, tx, ty, tz);
@@ -319,7 +319,7 @@ void Hardware::convertJointCoordinatesToWorld(float x, float y, float z,
   }
 }
 
-void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z, 
+void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z,
                                               float* pOutX, float* pOutY) const {
 
   userTracker_.convertDepthCoordinatesToJoint(x, y, z, pOutX, pOutY);
