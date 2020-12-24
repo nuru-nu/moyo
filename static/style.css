@@ -12,17 +12,26 @@
   margin: 0;
 }
 
-html, body, #container, #left, #right {
-  height: 100%;
-}
 #container {
   display:flex;
 }
 
-#left, #right {
-  width: 50%;
-  overflow: scroll;
-  scrollbar-width: none;  /* FF */
+@media screen and (max-width:1199px) {
+  #container {
+    flex-direction: column-reverse;
+  }
+}
+@media screen and (min-width:1200px) {
+
+  html, body, #container, #left, #right {
+    height: 100%;
+  }
+
+  #left, #right {
+    width: 50%;
+    overflow: scroll;
+    scrollbar-width: none;  /* FF */
+  }
 }
 
 #left::-webkit-scrollbar,
