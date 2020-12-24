@@ -1,8 +1,10 @@
 #!/bin/bash
 
 cd "$(dirname "$0")"
+. ./utils.sh
+
 CM=${CM:-C-m}
-SERVER=${SERVER:-127.0.0.1}
+SERVER=${SERVER:-0.0.0.0}
 
 tmux start-server
 tmux new-session -d -s nuru
@@ -22,7 +24,7 @@ tmux splitw -p 66
 tmux send-keys './run nuru.sonar' $CM
 # row 4
 tmux splitw
-tmux send-keys './run nuru.integrator' $CM
+tmux send-keys "./run nuru.integrator --midi_address=$(getip mbp.local)" $CM
 
 ## column 2
 tmux selectp -R
@@ -35,8 +37,8 @@ tmux send-keys '(cd fadecandy; sudo ./fcserver config.json)' $CM
 tmux splitw -p 66
 tmux send-keys './run nuru.dmx' $CM
 # row 4
-tmux splitw -p 66
-tmux send-keys './run nuru.midi' $CM
+# tmux splitw -p 66
+# tmux send-keys './run nuru.midi' $CM
 
 # player out1; player out2
 

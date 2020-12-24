@@ -29,7 +29,12 @@ pip install --global-option='build_ext' --global-option='-I/usr/local/include' -
 
 The sript `./launch.sh` starts a couple of programs that constitute the
 different components of the installation. See the package pydoc for additional
-information. Then go to <http://localhost:8000>.
+information. Then go to <http://localhost:8080>.
+
+The default setup requires the MIDI bridge to be run separately on `mbp.local`
+via the `./launch_midi.sh` script.
+
+Alternatively start `./launch_sim.sh` for development purposes.
 
 ### Communication between programs
 
