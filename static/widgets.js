@@ -320,7 +320,7 @@ export const Midi = (output) => {
   }
 }
 
-export const Css = (output) => {
+export const Css = (output, {network}) => {
   const width = 200
   const height = 200
   const xlim = [-1, 1]
@@ -353,16 +353,10 @@ export const Css = (output) => {
   const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
   disp.xy.addEventListener('click', e => {
-    update([fromx(e.offsetX), fromy(e.offsetY)])
+    network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
   })
 
-  let sender
-  function update(target_css) {
-    if (!sender) return
-    sender({target_css})
-  }
-
-  function grid(dist) {
+  function background(dist) {
     ctx.lineWidth = 1
     ctx.strokeStyle = '#444'
     ctx.beginPath()
@@ -377,12 +371,9 @@ export const Css = (output) => {
     ctx.stroke()
   }
 
-  const palette = colors.strong_palette
-  const cmap = new Map()
-  const lcm = new Map()
-  function listener(data) {
+  network.listenJson('signals', function listener(data) {
     ctx.clearRect(0, 0, width, height)
-    grid(0.25)
+    background(0.25)
     const { target_css, css } = data
 
     if (target_css) {
@@ -398,14 +389,7 @@ export const Css = (output) => {
       ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
       ctx.fill()
     }
-  }
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    listener,
-    sendto,
-  }
+  })
 }
 
 export const Animation = (output, {network, defs}) => {
