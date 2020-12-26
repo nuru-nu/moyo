@@ -126,6 +126,8 @@ states = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
     print_action=S.Print('action', L.Named('action')),
+    scene=S.ActionLatch('scene=(.*)', 'S1'),
+    animation=S.ActionLatch('animation=(.*)', 'S1'),
 )
 
 ooo = dict(
