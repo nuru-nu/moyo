@@ -323,8 +323,8 @@ export const Midi = (output) => {
 export const Css = (output, {network}) => {
   const width = 200
   const height = 200
-  const xlim = [-1, 1]
-  const ylim = [-1, 1]
+  const xlim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
+  const ylim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
   const r = 8
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('css'),
@@ -342,7 +342,7 @@ export const Css = (output, {network}) => {
   disp.show.change(value => {
     disp.xy.classList[value ? 'remove' : 'add']('h')
   }).init()
-  disp.clear.addEventListener('click', () => update(null))
+  disp.clear.addEventListener('click', () => network.sender({target_css: null}))
   disp.alpha.addEventListener('input', e => {
     if (sender) sender({css_alpha: parseFloat(e.target.value)})
   })
@@ -356,19 +356,38 @@ export const Css = (output, {network}) => {
     network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
   })
 
-  function background(dist) {
+  function background() {
     ctx.lineWidth = 1
-    ctx.strokeStyle = '#444'
+    ctx.strokeStyle = ctx.fillStyle = '#666'
     ctx.beginPath()
-    for(let x = Math.floor(xlim[0]) - dist; x <= xlim[1]; x += dist) {
-      ctx.moveTo(tox(x), toy(ylim[0]))
-      ctx.lineTo(tox(x), toy(ylim[1]))
+    const r = Math.min(width, height) * 0.45
+    ctx.arc(width/2, height/2, r, 0, 2*Math.PI)
+    ctx.moveTo(0, height/2)
+    ctx.lineTo(width, height/2)
+    ctx.moveTo(width/2, 0)
+    ctx.lineTo(width/2, height)
+    for(let i=1; i < 6; i++) {
+      const phi = i * Math.PI / 6;
+      const x = r * Math.cos(phi), y = r * Math.sin(phi)
+      ctx.moveTo(width / 2 + x, height / 2 + y)
+      ctx.lineTo(width / 2 - x, height / 2 - y)
     }
-    for(let y = Math.floor(ylim[0]) - dist; y <= ylim[1]; y += dist) {
-      ctx.moveTo(tox(xlim[0]), toy(y))
-      ctx.lineTo(tox(xlim[1]), toy(y))
-    }
+    // Arrowheads.
+    const darr = 5
     ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(width, height/2)
+    ctx.lineTo(width-darr, height/2-darr)
+    ctx.lineTo(width-darr, height/2+darr)
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(width/2, 0)
+    ctx.lineTo(width/2-darr, darr)
+    ctx.lineTo(width/2+darr, darr)
+    ctx.closePath()
+    ctx.fill()
   }
 
   network.listenJson('signals', function listener(data) {
@@ -402,7 +421,7 @@ export const Animation = (output, {network, defs}) => {
   ).into(output).els
   defs.animations.forEach(a => {
     disp[a].addEventListener('click', () => {
-      network.sender({animation: a})
+      network.sender({action: `animation=${a}`})
     })
   })
   network.listenJson('signals', data => {

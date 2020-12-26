@@ -92,10 +92,9 @@ const Simulating = () => {
 export const Kinect = (output) => {
   const width = 200
   const height = 200
-  const xlim = [-5, 5]
-  const ylim = [-5, 5]
+  const xlim = [-4, 4]
+  const ylim = [-7, 1]
   const r = 8
-  let presence = 0
   const simulating = Simulating()
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('kinect'),
@@ -137,7 +136,7 @@ export const Kinect = (output) => {
       })
   })
 
-  function grid() {
+  function background() {
     ctx.lineWidth = 2
     ctx.strokeStyle = '#444'
     ctx.beginPath()
@@ -145,6 +144,12 @@ export const Kinect = (output) => {
     ctx.lineTo(width, toy(0))
     ctx.moveTo(tox(0), 0)
     ctx.lineTo(tox(0), height)
+    const r = 1
+    const phi = Math.PI / 4
+    ctx.moveTo(tox(xlim[0]), toy(xlim[0] * Math.tan(phi)))
+    ctx.lineTo(tox(r * Math.cos(Math.PI/2 + phi)), toy(-r * Math.sin(Math.PI/2 + phi)))
+    ctx.arc(tox(0), toy(0), tox(r) - tox(0), Math.PI/2 + phi, Math.PI/2 - phi, true)
+    ctx.lineTo(tox(xlim[1]), toy(-xlim[1] * Math.tan(phi)))
     ctx.stroke()
     ctx.lineWidth = 1
     ctx.beginPath()
@@ -171,7 +176,7 @@ export const Kinect = (output) => {
       }, 'silent')
     }
     ctx.clearRect(0, 0, width, height)
-    grid()
+    background()
     if (data.hasOwnProperty('people')) {
       data.people.forEach(p => {
         if (!cmap.has(p.id)) {
