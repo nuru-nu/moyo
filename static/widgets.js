@@ -1,42 +1,39 @@
 import { h, ui, colors } from './smanmi/util.js'
 import { Uint8Attribute } from './threejs/three.module.js'
 
-export const Sonar = (output) => {
+export const Sonar = (output, {network}) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('sonar'),
     h.button('override').of('override'),
-    h.input('sonar', {type: 'range', min: -1, max: 50, value: 50}),
+    h.input('sonar', {type: 'range', min: 0, max: 100, value: 100}),
   ).into(output).els
 
   let override = false
   disp.sonar.style.display = 'none'
-  disp.override.addEventListener('click', () => {
+  function toggle_ui() {
     override = !override
     disp.override.classList.toggle('on')
     disp.sonar.style.display = override ? 'block' : 'none'
+  }
+  disp.override.addEventListener('click', () => {
+    toggle_ui();
     update()
   })
   disp.sonar.addEventListener('input', update)
 
-  let sender
   function update() {
     if (!override) {
-      if (sender) sender({sonar: null})
+      network.sender({sonar_override: null})
       return
     }
-    if (sender) sender({sonar: parseInt(disp.sonar.value) / 100})
+    network.sender({sonar_override: parseInt(disp.sonar.value) / 100})
   }
-  function listener(data) {
-    if (override) return
-    if (data.sonar) disp.sonar.value = 100 * data.sonarsig
-  }
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    listener,
-    sendto,
-  }
+  network.listenJson('signals', function(data) {
+    if (data.sonar_override && !override) {
+      toggle_ui();
+    }
+    disp.sonar.value = 100 * data.sonar
+  })
 }
 
 export const Debug = (output, { network, record_timestamps }) => {
@@ -344,7 +341,7 @@ export const Css = (output, {network}) => {
   }).init()
   disp.clear.addEventListener('click', () => network.sender({target_css: null}))
   disp.alpha.addEventListener('input', e => {
-    if (sender) sender({css_alpha: parseFloat(e.target.value)})
+    network.sender({css_alpha: parseFloat(e.target.value)})
   })
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
@@ -393,7 +390,7 @@ export const Css = (output, {network}) => {
   network.listenJson('signals', function listener(data) {
     ctx.clearRect(0, 0, width, height)
     background(0.25)
-    const { target_css, css } = data
+    const { target_css, css, css_alpha } = data
 
     if (target_css) {
       ctx.strokeStyle = '#f00'
@@ -408,6 +405,7 @@ export const Css = (output, {network}) => {
       ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
       ctx.fill()
     }
+    if (css_alpha) disp.alpha.value = css_alpha
   })
 }
 
