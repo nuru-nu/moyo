@@ -10,7 +10,6 @@ import { Leds } from './leds.js'
 fetch('/defs').then(resp => resp.json()).then(defs => {
 
   window.console = Console('#console')
-  let dump = Dump('#dump')
 
   let monitor = Monitor('#monitor', defs)
   let leds = Leds('#leds', defs)
@@ -18,6 +17,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   const record_timestamps = true
   let network = Network('#connection_state', { record_timestamps })
 
+  Dump('#dump', {network})
   Cmd('#cmd', {network, defs})
   Animation('#animation', {network, defs})
   Vars('#vars', {network, defs})
@@ -34,7 +34,6 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   .listen('animation', Stats('#animation_stats'))
   .listen('animation', leds.listener)
   .listen('signals', Stats('#signals_stats'))
-  .listenJson('signals', dump.listener)
   .listenJson('signals', monitor.listener)
   .listenJson('signals', recorder.listener)
   .listenJson('signals', midi.listener)
