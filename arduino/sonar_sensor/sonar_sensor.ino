@@ -78,9 +78,10 @@ float read_sonar() {
   digitalWrite(TRIG_PIN, LOW);
 
   // Measure the length of time it takes a pulse to an object and return back to the sensor.
-  long duration = pulseIn(ECHO_PIN, HIGH, pulse_time_max);
+  long duration_us = pulseIn(ECHO_PIN, HIGH, pulse_time_max);
 
   // Using the speed of sound you can calculate the distance from the duration of the flight of the pulse
-  return (duration*.0343)/2.0;
+  float distance_cm = (duration_us / 1e6 * 100 * 343) / 2.0;
+  return distance_cm;
 }
 
