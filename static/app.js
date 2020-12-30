@@ -3,7 +3,8 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Css, Debug, Cmd, Recorder, Subsample, Midi, Animation, Vars, Sound, Transients } from './widgets.js'
+import { Sonar, Css, Debug, Cmd, Subsample, Midi, Animation, Vars, Sound, Transients } from './widgets.js'
+import { Recorder } from './recorder.js'
 import { Kinect } from './kinect.js'
 import { Leds } from './leds.js'
 
@@ -26,7 +27,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Sonar('#sonar', {network})
   Kinect('#kinect', {network})
   Css('#css', {network})
-  let recorder = Recorder('#recorder', defs)
+  Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
   Transients('#transients', {network, defs})
 
@@ -35,12 +36,10 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   .listen('animation', leds.listener)
   .listen('signals', Stats('#signals_stats'))
   .listenJson('signals', monitor.listener)
-  .listenJson('signals', recorder.listener)
   .listenJson('signals', midi.listener)
 
   Debug('#debug', { network, record_timestamps })
   midi.sendto(network.sender)
-  recorder.sendto(network.sender)
   subsample.sendto(network.sender)
 
 })
