@@ -52,7 +52,6 @@ class Integrator:
         self.server.onsignal(self.onsignal)
         self.server.oncmd(self.oncmd)
         self.signals = hp_signals.defaults
-        self.overrides = {}
         self.transients = {
             name: collections.deque()
             for name in hp_signals.transients
@@ -78,21 +77,8 @@ class Integrator:
         if 'logmel' in signals:
             self.integrate()
 
-    def override(self, name, value):
-        self.overrides[name] = value
-        if value is None:
-            del self.overrides[name]
-
     def oncmd(self, cmd):
         self.onsignal(cmd)  # loop back commands into signals
-        if 'setstate' in cmd:
-            self.signals['setstate'] = cmd['setstate']
-        if 'fc' in cmd:
-            self.signals['fc'] = cmd['fc']
-        if 'sonar' in cmd:
-            self.override('sonar', cmd['sonar'])
-        if 'target_css' in cmd:
-            self.override('target_css', cmd['target_css'])
 
     def integrate(self):
         self.schedule()
@@ -100,10 +86,7 @@ class Integrator:
         signals = dict(**self.signals)
         for name, queue in self.transients.items():
             signals[name] = queue.popleft() if queue else None
-        signals = hp_signals.integrator_runner(**{
-            name: self.overrides.get(name, value)
-            for name, value in signals.items()
-        })
+        signals = hp_signals.integrator_runner(**signals)
         for name, value in signals.items():
             if name in hp_signals.loops:
                 transient = hp_signals.loops[name]

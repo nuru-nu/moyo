@@ -89,7 +89,7 @@ const Simulating = () => {
   }
 }
 
-export const Kinect = (output) => {
+export const Kinect = (output, {network}) => {
   const width = 200
   const height = 200
   const xlim = [-4, 4]
@@ -100,10 +100,6 @@ export const Kinect = (output) => {
     h.div({class: 'header'}).of('kinect'),
     ui.v(
       ui.toggle('simulate'),
-      ui.h(
-        'presence ',
-        h.input('presence', {type: 'range', min: 0, max: 1, step: 0.05, value: 0.5}),
-      ),
       ui.h(
         h.canvas('xy', {width, height}),
         simulating.el,
@@ -127,13 +123,7 @@ export const Kinect = (output) => {
   disp.simulate.change(value => {
       simulate = value
       simulating.el.classList[simulate ? 'remove' : 'add']('h')
-  })
-
-  let sender
-  disp.presence.addEventListener('input', e => {
-      sender({
-        presence: parseFloat(disp.presence.value),
-      })
+      if (!simulate) network.sender({people_override: null})
   })
 
   function background() {
@@ -168,11 +158,11 @@ export const Kinect = (output) => {
 
   const cmap = new Map()
   const lcm = new Map()
-  function listener(data) {
+  network.listenJson('signals', function(data) {
     if (simulate) {
       simulating.tick()
-      sender({
-        people: simulating.people(),
+      network.sender({
+        people_override: simulating.people(),
       }, 'silent')
     }
     ctx.clearRect(0, 0, width, height)
@@ -193,13 +183,5 @@ export const Kinect = (output) => {
         ctx.fill()
       })
     }
-    if (data.hasOwnProperty('presence')) disp.presence.value = data.presence
-  }
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    listener,
-    sendto,
-  }
+  })
 }

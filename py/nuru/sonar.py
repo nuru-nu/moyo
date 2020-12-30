@@ -41,7 +41,8 @@ def read_sonar():
     if msg is None or (len(msg) < 1):
         return 0.
     else:
-        return msg[1][0] / 100.
+        # Sonar sensor returns cm.
+        return max(0, min(1, msg[1][0] / 100.))
 
 
 sock = network.create_udp_socket(settings.sonar_cmd_port, '127.0.0.1')
@@ -50,5 +51,5 @@ while True:
     if data and 'sonar' in data:
         logger.info('received sonar=%s - DOING NOTHING', data['sonar'])
     sonar = read_sonar()
-    network.send(settings.integrator_sig_port, dict(sonar=sonar))
+    network.send(settings.integrator_sig_port, dict(sonar_sensor=sonar))
     time.sleep(1 / settings.sonar_hz)

@@ -89,6 +89,10 @@ audio = dict(
     #std3=S.Sin(hz=0.5) | S.Lin(shift=0.75, mult=0.25),
 )
 
+sensor_sigs = dict(
+    sonar=S.Overridable(L.Named('sonar_sensor'), L.Named('sonar_override')),
+)
+
 generated = dict(
     saw_v=S.Saw(hz=L.Named('valence')),
     saw_a=S.Saw(hz=L.Named('arousal')),
@@ -158,6 +162,7 @@ animation = dict(
 )
 
 kinect = dict(
+    people=S.Overridable(L.Named('people_sensor'), L.Named('people_override')),
     closest=S.KinectDistance() | S.With(2.5) | S.Min() | S.To(1, 0, 0, 3),
 )
 
@@ -169,6 +174,7 @@ numbers = dict(
 audio_runner = make_runner(audio)
 integrator_runner = make_runner(
     generated, states, css, ooo, actions, animation, numbers, kinect,
+    sensor_sigs,
 )
 
 defaults = dict(
@@ -176,13 +182,15 @@ defaults = dict(
     iso=0,
     rawloud=0,
     loud=0,
-    sonar=1,
+    sonar_sensor=1,
+    sonar_override=None,
     state=state.State(),
     animation='S1',
     scene='S1',
     target_css=None,
     fc=0,
-    people=[],
+    people_sensor=[],
+    people_override=None,
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
@@ -190,7 +198,15 @@ defaults = dict(
 )
 
 transients = ('action', 'midi', 'signal')
-hidden = ('people', 'target_css', 'css_alpha')
+hidden = (
+    'people',
+    'people_sensor',
+    'people_override',
+    'target_css',
+    'css_alpha',
+    'sonar_override',
+    'sonar_sensor',
+)
 special = ('logmel', 'mfccs', 't')
 vars_ = ('image', 'palette', 'v0', 'v1', 'v2')
 loops = dict(

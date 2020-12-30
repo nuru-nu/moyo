@@ -132,7 +132,7 @@ int SignalSender::send_tracking_data(
     people_jarray.add_element(person_jobject);
   }
 
-  json.add_property("people", people_jarray);
+  json.add_property("people_sensor", people_jarray);
   const std::string msg = json.to_string();
 
   // std::cout << msg << std::endl;
