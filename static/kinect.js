@@ -30,62 +30,69 @@ function Person(id) {
   }
 }
 
-const Simulating = () => {
+const Simulating = (pr) => {
   const people = new Map()
-  let attractors = []
-  let selids = new Set()
+  const targets = new Map()
+  let selid = null
   let id = 0
-  const els = h.div('cont').of(
-    ui.h(
-      h.button('add').of('add'),
-      h.button('del').of('del'),
-    ),
-    h.div('people'),
-  ).els
-  els.del.addEventListener('click', () => {
-    els.people.removeChild(people.get(id).els.cont)
-    people.delete(id--)
-  })
-  els.add.addEventListener('click', () => {
+  function add() {
     ++id
     const p = Person(id)
     people.set(id, p)
-    p.els.id.addEventListener('click', () => {
-      p.set(!p.data.selected)
-      selids[p.data.selected ? 'add' : 'delete'](p.data.id)
-    })
-    els.people.appendChild(p.els.cont)
-  })
+  }
+  function del() {
+    if (!id) return
+    people.delete(id--)
+  }
   function click(x, y) {
-    if (selids.size) {
-      attractors.push({ms: Date.now(), x, y, ids: new Set(selids)})
+    if (!id) return
+    const dists = Array.from(people.keys()).map(id => {
+      const p = people.get(id)
+      const dist = ((x - p.data.x)**2 + (y - p.data.y)**2)**.5
+      return [dist, id]
+    })
+    dists.sort()
+    if (dists[0][0] < pr) {
+      if (selid === dists[0][1]) selid = null
+      else selid = dists[0][1]
+      return
+    }
+    if (selid) {
+      targets.set(selid, [x, y])
     }
   }
   function tick() {
-    attractors = attractors.filter(a => Date.now() - a.ms < 3e3)
-    for(let p of people.values()) {
-      attractors.forEach(a => {
-        if (a.ids.has(p.data.id)) {
-          const dt = Date.now() - a.ms
-          let dx = (a.x - p.data.x)
-          let dy = (a.y - p.data.y)
+    for(let id of people.keys()) {
+      const p = people.get(id)
+      if (targets.has(id)) {
+          let [tx, ty] = targets.get(id)
+          let dx = (tx - p.data.x)
+          let dy = (ty - p.data.y)
           const d = Math.sqrt(dx * dx + dy * dy)
-          dx /= d * (1 + dt / 1e9) * 30
-          dy /= d * (1 + dt / 1e9) * 30
-          p.data.x += dx
-          p.data.y += dy
-        }
-      })
+          dx /= d * 30
+          dy /= d * 30
+          if (Math.abs(dx) < Math.abs(tx - p.data.x)) {
+            p.data.x += dx
+            p.data.y += dy
+          } else {
+            p.data.x = tx
+            p.data.y = ty
+            targets.delete(id)
+          }
+      }
     }
   }
   return {
-    el: els.cont,
     people: () => Array.from(people.values()).map(p => ({
       id: p.data.id,
       cm: [p.data.x, p.data.y],
     })),
     click,
     tick,
+    add,
+    del,
+    sel: () => selid,
+    target: id => targets.get(id),
   }
 }
 
@@ -94,24 +101,28 @@ export const Kinect = (output, {network}) => {
   const height = 200
   const xlim = [-4, 4]
   const ylim = [-7, 1]
-  const r = 8
-  const simulating = Simulating()
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('kinect'),
-    ui.v(
-      ui.toggle('simulate'),
-      ui.h(
-        h.canvas('xy', {width, height}),
-        simulating.el,
-      ),
-    ),
-  ).into(output).els
-  const ctx = disp.xy.getContext('2d')
-
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => x / width * (xlim[1] - xlim[0]) + xlim[0]
   const fromy = y => (height - y) / height * (ylim[1] - ylim[0]) + ylim[0]
+  const pr = 8
+  const simulating = Simulating(Math.min(
+    Math.abs(fromx(0) - fromx(pr)), Math.abs(fromy(0) - fromy(pr))))
+  const disp = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('kinect'),
+    ui.v(
+      ui.h(
+        ui.toggle('simulate'),
+        h.button('add', {class: 'h'}).of('add'),
+        h.button('del', {class: 'h'}).of('del'),
+      ),
+      h.canvas('xy', {width, height}),
+    ),
+  ).into(output).els
+  const ctx = disp.xy.getContext('2d')
+
+  disp.add.addEventListener('click', simulating.add)
+  disp.del.addEventListener('click', simulating.del)
 
   disp.xy.addEventListener('click', e => {
     if (!simulate) return
@@ -122,7 +133,8 @@ export const Kinect = (output, {network}) => {
   let simulate = false
   disp.simulate.change(value => {
       simulate = value
-      simulating.el.classList[simulate ? 'remove' : 'add']('h')
+      disp.add.classList[simulate ? 'remove' : 'add']('h')
+      disp.del.classList[simulate ? 'remove' : 'add']('h')
       if (!simulate) network.sender({people_override: null})
   })
 
@@ -172,15 +184,24 @@ export const Kinect = (output, {network}) => {
         if (!cmap.has(p.id)) {
           cmap.set(p.id, color(p.id))
         }
-        ctx.fillStyle = cmap.get(p.id)
-        ctx.beginPath()
-        if (p.cm[0] == 0 && p.cm[1] == 0 && lcm.has(p.id)) {
-          ctx.arc(tox(lcm.get(p.id)[0]), toy(lcm.get(p.id)[1]), r, 0, 2 * Math.PI)
-        } else {
-          ctx.arc(tox(p.cm[0]), toy(p.cm[1]), r, 0, 2 * Math.PI)
-          lcm.set(p.id, p.cm)
+        ctx.fillStyle = ctx.strokeStyle = cmap.get(p.id)
+        let [x, y] = p.cm
+        if (x == 0 && y == 0 && lcm.has(p.id)) {
+          [x, y] = lcm.get(p.id)
         }
+        const target = simulating.target(p.id)
+        if (target) {
+          ctx.lineWidth = 3
+          ctx.beginPath()
+          ctx.moveTo(tox(p.cm[0]), toy(p.cm[1]))
+          ctx.lineTo(tox(target[0]), toy(target[1]))
+          ctx.stroke()
+        }
+        ctx.beginPath()
+        const r = p.id === simulating.sel() ? pr * 1.2 : pr
+        ctx.arc(tox(x), toy(y), r, 0, 2 * Math.PI)
         ctx.fill()
+        if (x != 0 || y != 0) lcm.set(p.id, p.cm)
       })
     }
   })
