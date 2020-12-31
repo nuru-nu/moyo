@@ -90,29 +90,28 @@ export const Subsample = output => {
 }
 
 export const Cmd = (output, {network}) => {
-  const cont = h.div().into(output).el
-  const fcs = [0, 1, 2, 3]
-  let fc = -1
+  const actions = [
+    '', 'fc=0', 'fc=1', 'fc=2', 'fc=3',
+  ]
   let disp = h.div('cont', {class: 'flex widget'}).of(
     h.div({class: 'header'}).of('cmd'),
     ui.h(
-      'fc',
-      fcs.map(fc => h.button(`fc${fc} .fcb`).of(fc)),
+      'send action: ',
+      h.select('sel').of(actions.map(a => h.option({value: a}).of(a))),
+      ' - manual: ',
+      h.input('input', {type: 'text'}),
     ),
-  ).into(cont).els
+  ).into(output).els
 
-  fcs.forEach(fc => {
-    disp[`fc${fc}`].addEventListener('click', () => {
-      network.sender({action: `fc=${fc}`})
-    })
+  disp.sel.addEventListener('change', e => {
+    network.sender({action: e.target.value})
+    disp.sel.value = ''
   })
 
-  network.listenJson('signals', data => {
-    if (data.fc != fc) {
-      fc = data.fc
-      disp.cont.querySelectorAll('.fcb').forEach(
-        el => el.classList.remove('on'))
-      disp[`fc${fc}`].classList.add('on')
+  disp.input.addEventListener('keyup', e => {
+    if (e.keyCode === 13) {
+      network.sender({ action: e.target.value })
+      e.target.value = ''
     }
   })
 }
