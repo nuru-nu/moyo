@@ -206,6 +206,8 @@ hidden = (
     'css_alpha',
     'sonar_override',
     'sonar_sensor',
+    'recorder',
+    'playback_t',
 )
 special = ('logmel', 'mfccs', 't')
 vars_ = ('image', 'palette', 'v0', 'v1', 'v2')
