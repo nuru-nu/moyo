@@ -214,8 +214,8 @@ export const Css = (output, {network}) => {
     h.div({class: 'header'}).of('css'),
     ui.v(
       h.div().of(
-        ui.toggle('show', true),
         h.button('clear').of('clear'),
+        ' α=',
         h.input('alpha', {type: 'range', min: 5, max: 100, value: 10}),
       ),
       h.canvas('xy .css', {width, height}),
@@ -223,9 +223,6 @@ export const Css = (output, {network}) => {
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
 
-  disp.show.change(value => {
-    disp.xy.classList[value ? 'remove' : 'add']('h')
-  }).init()
   disp.clear.addEventListener('click', () => network.sender({target_css: null}))
   disp.alpha.addEventListener('input', e => {
     network.sender({css_alpha: parseFloat(e.target.value)})
@@ -299,7 +296,7 @@ export const Css = (output, {network}) => {
 export const Animation = (output, {network, defs}) => {
   let current = null
   const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('animation'),
+    h.div({class: 'header'}).of('anim'),
     ui.hw(
       defs.animations.map(a => h.button(a).of(a))
     )
