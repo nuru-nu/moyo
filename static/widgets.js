@@ -434,7 +434,7 @@ export const Transients = (output, {network, defs}) => {
     let now = new Date().toTimeString().substr(0, 9)
     transients.forEach(transient => {
       if (data[transient] && data[transient].length !== 0) {
-        let value = data[transient].replace('\n', '\\n')
+        let value = ('' + data[transient]).replace('\n', '\\n')
         if (value.length > value_length) value = value.substr(0, value_length - 3) + '...'
         const text = `${now} ${transient}: ${value}`
         const el = h.div().of(text).el
