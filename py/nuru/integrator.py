@@ -88,8 +88,8 @@ class Integrator:
             signals[name] = queue.popleft() if queue else None
         signals = hp_signals.integrator_runner(**signals)
         for name, value in signals.items():
-            if name in hp_signals.loops:
-                transient = hp_signals.loops[name]
+            if name in hp_signals.transient_loops and value is not None:
+                transient = hp_signals.transient_loops[name]
                 self.transients[transient] += value
         self.server.send(signals)
 

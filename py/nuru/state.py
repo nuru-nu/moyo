@@ -1,3 +1,12 @@
+"""State-machine related code.
+
+There are currently two ways of implementing a state machine:
+
+1. Use `State` class to (de) serialize the entire state and then have a state
+   generator like `Rizhom` to update it.
+2. Split state into normal independent signals and then use looped transient
+   actions to update these state signals, like `CssAction`.
+"""
 import random
 
 from smanmi import logic as L
@@ -65,7 +74,9 @@ class Css(L.Signal):
             # Kinect -> arousal.
             self.arousal = self.arousal0 + closest * (1 - self.arousal0)
         return [
+            # -1 .. +1
             self.valence,
+            # -1 .. +1
             self.arousal,
         ]
 
@@ -99,6 +110,7 @@ class SonarAction(L.Signal):
                 self.on = False
                 return ['growl=off']
         return []
+
 
 class Rizhom(L.Signal):
     """Updates the state, Rizhom-style."""
