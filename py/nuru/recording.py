@@ -15,7 +15,7 @@ from . import settings
 from .settings import AudioSettings
 
 
-class Recording:
+class SoundRecording:
     """Represents a sound recording.
 
     Recordings are stored in `settings.recorder_dir` by default with a name
@@ -158,25 +158,25 @@ class Recording:
         """Helper to construct name with timestamp in recorder dir."""
         if not re.match(r'^\d{8}_\d{6}', name):
             name = f'{util.now()}_{name}'
-        return Recording(
+        return SoundRecording(
             os.path.join(settings.recorder_dir, f'{name}.wav'), audio)
 
 
 def get_recordings(directory: str = settings.recorder_dir):
-    """Returns a list of `Recording`, fails if any cannot be read."""
+    """Returns a list of `SoundRecording`, fails if any cannot be read."""
     return [
-        Recording(path)
+        SoundRecording(path)
         for path in glob.glob(os.path.join(directory, '*.wav'))
     ]
 
 
 def convert(path_in, path_out, audio=settings.audio):
-    """Converts a pure WAV recording to a `Recording` recording."""
+    """Converts a pure WAV recording to a `SoundRecording` recording."""
     wav = wave.open(path_in, 'rb')
     assert wav.getnchannels() == 1, wav.getnchannels()
     assert wav.getframerate() == audio.rate, wav.getframerate()
     assert wav.getsampwidth() == audio.sampwidth, wav.getsampwidth()
-    rec = Recording(path_out, audio)
+    rec = SoundRecording(path_out, audio)
     ldata = None
     while True:
         data = wav.readframes(audio.hop_size)
