@@ -165,13 +165,13 @@ while running:
                 record.close()
                 record = None
             input_streamer.freeze(True)
-            playback = recording.Recording.from_name(data['playback'])
+            playback = recording.SoundRecording.from_name(data['playback'])
             logger.info('loaded %r path=%s', playback, playback.path)
         else:
             input_streamer.freeze(False)
     if 'record' in data:
         if data['record']:
-            record = recording.Recording.from_name(data['record'])
+            record = recording.SoundRecording.from_name(data['record'])
             logger.info('recording %r path=%s', record, record.path)
             playback = None
             input_streamer.freeze(False)
