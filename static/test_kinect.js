@@ -26,4 +26,4 @@ const network = function () {
   }
 }()
 
-Kinect('#test', { network })
+Kinect('#kinect', { network })

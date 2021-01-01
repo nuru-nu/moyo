@@ -1,7 +1,6 @@
 
 import { Dump } from './smanmi/monitor.js'
 import { Transients } from './widgets.js'
-import { Kinect } from './kinect.js'
 import { Rec } from './recording.js'
 
 const recs = [
@@ -72,8 +71,6 @@ const network = function () {
         transients.get(transient).push(dict[transient])
       }
     })
-    // kinect
-    if (signals.people_override) signals.people = signals.people_override
     // recording
     if (dict.rec_action) {
       let m = dict.rec_action.match(/^play=(.*)/)
@@ -149,6 +146,6 @@ const network = function () {
 }()
 
 // Kinect('#test', { network })
-Rec('#test', { network })
+Rec('#recording', { network })
 Dump('#dump', { network })
 Transients('#dump', { network, defs })
