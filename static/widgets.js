@@ -429,11 +429,14 @@ export const Transients = (output, {network, defs}) => {
     update()
   })
 
+  const value_length = 30
   function listener(data) {
     let now = new Date().toTimeString().substr(0, 9)
     transients.forEach(transient => {
       if (data[transient] && data[transient].length !== 0) {
-        const text = `${now} ${transient}: ${data[transient]}`
+        let value = data[transient].replace('\n', '\\n')
+        if (value.length > value_length) value = value.substr(0, value_length - 3) + '...'
+        const text = `${now} ${transient}: ${value}`
         const el = h.div().of(text).el
         if (!matches(text)) el.classList.add('h')
         disp.output.insertBefore(el, disp.output.firstChild)
