@@ -2,6 +2,7 @@ Pillow
 PyAudio
 PyCmdMessenger
 aiohttp
+functiontrace
 jupyterlab
 matplotlib
 mypy
