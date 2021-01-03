@@ -55,6 +55,10 @@ class State:
 class Css(L.Signal):
     """Continuous State Space (-1..+1)."""
 
+    alpha: float
+    beta: float
+    gamma: float
+
     def init(self, alpha=10, beta=200, gamma=100):
         """Time constants for target (alpha) and zero (beta)."""
         self.valence = self.valence0 = 0
@@ -84,7 +88,9 @@ class Css(L.Signal):
 class CssAction(L.Signal):
     """Emits CSS related actions."""
 
-    def init(self, threshold):
+    threshold: float
+
+    def init(self, threshold: float):
         pass
 
     def call(self, css, scene):
@@ -97,6 +103,8 @@ class CssAction(L.Signal):
 
 class SonarAction(L.Signal):
     """Emits sonar related actions."""
+
+    threshold: float
 
     def init(self, threshold=0.5):
         self.on = False
