@@ -25,11 +25,11 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Rec('#recording', {network})
   Vars('#vars', {network, defs})
   Sound('#sound', {network, defs})
-  let subsample = Subsample('#subsample')
+  // Subsample('#subsample')
   Sonar('#sonar', {network})
   Kinect('#kinect', {network})
   Css('#css', {network})
-  Recorder('#recorder', {network, defs})
+  // Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
   Transients('#transients', {network, defs})
 
@@ -42,6 +42,5 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
 
   Debug('#debug', { network, record_timestamps })
   midi.sendto(network.sender)
-  subsample.sendto(network.sender)
 
 })
