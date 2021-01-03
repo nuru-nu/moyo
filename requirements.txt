@@ -12,6 +12,6 @@ pylint
 pytest
 rtmidi_python
 scipy
-serial
+pyserial
 #tensorflow==2.1.0
 yapf
