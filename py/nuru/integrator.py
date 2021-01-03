@@ -92,6 +92,9 @@ class Integrator:
 
         for name, value in signals.items():
             if name in self.transients:
+                if len(self.transients[name]) > 5:
+                    logger.warning('Ignoring transient: %s', name)
+                    continue
                 self.transients[name].append(value)
             else:
                 self.signals[name] = value
