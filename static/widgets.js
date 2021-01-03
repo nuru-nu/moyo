@@ -9,13 +9,8 @@ export const Sonar = (output, {network}) => {
 
   let override = false
   disp.sonar.style.display = 'none'
-  function toggle_ui() {
-    override = !override
-    disp.override.classList.toggle('on')
-    disp.sonar.style.display = override ? 'block' : 'none'
-  }
   disp.override.addEventListener('click', () => {
-    toggle_ui();
+    override = !override
     update()
   })
   disp.sonar.addEventListener('input', update)
@@ -28,8 +23,10 @@ export const Sonar = (output, {network}) => {
     network.sender({sonar_override: parseInt(disp.sonar.value) / 100})
   }
   network.listenJson('signals', function(data) {
-    if (data.sonar_override && !override) {
-      toggle_ui();
+    const sonar_override = data.hasOwnProperty('sonar_override') && data.sonar_override !== null
+    if (sonar_override !== disp.override.classList.contains('on')) {
+      disp.override.classList.toggle('on')
+      disp.sonar.style.display = override ? 'block' : 'none'
     }
     disp.sonar.value = 100 * data.sonar
   })
