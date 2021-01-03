@@ -120,7 +120,7 @@ action_signals = dict(
     flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
-    css_action=state.CssAction(threshold=0.5),
+    css_action=state.CssAction(threshold=0.0),
     sonar_action=state.SonarAction(threshold=0.3),
 )
 
@@ -133,7 +133,7 @@ animation_signals = dict(
 
 kinect_signals = dict(
     people=S.Overridable(L.Named('people_sensor'), L.Named('people_override')),
-    closest=S.KinectDistance() | S.With(2.5) | S.Min() | S.To(1, 0, 0, 3),
+    closest=S.KinectDistance() | S.With(3.8) | S.Min() | S.From(4, 0) | S.F(S.sinramp),
 )
 
 numbers_features = dict(
@@ -189,7 +189,7 @@ defaults = dict(
     v2=0,
 )
 
-transients = ('action', 'midi', 'signal')
+transients = ('action', 'midi', 'signal', 'event')
 transient_loops = dict(
     css_action='action',
     sonar_action='action',

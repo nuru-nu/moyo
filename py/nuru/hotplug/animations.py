@@ -290,6 +290,6 @@ def S3():
         ))
         # | palette
         | S.Lin(mult=L.Named('arousal'))
-    )
+    ) * (L.Named('arousal') | S.To(0.2, 1))
 
 pixels = A.Mixer(animations)
