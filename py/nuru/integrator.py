@@ -12,6 +12,8 @@ from . import recording
 from . import settings
 from . import state
 
+import functiontrace
+
 
 parser = argparse.ArgumentParser(description='Integrates signals for NURU.')
 parser.add_argument(
@@ -100,6 +102,10 @@ class Integrator:
         #     self.integrate()
 
     def oncmd(self, cmd):
+        if cmd.get('action') == 'trace':
+            functiontrace.trace()
+            return
+        rec_action = cmd.get('rec_action')
         if rec_action:
             self.handle_rec_action(rec_action)
             return
