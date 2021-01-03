@@ -10,16 +10,16 @@ export const Leds = (output, defs, opts) => {
 
   let width=600, height=480
   const sizes = {
-    s: { width: 600, height: 480 },
-    m: { width: 800, height: 600 },
-    l: { width: 1024, height: 768 },
+    s: { width: 320, height: 200 },
+    m: { width: 600, height: 480 },
+    l: { width: 800, height: 600 },
   }
   const rows=32, cols=64, sz=10
 
   const disp = ui.v(
     ui.h(
       ui.choice('view', {values: ['r-phi', 'x-y-z']}),
-      ui.choice('size', {values: Object.keys(sizes), initial: 's'}),
+      ui.choice('size', {values: Object.keys(sizes), initial: 'm'}),
       h.div('xyzcontrols').of(ui.h(
         'fps ',
         ui.dropdown('fps', {values: ['10', '20', '30', '60']}),
@@ -87,8 +87,8 @@ export const Leds = (output, defs, opts) => {
   const ctx = disp.rphi.getContext('2d')
 
   function led(phi, r, col) {
-    const x = width / 2 + Math.sin(phi) * r * 77
-    const y = height / 2 - Math.cos(phi) * r * 77
+    const x = width * 0.58 + Math.sin(phi) * r * width / 9
+    const y = height * 0.53 - Math.cos(phi) * r * height / 7
     ctx.fillStyle = col
     ctx.fillRect(x, y, 3, 3)
   }
