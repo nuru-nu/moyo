@@ -41,7 +41,7 @@ export const Debug = (output, { network, record_timestamps }) => {
   disp.download.style.display = record_timestamps ? 'inline-block' : 'none'
 }
 
-export const Subsample = output => {
+export const Subsample = (output, {network}) => {
   const subsamples = [1, 2, 5, 10, 15, 20, 30]
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('subsample'),
@@ -65,7 +65,7 @@ export const Subsample = output => {
     update()
   })
   function update() {
-    sender({
+    network.sender({
       'recorder': {
         subsample: full ? 1 : parseInt(disp.recorder.value),
       },
@@ -76,14 +76,6 @@ export const Subsample = output => {
   }
   disp.recorder.addEventListener('change', update)
   disp.animator.addEventListener('change', update)
-
-  let sender
-  function sendto(sender_) {
-    sender = sender_
-  }
-  return {
-    sendto,
-  }
 }
 
 export const Cmd = (output, {network}) => {
