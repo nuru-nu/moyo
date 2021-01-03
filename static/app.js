@@ -5,6 +5,7 @@ import { Monitor, Dump } from './smanmi/monitor.js'
 
 import { Sonar, Css, Debug, Cmd, Subsample, Midi, Animation, Vars, Sound, Transients } from './widgets.js'
 import { Recorder } from './recorder.js'
+import { Rec } from './recording.js'
 import { Kinect } from './kinect.js'
 import { Leds } from './leds.js'
 
@@ -21,6 +22,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Dump('#dump', {network})
   Cmd('#cmd', {network, defs})
   Animation('#animation', {network, defs})
+  Rec('#recording', {network})
   Vars('#vars', {network, defs})
   Sound('#sound', {network, defs})
   let subsample = Subsample('#subsample')

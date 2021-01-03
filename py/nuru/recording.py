@@ -1,10 +1,13 @@
 """Utilities for managing audio recordings."""
 
+import datetime
 import glob
+import json
 import os
 import pickle
 import re
-from typing import List, Optional
+import time
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 import wave
 
 import numpy as np  # type: ignore
@@ -13,6 +16,156 @@ from smanmi import util
 from .features import Features, wav2features
 from . import settings
 from .settings import AudioSettings
+
+
+class Recording:
+    """Streams signals with 't' from/to disk.
+    
+    Stored with basepath={settings.rec_dir}/{YYYYMMDD_HHSS}
+    {basepath}.ndjson : stream of signals
+    {basepath}.json : meta info
+    """
+    @classmethod
+    def load(cls, identifier: str) -> Optional['Recording']:
+        basepath = f'{settings.recs_dir}/{identifier}'
+        if os.path.exists(f'{basepath}.ndjson'):
+            rec = cls(basepath)
+            if rec.info['length']:
+                return rec
+        return None
+
+    @classmethod
+    def create(cls) -> 'Recording':
+        now = datetime.datetime.now().strftime('%Y%m%d_%H%S')
+        basepath = f'{settings.recs_dir}/{now}'
+        rec = cls(basepath)
+        assert not rec.reading, rec.basepath
+        return rec
+
+    @classmethod
+    def read_recs(cls) -> List[Dict[str, Any]]:
+        infos = []
+        for path in glob.glob(f'{settings.recs_dir}/*.json'):
+            ndjson_path = '.'.join(path.split('.')[:-1] + ['ndjson'])
+            if os.path.exists(ndjson_path):
+                with open(path, encoding='utf8') as f:
+                    info = json.load(f)
+                    if info['length']:
+                        infos.append(info)
+        infos.sort(key=lambda info: -info['start'])
+        return infos
+
+    def __init__(self, basepath: str):
+        self.basepath = basepath
+        self.ndjsonpath = f'{basepath}.ndjson'
+        self.jsonpath = f'{basepath}.json'
+        if os.path.exists(self.ndjsonpath):
+            self.reading = True
+            # Note: cannot do nonzero end-relative seek() with encoding.
+            self.loadinfo()
+            self.fin = open(self.ndjsonpath, 'rb')
+        else:
+            self.reading = False
+            self.fout = open(self.ndjsonpath, 'w', encoding='utf8')
+            self.info : Dict[str, Any] = dict(
+                id=os.path.basename(self.basepath),
+                name='',
+                comments='',
+                signals=[],
+                length=0,
+                start=None,
+                stop=None,
+            )
+            self.signals: Set[str] = set()
+            self.saveinfo()
+            self.lastsignals : Dict[str, Any] = {}
+
+    def close(self):
+        assert not self.reading, self.basepath
+        self.saveinfo()
+        self.fout.close()
+
+    def saveinfo(self):
+        with open(self.jsonpath, 'w', encoding='utf8') as f:
+            json.dump(self.info, f)
+
+    def loadinfo(self):
+        with open(self.jsonpath, encoding='utf8') as f:
+            self.info = json.load(f)
+
+    def write(self, signals: Dict[str, Any], transients: Iterable[str]):
+        assert not self.reading, self.basepath
+        signals = {
+            name: signal
+            for name, signal in signals.items() if name != 't' and (
+                name in transients or signal != self.lastsignals.get(name))
+        }
+        if not signals:
+            return
+        t = time.time()
+        signals = dict(t=t, **signals)
+        newsigs = set(signals).difference('t').difference(self.signals)
+        if newsigs:
+            self.signals = self.signals.union(newsigs)
+            self.info['signals'] = sorted(list(self.signals))
+            self.saveinfo()
+        if self.info['start'] is None:
+            self.info['start'] = t
+        if self.info['stop'] is not None:
+            assert self.info['stop'] <= t, (self.basepath, self.info['stop'],
+                                            signals['t'])
+        self.info['stop'] = t
+        assert not self.reading, self.basepath
+        line = json.dumps(signals) + '\n'
+        self.fout.write(line)
+        self.info['length'] += len(line)
+        self.lastsignals.update(signals)
+
+    def restart(self):
+        self.fin.seek(0)
+
+    def next(self) -> Dict[str, Any]:
+        assert self.reading, self.basepath
+        line = self.fin.readline().decode('utf8')
+        if not line:
+            raise StopIteration
+        return json.loads(line)
+
+    def _readat(self,
+                pos: int,
+                backoff: int = 100) -> Tuple[int, Dict[str, Any]]:
+        while True:
+            self.fin.seek(pos)
+            pos_corrected = pos
+            buf = self.fin.readline()
+            if buf:
+                pos_corrected += len(buf)
+                buf = self.fin.readline()
+                if buf:
+                    return pos_corrected, json.loads(buf.decode('utf8'))
+            pos -= backoff
+
+    def seek(self, t: float):
+        assert self.reading, self.basepath
+        at, bt = self.info['start'], self.info['stop']
+        assert at <= t <= bt, (at, t, bt)
+        apos, bpos = 0, self.info['length']
+        while True:
+            pos = int((apos + bpos) / 2)
+            pos, signals = self._readat(pos)
+            if t < signals['t']:
+                if bpos == pos:
+                    break
+                bt, bpos = signals['t'], pos
+            else:
+                if apos == pos:
+                    break
+                at, apos = signals['t'], pos
+        # should search binarily here ... but we don't really need the precision
+        self.fin.seek(pos)
+
+    def __str__(self) -> str:
+        return f'{self.__class__.__name__}({self.basepath})'
 
 
 class SoundRecording:
@@ -35,9 +188,7 @@ class SoundRecording:
         process(feats)
       plt.plot(rec2.logmel.T)
     """
-
-    def __init__(
-            self, path: str, audio: AudioSettings = settings.audio):
+    def __init__(self, path: str, audio: AudioSettings = settings.audio):
         """Creates a new recording.
 
         If the path exists, then the recording is read (failing if it is not
@@ -114,8 +265,8 @@ class SoundRecording:
 
     def seek(self, t: float):
         assert not self.writing
-        self.i = max(0, min(len(self.logmel) - 1,
-                            int(t / self.audio.hop_secs)))
+        self.i = max(0,
+                     min(len(self.logmel) - 1, int(t / self.audio.hop_secs)))
 
     def read(self, loop: bool = False) -> Optional[Features]:
         if self.i >= len(self.logmel):
@@ -126,9 +277,10 @@ class SoundRecording:
         wav = self.wav.readframes(self.audio.hop_size)
         wav = np.frombuffer(wav, self.audio.dtype_np)
         wav = util.int16_to_float(wav)
-        features = Features(
-            wav=wav, logmel=self.logmel[self.i], mfccs=self.mfccs[self.i],
-            logmel2=None)
+        features = Features(wav=wav,
+                            logmel=self.logmel[self.i],
+                            mfccs=self.mfccs[self.i],
+                            logmel2=None)
         self.i += 1
         return features
 
@@ -137,7 +289,7 @@ class SoundRecording:
         n = self.logmel.shape[0]
         d = max(1, n / length)
         arr = np.array([
-            self.logmel[int(i): int(i + d)].mean()
+            self.logmel[int(i):int(i + d)].mean()
             for i in np.linspace(0, n, int(length), endpoint=False)
         ])
         return (arr - arr.min())
