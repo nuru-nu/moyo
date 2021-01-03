@@ -39,6 +39,7 @@ const Simulating = (pr) => {
     ++id
     const p = Person(id)
     people.set(id, p)
+    click(p.data.x, p.data.y)
   }
   function del() {
     if (!id) return
