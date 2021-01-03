@@ -1,7 +1,25 @@
 
 import { h, u, ui, debounce } from './smanmi/util.js'
+import { DiscreteInterpolant } from './threejs/three.module.js'
 
 const secs_to_timestr = secs => new Date(1000 * secs).toTimeString().substr(0, 8)
+
+const secs_to_human = secs => {
+  let s = ''
+  if (secs > 3600) {
+    s += `${Math.floor(secs/3600)}h`
+    secs %= 3600
+  }
+  if (secs > 60) {
+    s += `${Math.floor(secs/60)}m`
+    secs %= 60
+  }
+  secs = Math.round(secs)
+  if (secs) {
+    s += `${secs}s`
+  }
+  return s
+}
 
 const Progressbar = () => {
   const disp = h.div('cont', { class: 'flex' }).of(
@@ -41,11 +59,12 @@ export const Rec = (output, { network }) => {
       h.div('idle').of(
         h.button('record', { style: 'color:red' }).of('● rec'),
         h.button('play').of('▶ play'),
-      ),
-
-      h.div('choice').of(
-        h.select('recs').of(h.option().of('blah')), ' ',
-        h.button('play2').of('▶ play'),
+        ),
+        
+        h.div('choice').of(
+          h.select('recs'), ' ',
+          h.button('play2').of('▶ play'), ' ',
+          h.button('cancel').of('cancel'),
       ),
 
       h.div('recording').of(
@@ -69,7 +88,8 @@ export const Rec = (output, { network }) => {
 
       h.div('common').of(
         h.div().of(
-          'name: ', h.input('name', { type: 'text' }),
+          'id=', h.span('id'),
+          ' name: ', h.input('name', { type: 'text' }),
         ),
         h.div().of('comments:'),
         h.textarea('comments', { class: 'comments' }),
@@ -93,7 +113,7 @@ export const Rec = (output, { network }) => {
     if (loading) return loading_promise
     loading = true
     loading_promise = new Promise((resolve, reject) => {
-      network.fetch('/recs').then(recs_ => {
+      network.fetch('/recs').then(resp => resp.json()).then(recs_ => {
         recs = recs_
         loading = false
         resolve()
@@ -122,7 +142,9 @@ export const Rec = (output, { network }) => {
     reload().then(() => {
       u.empty(disp.recs)
       recs.forEach(rec => {
-        h.option({value: rec.id}).of(`${rec.id} - ${rec.name}`).into(disp.recs)
+        const duration = secs_to_human(rec.stop - rec.start)
+        const text = `${rec.id} - ${duration} - ${rec.name}`
+        h.option({value: rec.id}).of(text).into(disp.recs)
       })
       show('choice')
     })
@@ -133,6 +155,7 @@ export const Rec = (output, { network }) => {
     if (!disp.recs.value) return
     network.sender({rec_action: `play=${disp.recs.value}`})
   })
+  disp.cancel.addEventListener('click', () => show('idle'))
   disp.stop2.addEventListener('click', e => {
     update_name()
     update_comments()
@@ -164,6 +187,7 @@ export const Rec = (output, { network }) => {
         // start playing
         play = recs.filter(rec => rec.id === data.rec_state.play)[0]
         pbar.set(play)
+        disp.id.textContent = data.rec_state.play
         disp.name.value = play.name
         disp.comments.value = play.comments
         u.empty(disp.signals)
@@ -179,14 +203,15 @@ export const Rec = (output, { network }) => {
       Object.keys(signals).forEach(
         signal => signals[signal].classList[
           enabled.has(signal) ? 'add' : 'remove']('on'))
-      pbar.sett(data.t)
-      disp.play_at.textContent = secs_to_timestr(data.t)
+      pbar.sett(data.rec_state.t)
+      disp.play_at.textContent = secs_to_timestr(data.rec_state.t)
     }
     if (data.rec_state && data.rec_state.start) {
       // recording
       if (!start) {
         // start recording
         start = data.rec_state.start
+        disp.id.textContent = '(NEW)'
         disp.name.value = ''
         disp.comments.value = ''
         show('recording', 'common')

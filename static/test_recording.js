@@ -47,8 +47,11 @@ const network = function () {
   let ongoing = null  // (obj) currently recording
   const ms = 50
   function tick() {
-    data.signals.t += ms / 1000
-    if (play && data.signals.t > play.stop) data.signals.t = play.start
+    data.signals.t = Date.now() / 1000
+    if (play) {
+      data.signals.rec_state.t += ms / 1000
+      if (data.signals.rec_state.t > play.stop) data.signals.rec_state.t = play.start
+    }
     Array.from(transients.keys()).forEach(transient => {
       const l = transients.get(transient)
       if (l.length) {
@@ -79,8 +82,8 @@ const network = function () {
         signals.rec_state = {
           play: play.id,
           enabled: [],
+          t: play.start,
         }
-        signals.t = play.start
       }
       m = dict.rec_action.match(/^toggle=(.*)/)
       if (play && m) {
@@ -95,7 +98,7 @@ const network = function () {
       m = dict.rec_action.match(/^t=(.*)/)
       if (play && m) {
         const t = Math.min(play.stop, Math.max(play.start, parseFloat(m[1])))
-        data.signals.t = t
+        data.signals.rec_state.t = t
       }
       m = dict.rec_action.match(/^name=(.*)/)
       if (m) {
@@ -109,14 +112,12 @@ const network = function () {
       }
       if (dict.rec_action === 'start') {
         play = null
-        signals.t = Date.now() / 1000
         ongoing = { id: secs_to_id(signals.t), start: signals.t, name: '', comments: '' }
         signals.rec_state = { start: signals.t }
       }
       if (dict.rec_action === 'stop') {
         if (play) {
           play = null
-          signals.t = Date.now() / 1000
         }
         if (ongoing) {
           ongoing.stop = signals.t
@@ -131,8 +132,10 @@ const network = function () {
 
   function fetch(path) {
     if (path === '/recs') {
-      return Promise.resolve(JSON.parse(JSON.stringify(recs)))
-    }
+      return Promise.resolve({
+          json: () => Promise.resolve(JSON.parse(JSON.stringify(recs))),
+        })
+      }
     return Promise.reject()
   }
 
