@@ -123,6 +123,14 @@ async def send_defs(request):
         ))))
 
 
+async def send_recs(request):
+    del request
+    return web.Response(
+        content_type='Application/JSON',
+        text=json.dumps(recording.Recording.read_recs()),
+        )
+
+
 client = None
 if args.fadecandy:
     client = opc.Client('localhost:7890')
@@ -143,5 +151,6 @@ server.forward_udp(UdpForwarding(
 server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/defs', send_defs))
+server.routes.append(web.get('/recs', send_recs))
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())

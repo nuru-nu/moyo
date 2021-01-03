@@ -143,13 +143,19 @@ root_dir = os.path.join(os.path.dirname(__file__), '..', '..')
 recordings_dir = os.path.join(root_dir, 'recordings')
 abase_cache_dir = os.path.join(root_dir, '.abase_cache')
 recorder_dir = os.path.join(recordings_dir, 'recorder')
-signalin_dir = os.path.join(recordings_dir, 'signalin')
+recs_dir = os.path.join(recordings_dir, 'recs')
 timetraces_dir = os.path.join(recordings_dir, 'timetraces')
 samples_dir = os.path.join(root_dir, 'data', 'samples')
 
 model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
 kinect_mapping_path = os.path.join(
     root_dir, 'blender', 'data', 'kinect_mapping.json')
+
+
+# integrator
+###############################################################################
+
+integrator_fps = 25
 
 
 # animation

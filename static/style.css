@@ -40,8 +40,8 @@
   background: transparent;
 }
 
-#right > * {
-  margin-bottom: 30px;
+.inner > * {
+  margin-bottom: 20px;
 }
 
 #leds {
