@@ -146,7 +146,7 @@ cv::Mat Hardware::get_user_pixels(){
       }
     }
   }
-  delete pLabels;
+  // delete pLabels;
   return user_pixels;
 }
 
