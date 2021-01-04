@@ -462,14 +462,14 @@ class PositionIdentify(L.Signal):
     COLORS = np.concatenate([
         np.zeros((60, 3), dtype='uint8') + col
         for col in (
-            (1, 0, 0),
-            (0, 1, 0),
-            (0, 0, 1),
-            (1, 1, 0),
-            (1, 0, 1),
-            (0, 1, 1),
-            (1, 1, 1),
-            (0.3, 0.3, 0.3),
+            (1, 0, 0), # 0 red
+            (0, 1, 0), # 1 green
+            (0, 0, 1), # 2 blue
+            (1, 1, 0), # 3 yellow
+            (1, 0, 1), # 4 magenta
+            (0, 1, 1), # 5 turquise
+            (1, 1, 1), # 6 white
+            (0.3, 0.3, 0.3), # 7 gray
         )
     ])
 

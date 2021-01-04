@@ -269,41 +269,12 @@ arm_configs = [
 FcPos = collections.namedtuple('FcPos', ['fadecandy', 'pos'])
 
 arm_mapping = {
-    'arm_5-1': [FcPos(2, 0), FcPos(2, 2)],
-    'arm_5-2': [FcPos(2, 1), FcPos(2, 3)],
-    'arm_4-1': [FcPos(2, 4)],
-    'arm_4-2': [FcPos(2, 5)],
-    'arm_3-1': [FcPos(2, 6), FcPos(3, 0)],
-    'arm_3-2': [FcPos(2, 7), FcPos(3, 1)],
-    'arm_2-1': [FcPos(3, 2)],
-    'arm_2-2': [FcPos(3, 3)],
-    'arm_1-1': [FcPos(3, 4)],
-    'arm_1-2': [FcPos(3, 5)],
-    'arm_6-1': [FcPos(3, 6)],
-    'arm_6-2': [FcPos(3, 7)],
-}
-
-
-# Arduino
-###############################################################################
-
-arduino_ports = [
-    "/dev/ttyACM0",
-    "/dev/ttyACM1",
-    "/dev/cu.usbmodem14344201",
-    "/dev/tty.usbmodem143344201",
-]
-sonar_hz = 4
-
-FcPos = collections.namedtuple('FcPos', ['fadecandy', 'pos'])
-
-arm_mapping = {
-    'arm_5-1': [FcPos(2, 0), FcPos(2, 2)],
-    'arm_5-2': [FcPos(2, 1), FcPos(2, 3)],
-    'arm_4-1': [FcPos(2, 4)],
-    'arm_4-2': [FcPos(2, 5)],
-    'arm_3-1': [FcPos(2, 6), FcPos(3, 0)],
-    'arm_3-2': [FcPos(2, 7), FcPos(3, 1)],
+    'arm_5-1': [FcPos(2, 1), FcPos(2, 6)],
+    'arm_5-2': [FcPos(2, 0), FcPos(2, 7)],
+    'arm_4-1': [FcPos(2, 2)],
+    'arm_4-2': [FcPos(2, 3)],
+    'arm_3-1': [FcPos(2, 4), FcPos(3, 0)],
+    'arm_3-2': [FcPos(2, 5), FcPos(3, 1)],
     'arm_2-1': [FcPos(3, 2)],
     'arm_2-2': [FcPos(3, 3)],
     'arm_1-1': [FcPos(3, 4)],
