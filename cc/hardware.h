@@ -22,7 +22,7 @@ class Hardware {
     // Also initializes Kinect and exits program in case of error.
     Hardware();
 
-    int load_extrinsic_matrix(std::string path);
+    void load_extrinsic_matrix(std::string path);
 
     // Waits for another frame. Returns `false` in case of error.
     int next();
