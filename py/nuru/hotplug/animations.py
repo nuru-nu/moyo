@@ -107,8 +107,8 @@ def into():
 @anim
 def wheel():
     return (
-        A.Phi() | S.Lin(L.Named('std2')) | S.Mod(1)
-        | P.Palette(P.super_red) | S.Lin(mult=0.2)
+        A.Phi() | S.Lin(L.Named('v0') | S.Int(mod=1)) | S.Mod(1)
+        | state_palette | S.Lin(mult=0.2)
     )
 
 
@@ -244,18 +244,17 @@ def noise():
 def img():
     return A.Proj(
         S.Dict(L.Named('image'), images),
-        scale=L.Named('v0'),
+        scale=L.Named('v0') | S.To(0, 2),
         rotate=L.Named('v1') | S.To(-180, 180),
-        dx=L.Named('v2') | S.To(-.01, .01),
-    ) | S.To(0, L.Named('arousal'))
+    ) | S.To(0, L.Named('v2'))
 
 @anim
 def rotimg():
     return A.Proj(
         S.Dict(L.Named('image'), images),
         scale=L.Named('v0')  | S.Int(mod=2) | S.Tocos() | S.To(1, 1.5),
-        rotate=L.Named('closest') | S.To(0, 50) | S.Int(mod=360),
-    ) | S.To(0, L.Named('closest'))
+        rotate=L.Named('v1') | S.To(0, 50) | S.Int(mod=360),
+    ) | S.To(0, L.Named('v2'))
 
 
 def make_image(image):
