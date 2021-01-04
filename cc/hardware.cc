@@ -67,7 +67,7 @@ void Hardware::recorder(){
 
   if (int(rec_names_.size()) == nr_rec_frames_){
     for(int i = 0; i < int(rec_names_.size()); i++){
-      std::cout << "pcl_" + rec_names_[i] << std::endl;
+      // std::cout << "pcl_" + rec_names_[i] << std::endl;
       pcl::PLYWriter writer;
       writer.write(rec_path_ + "/pcl_" + rec_names_[i] + ".ply", *pointclouds_[i], false, false);
     }
@@ -190,10 +190,10 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                                               (float) y,
                                                               (float) z)));
 
-    std::cout << "Point3d - " <<
-                    (float) x << ", " <<
-                    (float) y << ", " <<
-                    (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
+    // std::cout << "Point3d - " <<
+    //                 (float) x << ", " <<
+    //                 (float) y << ", " <<
+    //                 (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
 
     // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
     // {
@@ -287,7 +287,7 @@ void Hardware::convertDepthCoordinatesToWorld(int r, int c, float depth,
 
   const float depth_val = depth / 1000.0f; //scaling factor, so that value of 1 is one meter.
 
-  std::cout << "depth_val: " << depth_val << std::endl;
+  // std::cout << "depth_val: " << depth_val << std::endl;
 
   x = -(c + 0.5 - cx) * fx * depth_val / 100000.0f;
   y = (r + 0.5 - cy) * fy * depth_val / 100000.0f;
