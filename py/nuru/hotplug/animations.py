@@ -18,7 +18,7 @@ importlib.reload(P)
 images = {
     path.split('/')[-1].split('.')[0]: np.array(PIL.Image.open(
         path))[..., :3] / 256
-    for path in glob.glob('images/*')
+    for path in sorted(glob.glob('images/*'))
 }
 
 palettes = {
