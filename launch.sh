@@ -29,10 +29,10 @@ tmux send-keys "./run nuru.integrator --midi_address=$(getip mbp.local)" $CM
 ## column 2
 tmux selectp -R
 # row 1
-tmux send-keys "./run nuru.server --server_address=${SERVER} --fadecandy" $CM
+tmux send-keys "sleep 3; ./run nuru.server --server_address=${SERVER} --fadecandy" $CM
 # row 2
 tmux splitw -p 75
-tmux send-keys '(cd fadecandy; sudo ./fcserver config.json)' $CM
+tmux send-keys '(cd fadecandy; ./fcserver config.json)' $CM
 # row 3
 tmux splitw -p 66
 tmux send-keys './run nuru.dmx' $CM
