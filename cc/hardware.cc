@@ -34,30 +34,34 @@ Hardware::Hardware(void) {
   }
 
   std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
-  printf("Found trafo %s \n", default_trafo_path.c_str());
-  if (load_extrinsic_matrix(default_trafo_path) < 0){
-      printf("Couldnt find trafo at default path\n");
-      printf("Needs to be explicitly defined with load_extrinsic_matrix(std::string path)\n");
-  }
+  load_extrinsic_matrix(default_trafo_path);
 }
 
-int Hardware::load_extrinsic_matrix(std::string path){
+void Hardware::load_extrinsic_matrix(std::string path){
   std::ifstream in(path);
   std::string str = "";
   std::string tmp;
 
-  if(in.fail())
-    return -1;
+  printf("Loading trafo %s \n", path.c_str());
 
+  if(in.fail()) {
+    printf("\n### FATAL : Cannot open trafo file !!\n\n");
+    exit(1);
+  }
   while (getline(in, tmp)) str += tmp;
+
   jute::jValue v = jute::parser::parse(str);
+  printf("scan_name=%s\n", v["scan_name"].as_string().c_str());
+  if (v["world_matrix"].size() != 4 || v["world_matrix"][0].size() != 4) {
+    printf("\n### FATAL : Expected world_matrix of dimension 4x4 !!\n\n");
+    exit(1);
+  }
   for(int rdx=0; rdx<v["world_matrix"].size(); rdx++) {
     for(int cdx=0; cdx<v["world_matrix"][0].size(); cdx++) {
       trafo_.at<double>(rdx, cdx) = v["world_matrix"][rdx][cdx].as_double();
+      std::cout << "trafo[" << rdx << "," << cdx << "]=" << trafo_.at<double>(rdx, cdx) << std::endl;
     }
   }
-
-  return 1;
 }
 
 void Hardware::recorder(){
