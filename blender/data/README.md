@@ -9,3 +9,4 @@
 - kinect_trafo_1.json : attic trafo marked "1" on the floor - for some
   mysterious reason this one is NOT WORKING (at least the Y direction is
   switched).
+- kinect_trafo_2.json : attic trafo marked "2" on the floor 
