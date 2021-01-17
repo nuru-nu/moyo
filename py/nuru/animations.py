@@ -89,6 +89,29 @@ class MidiMixer(L.Signal):
         return self.lanim(**signals) * (1 - v) + v * self.anim(**signals)
 
 
+# mixing
+###############################################################################
+
+class Max(L.Signal):
+    """Keeps maximum of RGB values from provided animations."""
+
+    def init(self, anim1, anim2):
+        pass
+
+    def call(self):
+        return np.transpose([self.anim1, self.anim2], [1, 2, 0]).max(axis=-1)
+
+
+class Sum(L.Signal):
+    """Sums RGB values from provided animations."""
+
+    def init(self, anim1, anim2):
+        pass
+
+    def call(self):
+        x = np.transpose([self.anim1, self.anim2], [1, 2, 0]).sum(axis=-1)
+        return np.clip(x, 0, 1)
+
 # animation combiners
 ###############################################################################
 
@@ -99,7 +122,6 @@ def add(anims):
 
 # simple animations
 ###############################################################################
-
 
 class Ones(L.Signal):
     """All pixels same value."""
@@ -145,7 +167,6 @@ class PhiPalette(L.Signal):
 
 # gaussians
 ###############################################################################
-
 
 class GaussianActivation(L.Signal):
 
