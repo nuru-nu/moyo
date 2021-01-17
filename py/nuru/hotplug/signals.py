@@ -122,6 +122,7 @@ action_signals = dict(
     into=Into(),
     css_action=state.CssAction(threshold=0.0),
     sonar_action=state.SonarAction(threshold=0.3),
+    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.1, 0.8),
 )
 
 animation_signals = dict(
@@ -208,7 +209,7 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['heart', 'sonar'],
+    selected=['heart', 'sonar', 'charge'],
     features=dict(numbers=numbers_features.keys()),
     hidden=[
         # state
