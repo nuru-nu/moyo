@@ -130,7 +130,7 @@ heart_palette = P.parse_colors_hex([
 @anim
 def heart():
     return (
-        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.2)
+        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.5)
         | S.Lin(0, L.Named('heart'))
         | P.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
@@ -255,13 +255,13 @@ def charge():
     # 1. growing brighter
     # 2. turning faster
     # 3. inside out aditional layers (keep brightest superpos)
-    rot1 = L.Named('charge') | S.To(0, 50) | S.Int(mod=360)
-    rot2 = L.Named('charge') | S.To(0, 70) | S.Int(mod=360)
+    rot1 = L.Named('charge') | S.To(0, 100) | S.Int(mod=360)
+    rot2 = L.Named('charge') | S.To(0, 120) | S.Int(mod=360)
     anim1 = A.Proj(images['supernova1'], scale=9.0, rotate=rot1)
     anim1 = anim1 | S.To(0, L.Named('charge') | S.To(0.8, 1))
     anim2 = A.Proj(images['covid_nmn'], scale=0.6, rotate=rot2)
     anim2 = anim2 | S.To(0, L.Named('charge') | S.From(0.5, 1) | S.To(0, 0.8) | S.Clip())
-    return A.Sum(anim1, anim2)
+    return A.Sum(anim1, anim2) + heart()
 
 @anim
 def rotimg():
