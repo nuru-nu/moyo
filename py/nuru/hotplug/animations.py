@@ -248,11 +248,26 @@ def img():
         rotate=L.Named('v1') | S.To(-180, 180),
     ) | S.To(0, L.Named('v2'))
 
+
+@anim
+def charge():
+    # Abelton charging sound
+    # 1. growing brighter
+    # 2. turning faster
+    # 3. inside out aditional layers (keep brightest superpos)
+    rot1 = L.Named('charge') | S.To(0, 50) | S.Int(mod=360)
+    rot2 = L.Named('charge') | S.To(0, 70) | S.Int(mod=360)
+    anim1 = A.Proj(images['supernova1'], scale=9.0, rotate=rot1)
+    anim1 = anim1 | S.To(0, L.Named('charge') | S.To(0.8, 1))
+    anim2 = A.Proj(images['covid_nmn'], scale=0.6, rotate=rot2)
+    anim2 = anim2 | S.To(0, L.Named('charge') | S.From(0.5, 1) | S.To(0, 0.8) | S.Clip())
+    return A.Sum(anim1, anim2)
+
 @anim
 def rotimg():
     return A.Proj(
         S.Dict(L.Named('image'), images),
-        scale=L.Named('v0')  | S.Int(mod=2) | S.Tocos() | S.To(1, 1.5),
+        scale=L.Named('v0') | S.To(0, 10),#  | S.Int(mod=2) | S.Tocos() | S.To(1, 1.5),
         rotate=L.Named('v1') | S.To(0, 50) | S.Int(mod=360),
     ) | S.To(0, L.Named('v2'))
 

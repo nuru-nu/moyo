@@ -38,9 +38,9 @@ def signal2midi(action: str) -> Sequence[midi.Command]:
         return onoff('F2')
     elif action == 'scene=stop':
         return onoff('B2')
-    elif action == 'growl=on':
+    elif action == 'charge=on':
         return on('C3', channel=2)
-    elif action == 'growl=off':
+    elif action == 'charge=off':
         return off('C3', channel=2)
     return ()
 
@@ -48,8 +48,10 @@ def signal2midi(action: str) -> Sequence[midi.Command]:
 def midi2signal(command: str) -> Sequence[Dict[str, str]]:
     # Heart
     for cmd in ('on', 'off'):
-        for note in ('A', 'C', 'E', 'G#', 'C'):
+        for note in ('A', 'C', 'D#', 'E', 'G#', 'C'):
             if command == midi.Command(f'1: {note}1 {cmd}'):
+                return (dict(event=f'heart {cmd}'),)
+            if command == midi.Command(f'1: {note}3 {cmd}'):
                 return (dict(event=f'heart {cmd}'),)
     return ()
 
