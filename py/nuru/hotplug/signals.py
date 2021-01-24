@@ -92,6 +92,7 @@ generated_signals = dict(
     std3=S.Saw(hz=0.5),
     saw_slow=S.Saw(hz=0.05),
     cos2_slow=S.Saw(hz=0.2) | S.Lin(mult=2) | S.Tocos(),
+    rnd1=S.RndWalk(60) | S.MovingAverage(n=10),
     drone1=(S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
             | S.InState('std') | S.MovingAverage(secs=0.5)),
     drone2=(S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
@@ -187,9 +188,9 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
-    v0=0,
-    v1=0,
-    v2=0,
+    v0=0.5,
+    v1=0.5,
+    v2=0.5,
 )
 
 transients = ('action', 'midi', 'signal', 'event')
@@ -212,7 +213,7 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['heart', 'sonar', 'charge'],
+    selected=['heart', 'sonar', 'charge', 'rnd1'],
     features=dict(numbers=numbers_features.keys()),
     hidden=[
         # state
