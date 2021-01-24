@@ -44,18 +44,29 @@ def anim(func):
 
 
 @anim
+def test():
+    return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(min=0.05, std=0.5)
+
+
+@anim
 def R():
     return (
-        # A.R() | L.Named('v0')  | S.Int(mod=1)
         A.R() | S.Lin(
-            L.Named('closest') | S.To(0, 3) | S.Int(mod=1)
-            # L.Named('std2')
+            L.Named('v0') | S.To(0, 3) | S.Int(mod=1)
         ) | S.Mod(1)
-        # | P.AllPalettes(L.Named('valence'))
-        # | P.Palette(P.gabe_red)
         | palette
-        | S.Lin(mult=L.Named('closest'))
-    ) | A.GaussianActivation(std=1)
+        | S.Lin(mult=L.Named('v1'))
+    )
+
+
+@anim
+def R2():
+    return (
+        A.R() | S.Lin(
+            L.Named('v0') | S.To(0, 3) | S.Int(mod=1)
+        ) | S.Mod(1)
+        | palette
+    ) | A.GaussianActivation(min=0.1, std=0.5)
 
 
 @anim

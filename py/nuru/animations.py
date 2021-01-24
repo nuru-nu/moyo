@@ -169,9 +169,10 @@ class PhiPalette(L.Signal):
 ###############################################################################
 
 class GaussianActivation(L.Signal):
+    """Bright gaussians at people's xy-center of mass."""
 
     def init(self, min=0.3, std=1):
-        self.first = True
+        pass
 
     def call(self, value, people):
         tot = np.ones(len(xyz_mapping)) * self.min
@@ -179,14 +180,14 @@ class GaussianActivation(L.Signal):
         for p in people:
             if 'cm' not in p: continue
             xyz = np.array(p['cm'])
-            xyz[0] *= -1
+            # xyz[0] *= -1
             dist = ((xyz_mapping - xyz)**2).sum(axis=1)**.5
             act = g.pdf(dist) / g.pdf(0)
             tot += act
-            if self.first:
-                print(p, dist)
-                print(p, act)
-        self.first = False
+            # if not hasattr(self, '_debug'):
+            #     print(p, dist)
+            #     print(p, act)
+            #     setattr(self, '_debug', True)
         return value * tot[:, None]
 
 class RGauss(L.Signal):
