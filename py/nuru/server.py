@@ -119,6 +119,7 @@ async def send_defs(request):
             images=list(animator.hp_animations.images.keys()),
             palettes=list(animator.hp_animations.palettes.keys()),
             scenes=animator.hp_midi.scenes,
+            modes=hp_signals.modes,
             monitor_def=hp_signals.monitor_def,
         ))))
 

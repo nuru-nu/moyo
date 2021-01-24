@@ -112,6 +112,7 @@ css_signals = dict(
 state_signals = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
+    mode=S.ActionLatch('mode=(.*)', 'manual'),
     scene=S.ActionLatch('scene=(.*)', 'S1'),
     animation=S.ActionLatch('animation=(.*)', 'S1'),
 )
@@ -176,6 +177,7 @@ defaults = dict(
     sonar_sensor=1,
     sonar_override=None,
     state=state.State(),
+    mode='manual',
     animation='S1',
     scene='S1',
     target_css=None,
@@ -197,6 +199,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
+modes = ('manual', 'css')
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),

@@ -282,31 +282,6 @@ export const Css = (output, {network}) => {
   })
 }
 
-export const Animation = (output, {network, defs}) => {
-  let current = null
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('anim'),
-    ui.hw(
-      defs.animations.map(a => h.button(a).of(a))
-    )
-  ).into(output).els
-  defs.animations.forEach(a => {
-    disp[a].addEventListener('click', () => {
-      network.sender({action: `animation=${a}`})
-    })
-  })
-  network.listenJson('signals', data => {
-    const a = data.animation
-    if (a && a != current) {
-      if (current) {
-        disp[current].classList.remove('on')
-      }
-      disp[a].classList.add('on')
-      current = a
-    }
-  })
-}
-
 export const Vars = (output, {network, defs}) => {
 
   function dropdown(name, values) {
@@ -355,27 +330,28 @@ export const Vars = (output, {network, defs}) => {
   ).into(output).els
 }
 
-export const Sound = (output, {network, defs}) => {
-  let scene = null
+
+export const Actions = (output, {name, values, network, defs}) => {
+  let value = null
   const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('sound'),
+    h.div({class: 'header'}).of(name),
     ui.hw(
-      defs.scenes.map(s => h.button(s).of(s))
+      values.map(s => h.button(s).of(s))
     )
   ).into(output).els
-  defs.scenes.forEach(s => {
+  values.forEach(s => {
     disp[s].addEventListener('click', () => {
-      network.sender({action: `scene=${s}`})
+      network.sender({action: `${name}=${s}`})
     })
   })
   network.listenJson('signals', data => {
-    const s = data.scene
-    if (s && s != scene) {
-      if (scene) {
-        disp[scene].classList.remove('on')
+    const v = data[name]
+    if (v && v != value) {
+      if (value) {
+        disp[value].classList.remove('on')
       }
-      disp[s].classList.add('on')
-      scene = s
+      disp[v].classList.add('on')
+      value = v
     }
   })
 }
