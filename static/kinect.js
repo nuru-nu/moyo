@@ -86,7 +86,7 @@ const Simulating = (pr) => {
   return {
     people: () => Array.from(people.values()).map(p => ({
       id: p.data.id,
-      cm: [p.data.x, p.data.y],
+      cm: [p.data.x, p.data.y, 0],
     })),
     click,
     tick,
