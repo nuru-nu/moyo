@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Css, Debug, Cmd, Subsample, Midi, Animation, Vars, Sound, Transients } from './widgets.js'
+import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Vars, Transients } from './widgets.js'
 import { Recorder } from './recorder.js'
 import { Rec } from './recording.js'
 import { Kinect } from './kinect.js'
@@ -21,10 +21,11 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
 
   Dump('#dump', {network})
   Cmd('#cmd', {network, defs})
-  Animation('#animation', {network, defs})
+  Actions('#mode', { name: 'mode', values: defs.modes, network })
+  Actions('#animation', { name: 'animation', values: defs.animations, network })
   Rec('#recording', {network})
   Vars('#vars', {network, defs})
-  Sound('#sound', {network, defs})
+  Actions('#sound', { name: 'scene', values: defs.scenes, network })
   // Subsample('#subsample')
   Sonar('#sonar', {network})
   Kinect('#kinect', {network})

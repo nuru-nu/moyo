@@ -93,11 +93,12 @@ class CssAction(L.Signal):
     def init(self, threshold: float):
         pass
 
-    def call(self, css, scene):
-        if scene == 'S1' and css[1] > self.threshold:
-            return ['scene=S3', 'animation=S3']
-        if scene == 'S3' and css[1] < self.threshold:
-            return ['scene=S1', 'animation=S1']
+    def call(self, mode, css, scene):
+        if mode == 'css':
+            if scene == 'S1' and css[1] > self.threshold:
+                return ['scene=S3', 'animation=S3']
+            if scene == 'S3' and css[1] < self.threshold:
+                return ['scene=S1', 'animation=S1']
         return []
 
 
