@@ -48,14 +48,35 @@ def test():
     return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(min=0.05, std=0.5)
 
 
-@anim
 def R():
     return (
         A.R() | S.Lin(
             L.Named('v0') | S.To(0, 3) | S.Int(mod=1)
         ) | S.Mod(1)
         | palette
-        | S.Lin(mult=L.Named('v1'))
+    )
+
+
+def Renv(sig):
+    return R() * S.Const(0.2) * (
+        A.R() | S.Norm() | S.F(
+            S.gauss_std,
+            sig
+        )
+    )
+
+
+@anim
+def Rr():
+    return Renv(
+        L.Named('rnd1') | S.To(0.5, 1.2),
+    )
+
+
+@anim
+def Rc():
+    return Renv(
+        L.Named('closest') | S.To(0.2, 1.2),
     )
 
 
