@@ -48,11 +48,12 @@ def signal2midi(action: str) -> Sequence[midi.Command]:
 def midi2signal(command: str) -> Sequence[Dict[str, str]]:
     # Heart
     for cmd in ('on', 'off'):
-        for note in ('A', 'C', 'D#', 'E', 'G#', 'C'):
+        if note == 'C':
+            event = 'heart'
             if command == midi.Command(f'1: {note}1 {cmd}'):
-                return (dict(event=f'heart {cmd}'),)
+                return (dict(event=f'{event} {cmd}'),)
             if command == midi.Command(f'1: {note}3 {cmd}'):
-                return (dict(event=f'heart {cmd}'),)
+                return (dict(event=f'{event} {cmd}'),)
     return ()
 
 
