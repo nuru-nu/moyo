@@ -1,59 +1,71 @@
-import re
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Tuple
 
 from smanmi import midi
 
 
-def onoff(note: str, channel: int = 1) -> Sequence[midi.Command]:
+def onoff(note: str, channel: int = 1) -> Tuple[midi.Command]:
     return (
         midi.Command(f'{channel}: {note} on'),
         midi.Command(f'{channel}: {note} off'),
     )
 
 
-def off(note: str, channel: int = 1) -> Sequence[midi.Command]:
+def off(note: str, channel: int = 1) -> Tuple[midi.Command]:
     return (
         midi.Command(f'{channel}: {note} off'),
     )
 
 
-def on(note: str, channel: int = 1) -> Sequence[midi.Command]:
+def on(note: str, channel: int = 1) -> Tuple[midi.Command]:
     return (
         midi.Command(f'{channel}: {note} on'),
     )
 
 
-def signal2midi(action: str) -> Sequence[midi.Command]:
+_last_value = 0
+
+
+def signal2midi(data) -> Sequence[midi.Command]:
+    global _last_signals
+    action = data.get('action')
+    commands: Tuple[midi.Command] = ()
     if action == 'scene=S1':
-        return onoff('C2')
+        commands += onoff('C2')
     elif action == 'scene=S2':
-        return onoff('C#2')
+        commands += onoff('C#2')
     elif action == 'scene=S3':
-        return onoff('D2')
+        commands += onoff('D2')
     elif action == 'scene=S4':
-        return onoff('D#2')
+        commands += onoff('D#2')
     elif action == 'scene=S5':
-        return onoff('E2')
+        commands += onoff('E2')
     elif action == 'scene=S6':
-        return onoff('F2')
+        commands += onoff('F2')
     elif action == 'scene=stop':
-        return onoff('B2')
+        commands += onoff('B2')
     elif action == 'charge=on':
-        return on('C3', channel=2)
+        commands += on('C3', channel=2)
     elif action == 'charge=off':
-        return off('C3', channel=2)
-    return ()
+        commands += off('C3', channel=2)
+    closest = data.get('closest')
+    if closest is not None:
+        value = int(closest * 127)
+        global _last_value
+        if value != _last_value:
+            _last_value = value
+            commands += (midi.Command(f'1: X1={value}'),)
+    return commands
 
 
 def midi2signal(command: str) -> Sequence[Dict[str, str]]:
     # Heart
     for cmd in ('on', 'off'):
-        if note == 'C':
-            event = 'heart'
-            if command == midi.Command(f'1: {note}1 {cmd}'):
-                return (dict(event=f'{event} {cmd}'),)
-            if command == midi.Command(f'1: {note}3 {cmd}'):
-                return (dict(event=f'{event} {cmd}'),)
+        note = 'C'
+        event = 'heart'
+        if command == midi.Command(f'1: {note}1 {cmd}'):
+            return (dict(event=f'{event} {cmd}'),)
+        if command == midi.Command(f'1: {note}3 {cmd}'):
+            return (dict(event=f'{event} {cmd}'),)
     return ()
 
 

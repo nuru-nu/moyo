@@ -18,11 +18,8 @@ hp_midi = hotplug.HotPlug('.hotplug.midi', logger)
 
 
 def signal2midi(data, logger):
-    action = data.get('action')
-    if not action:
-        return ()
-    print('action', action)
-    return hp_midi.signal2midi(action)
+    # This is additional to the default nuru.midi.signal2midi().
+    return hp_midi.signal2midi(data)
 
 
 def midi2signal(command, logger):
