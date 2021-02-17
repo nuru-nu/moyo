@@ -109,7 +109,8 @@ export const Midi = (output) => {
   const notes = [
     'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
   ]
-  const re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
+  const note_re = /(\d+): ([A-G]#?)(-?\d+) (.*)/
+  const range_re = /^\d+:\sX\d+=\d+$/
   const channels = new Map()
   const keys = new Map()
   const disp = h.div({class: 'flex widget'}).of(
@@ -123,12 +124,24 @@ export const Midi = (output) => {
       ),
       notes.map(note => h.button(note).of(note)),
       h.div('cont'),
+      ui.h(
+        ui.choice('xchoice', {values: ['-', 'X1', 'X2', 'X3']}),
+        ui.range('xrange'),
+      )
     ),
   ).into(output).els
 
   let channel, octave
   disp.channel.change(value => channel = value).init()
   disp.octave.change(value => octave = value).init()
+  function updatex() {
+    const value = Math.round(parseFloat(disp.xrange.value * 127))
+    if (disp.xchoice.value !== '-') {
+      sender({midi: `${channel}: ${disp.xchoice.value}=${value}`})
+    }
+  }
+  disp.xchoice.change(updatex)
+  disp.xrange.change(updatex)
 
   notes.forEach(note => {
     disp[note].addEventListener('mousedown', function() {
@@ -156,7 +169,8 @@ export const Midi = (output) => {
 
   function listener(signals) {
     if (!signals.midi) return
-    const m = re.exec(signals.midi)
+    if (range_re.exec(signals.midi)) return
+    const m = note_re.exec(signals.midi)
     if (m === null) {
       console.warn('Could not parse signals.midi', signals.midi)
       return
