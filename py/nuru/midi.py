@@ -34,9 +34,8 @@ if cmd_address != '127.0.0.1':
     cmd_address = '0.0.0.0'
 forwarder = midi.MidiForwarder(
     midi=midi.Midi(logger),
-    cmd_address_port=(cmd_address, settings.midi_sig_port),
-    signal_address_port=(
-        args.integrator_address, settings.integrator_sig_port),
+    signal_in=(cmd_address, settings.midi_sig_port),
+    signal_out=(args.integrator_address, settings.integrator_sig_port),
     logger=logger,
 )
 forwarder.signal2midis.add(signal2midi)
