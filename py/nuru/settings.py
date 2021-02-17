@@ -132,7 +132,6 @@ sonar_cmd_port = 6106
 recorder_cmd_port = 6107
 cmd_cmd_port = 6108
 midi_sig_port = 6109
-midi_cmd_port = 6110
 kinect_cmd_port = 6111
 
 

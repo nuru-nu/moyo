@@ -48,7 +48,6 @@ class Integrator:
                 settings.recorder_cmd_port,
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
-                (args.midi_address, settings.midi_cmd_port),
             ),
         )
         self.server.onsignal(self.onsignal)
