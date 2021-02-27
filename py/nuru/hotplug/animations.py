@@ -43,6 +43,22 @@ def anim(func):
     return func
 
 
+heart_palette = P.parse_colors_hex([
+    (0, '000'),
+    (0.8, 'f00'),
+    (1, 'f00'),
+])
+
+
+@anim
+def heart():
+    return (
+        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.5)
+        | S.Lin(0, L.Named('heart'))
+        | P.Palette(heart_palette)
+    ) | S.Lin(mult=0.2)
+
+
 @anim
 def test():
     return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(min=0.05, std=0.5)
@@ -58,7 +74,7 @@ def R():
 
 
 def Renv(sig):
-    return R() * S.Const(0.2) * (
+    return R() * S.Const(0.4) * (
         A.R() | S.Norm() | S.F(
             S.gauss_std,
             sig
@@ -77,7 +93,7 @@ def Rr():
 def Rc():
     return Renv(
         L.Named('closest') | S.To(0.2, 1.2),
-    )
+    ) + heart()
 
 
 @anim
@@ -150,22 +166,6 @@ def songrad():
     return A.Dist3D() | S.Lin(
         mult=L.Named('sonar') | S.Lin(mult=1 / 5),
     ) | P.Palette(P.coolors_rainbow)
-
-
-heart_palette = P.parse_colors_hex([
-    (0, '000'),
-    (0.8, 'f00'),
-    (1, 'f00'),
-])
-
-
-@anim
-def heart():
-    return (
-        A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.5)
-        | S.Lin(0, L.Named('heart'))
-        | P.Palette(heart_palette)
-    ) | S.Lin(mult=0.2)
 
 
 def ooo():
