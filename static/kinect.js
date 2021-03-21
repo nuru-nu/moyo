@@ -100,8 +100,8 @@ const Simulating = (pr) => {
 export const Kinect = (output, {network}) => {
   const width = 200
   const height = 200
-  const xlim = [-4, 4]
-  const ylim = [-7, 1]
+  const xlim = [-2, 2]
+  const ylim = [-3, 1]
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => x / width * (xlim[1] - xlim[0]) + xlim[0]
