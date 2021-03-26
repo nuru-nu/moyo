@@ -55,8 +55,15 @@ effector1 = E.Effector(settings.out1_rate, [
     # E.Echo(0.3, 0.8) | E.SigAmp('iso2'),
     # E.SilenceOrPlaying(),
 
-    E.RndPlay(gs1('haunting'), 'drone1'),
-    E.RndPlay(gs1('haunting'), 'drone2'),
+    # E.Sinusoidal(440, 0.1),
+    E.Square(250, 0.05) | E.Amplitude('touch'),
+    # E.Sinusoidal(880, 1.0) | E.Amplitude('touch'),
+    # E.Square(880) | E.Amplitude('touch'),
+    # E.Loop(gs1('haunting')) | E.Amplitude('touch'),
+    E.Silence(),
+
+    # E.RndPlay(gs1('haunting'), 'drone1'),
+    # E.RndPlay(gs1('haunting'), 'drone2'),
 
     # E.Mixer(
     #     default_effect=E.RndPlay(gs1('haunting'), 'drone1'),
