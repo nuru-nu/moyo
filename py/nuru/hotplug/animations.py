@@ -13,6 +13,7 @@ S.init(settings)
 importlib.reload(A)
 importlib.reload(C)
 importlib.reload(P)
+N = L.N
 
 
 images = {
@@ -36,10 +37,6 @@ state_palette = S.Apply(P.StatePalette(P.brownish, palettes))
 palette = S.Apply(P.NamedPalette(L.Named('palette')))
 
 animations = dict()
-class NamedProxy:
-    def __getattr__(self, name):
-        return L.Named(name)
-N = NamedProxy()
 
 
 def anim(func):
