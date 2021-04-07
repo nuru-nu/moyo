@@ -13,6 +13,7 @@ importlib.reload(state)
 importlib.reload(state)
 E.init(settings)
 S.init(settings)
+N = L.N
 
 
 class Into(L.Signal):
@@ -79,8 +80,10 @@ ooo_signals = dict(
                    | S.Clip()),
 )
 
-sensor_signals = dict(sonar=S.Overridable(L.Named('sonar_sensor'),
-                                          L.Named('sonar_override')), )
+sensor_signals = dict(
+    sonar=S.Overridable(N.sonar_sensor, N.sonar_override),
+    touch=N.touch_raw | S.From(0, 500),
+)
 
 generated_signals = dict(
     saw_v=S.Saw(hz=L.Named('valence')),
