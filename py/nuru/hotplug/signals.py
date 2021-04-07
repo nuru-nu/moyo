@@ -205,7 +205,7 @@ monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
-        sensor=['sonar', 'presence'],
+        sensor=['sonar', 'presence', 'touch'],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -213,7 +213,8 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['heart', 'sonar', 'charge', 'rnd1'],
+    # selected=['heart', 'sonar', 'charge', 'rnd1'],
+    selected=['heart', 'sonar', 'charge', 'rnd1', 'touch'],
     features=dict(numbers=numbers_features.keys()),
     hidden=[
         # state
