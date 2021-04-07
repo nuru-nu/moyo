@@ -2,6 +2,7 @@
 __pycache__
 /.abase_cache
 /.mypy_cache
+/.vscode
 /blender/*.blend[1-9]*
 /env
 /logs

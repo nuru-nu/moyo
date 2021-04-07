@@ -36,6 +36,10 @@ state_palette = S.Apply(P.StatePalette(P.brownish, palettes))
 palette = S.Apply(P.NamedPalette(L.Named('palette')))
 
 animations = dict()
+class NamedProxy:
+    def __getattr__(self, name):
+        return L.Named(name)
+N = NamedProxy()
 
 
 def anim(func):
@@ -61,7 +65,8 @@ def heart():
 
 @anim
 def test():
-    return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(min=0.05, std=0.5)
+    return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(
+        min=0.05, std=N.rnd1 | S.To(0.5, 1.5))
 
 
 def R():
