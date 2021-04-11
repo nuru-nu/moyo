@@ -82,8 +82,16 @@ ooo_signals = dict(
 
 sensor_signals = dict(
     sonar=S.Overridable(N.sonar_sensor, N.sonar_override),
-    touch=N.touch_raw | S.From(0, 500),
+    # touch=N.touch_raw | S.From(0, 400) | S.MovingAverage(n=1),
+    # touch=N.touch_raw | S.From(0, 500) | S.MovingAverage(n=3),
+    # touch=N.touch_raw | S.From(0, 1000),
 )
+
+touch_from = [200, 200, 200]
+touch_n = len(touch_from)
+for i, from_ in enumerate(touch_from):
+    sensor_signals[f'touch_{i}'] = (
+        L.Named(f'touch_raw_{i}') | S.From(0, from_) | S.MovingAverage(n=5))
 
 generated_signals = dict(
     saw_v=S.Saw(hz=L.Named('valence')),
@@ -180,6 +188,7 @@ defaults = dict(
     loud=0,
     sonar_sensor=1,
     sonar_override=None,
+    touch_raw=0,
     state=state.State(),
     mode='manual',
     animation='S1',
@@ -208,7 +217,7 @@ monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
-        sensor=['sonar', 'presence', 'touch'],
+        sensor=['sonar', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -217,7 +226,8 @@ monitor_def = dict(
     ),
     transients=cc(transients, transient_loops),
     # selected=['heart', 'sonar', 'charge', 'rnd1'],
-    selected=['heart', 'sonar', 'charge', 'rnd1', 'touch'],
+    # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
+    selected=['heart'] + [f'touch_{i}' for i in range(touch_n)],
     features=dict(numbers=numbers_features.keys()),
     hidden=[
         # state
