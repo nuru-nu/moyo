@@ -61,6 +61,11 @@ def heart():
 
 
 @anim
+def flash():
+    x = S.Const(10) | S.Int(mod=1) | S.Tocos()
+    return A.FullOn(C.RGB(x, x, x))
+
+@anim
 def test():
     return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(
         min=0.05, std=N.rnd1 | S.To(0.5, 1.5))
