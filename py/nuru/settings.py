@@ -2,6 +2,7 @@
 
 import collections, os, subprocess
 from dataclasses import dataclass
+import sys
 
 import numpy as np  # type: ignore
 import pyaudio  # type: ignore
@@ -36,6 +37,7 @@ out1_names = (
     'HDA Intel PCH: ALC3232 Analog',  # Ubuntu
     'default',  # Ubuntu
     'Built-in Output',  # OS X
+    'MacBook Pro Speakers',  # OS X
 )
 # Sample rate output 2
 out2_rate = 44100
@@ -293,3 +295,10 @@ arduino_ports = [
     "/dev/tty.usbmodem143344201",
 ]
 sonar_hz = 4
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 2:
+        print(globals()[sys.argv[1]])
+    else:
+        print('Usage:\n\t%s SETTING_NAME' % sys.argv[0])
