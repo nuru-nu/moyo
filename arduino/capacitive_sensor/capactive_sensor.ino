@@ -1,7 +1,9 @@
 #include <CapacitiveSensor.h>
 
-#define SENSORS 3
-#define OFFSET 2  // Pins 0 & 1 are used for rx/tx comm.
+// MEGA 2560 layout: 16..53
+
+#define SENSORS 16
+#define OFFSET 16  // Pins 0 & 1 are used for rx/tx comm.
 CapacitiveSensor *sensors[SENSORS];
 
 void setup()
@@ -12,11 +14,11 @@ void setup()
     {
         // Circuit diagram:
         //
-        // Arduino.PIN(2*i)-------+
+        // Arduino.PIN(2*i+1)-----+
         //                        |
         //                   (1M or 10M)
         //                        |
-        // Arduino.PIN(2*i+1)-----+-------------(sensing mesh)
+        // Arduino.PIN(2*i)-------+-------------(sensing mesh)
         //
         sensors[i] = new CapacitiveSensor(OFFSET + i * 2, OFFSET + i * 2 + 1);
         // sensors[i] = new CapacitiveSensor(8, 7);
