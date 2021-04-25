@@ -169,7 +169,7 @@ dg = np.pi / 180
 
 enttec_channel = 6
 
-phi0 = -30
+phi0 = 20
 
 SphereStrip = collections.namedtuple('SphereStrip', [
     # Number of LEDs that would fit between the first LED of the stripe
@@ -222,47 +222,47 @@ arm_configs = [
     ArmConfig(
         phi=-90,
         segments=[
-            ArmSegment(distance=0, channel=2, position=0, front=True),
-            ArmSegment(distance=0, channel=2, position=1, front=False),
-            ArmSegment(distance=1, channel=2, position=6, front=True),#
-            ArmSegment(distance=1, channel=2, position=7, front=False),#
+            ArmSegment(distance=0, channel=3, position=2, front=True),
+            ArmSegment(distance=0, channel=3, position=3, front=False),
+            ArmSegment(distance=1, channel=3, position=4, front=False),#
+            ArmSegment(distance=1, channel=3, position=5, front=True),#
         ],
     ),
     ArmConfig(
         phi=-45,
         segments=[
-            ArmSegment(distance=0, channel=2, position=2, front=True),#
-            ArmSegment(distance=0, channel=2, position=3, front=False),#
+            ArmSegment(distance=0, channel=3, position=0, front=True),#
+            ArmSegment(distance=0, channel=3, position=1, front=False),#
         ],
     ),
     ArmConfig(
         phi=45,
         segments=[
-            ArmSegment(distance=0, channel=2, position=4, front=True),#
-            ArmSegment(distance=0, channel=2, position=5, front=False),#
-            ArmSegment(distance=1, channel=3, position=0, front=True),
-            ArmSegment(distance=1, channel=3, position=1, front=False),
+            ArmSegment(distance=0, channel=2, position=2, front=False),#
+            ArmSegment(distance=0, channel=2, position=3, front=True),#
+            ArmSegment(distance=1, channel=2, position=0, front=True),
+            ArmSegment(distance=1, channel=2, position=1, front=False),
         ],
     ),
     ArmConfig(
         phi=90,
         segments=[
-            ArmSegment(distance=0, channel=3, position=2, front=True),
-            ArmSegment(distance=0, channel=3, position=3, front=False),
+            ArmSegment(distance=0, channel=2, position=4, front=False),
+            ArmSegment(distance=0, channel=2, position=5, front=True),
         ],
     ),
     ArmConfig(
         phi=135,
         segments=[
-            ArmSegment(distance=0, channel=3, position=4, front=True),
-            ArmSegment(distance=0, channel=3, position=5, front=False),
+            ArmSegment(distance=0, channel=2, position=6, front=True),
+            ArmSegment(distance=0, channel=2, position=7, front=False),
         ],
     ),
     ArmConfig(
         phi=180,
         segments=[
-            ArmSegment(distance=0, channel=3, position=6, front=True),
-            ArmSegment(distance=0, channel=3, position=7, front=False),
+            ArmSegment(distance=0, channel=3, position=6, front=False),
+            ArmSegment(distance=0, channel=3, position=7, front=True),
         ],
     ),
 ]
