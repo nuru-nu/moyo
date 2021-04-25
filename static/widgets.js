@@ -1,4 +1,4 @@
-import { h, ui } from './smanmi/util.js'
+import { h, u, ui } from './smanmi/util.js'
 
 export const Sonar = (output, {network}) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -380,7 +380,8 @@ export const Transients = (output, {network, defs}) => {
       'transients - filter:',
       h.input('include', {type: 'text'}), '\\',
       h.input('exclude', {type: 'text'}),
-      h.button('reset').of('reset')
+      h.button('reset').of('reset'),
+      h.button('clear').of('clear')
     ),
     h.div('.scrollable').of(h.div('output')),
   ).into(output).els
@@ -406,6 +407,9 @@ export const Transients = (output, {network, defs}) => {
     disp.include.value = disp.exclude.value = ''
     include = exclude = []
     update()
+  })
+  disp.clear.addEventListener('click', () => {
+    u.empty(disp.output)
   })
 
   const value_length = 30
