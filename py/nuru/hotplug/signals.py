@@ -34,7 +34,7 @@ audio_signals = dict(
     # raw audio
     #_pitch=(
     #    S.Pitcher(tolerance=0.7) | S.Clip(0, 400) |
-    #    S.Exponential(alpha=0.8)
+    #    S.Exponential(alpha=25*0.8)
     #),
     loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
     rawloud=S.Louder(n=3) | S.Lin(mult=2),
@@ -50,7 +50,7 @@ audio_signals = dict(
     tf3=S.Const(0),
     iso=(L.Named('tf') | S.Median(n=10, threshold=0.7)),
     iso2=(L.Named('tf') | S.Median(n=10, threshold=0.7))
-    | S.Exponential(alpha=0.95),
+    | S.Exponential(alpha=25*0.95),
     # sig1=(
     #     S.Louder(n=10) | S.Lin(mult=20)
     # ) * (
@@ -154,6 +154,7 @@ kinect_signals = dict(
         L.Named('people_override'),
     ),
     closest=S.KinectDistance() | S.With(3.8) | S.Min() | S.From(4, 0) | S.F(S.sinramp),
+    mvmt=S.KinectMovement(),
 )
 
 numbers_features = dict(
