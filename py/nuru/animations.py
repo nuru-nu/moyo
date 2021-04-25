@@ -486,7 +486,7 @@ class NCA2D(L.Signal):
     """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
 
     def init(self, data, mapping, speed=1, height=150, width=32, channel_n=12,
-             wrapx=True):
+             wrapx=True, base='nca'):
         self.last_data = None
         if wrapx:
             width += 2
@@ -496,7 +496,11 @@ class NCA2D(L.Signal):
 
     def call(self):
         if self.last_data != self.data:
-            self.f = ca.CAModel(self.data).embody()
+            data = self.data
+            if isinstance(data, str):
+                print('LOADING', data)
+                data = np.load(f'{self.base}/{data}.npy', allow_pickle=True)
+            self.f = ca.CAModel(data).embody()
             self.x = tf.zeros_like(self.x)
             self.last_data = self.data
         self.counter += 1

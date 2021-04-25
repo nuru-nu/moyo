@@ -80,7 +80,7 @@ export const Subsample = (output, {network}) => {
 
 export const Cmd = (output, {network}) => {
   const actions = [
-    '', 'fc=0', 'fc=1', 'fc=2', 'fc=3',
+    '', 'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next',
   ]
   let disp = h.div('cont', {class: 'flex widget'}).of(
     h.div({class: 'header'}).of('cmd'),

@@ -139,22 +139,23 @@ action_signals = dict(
 )
 
 animation_signals = dict(
-heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
-    | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
-    heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
-             | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
+    rnca=S.RandomNCA(),
+    heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
+        | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
+        heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+                | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
 kinect_signals = dict(
     people=S.Overridable(
         L.Named('people_sensor') | S.KinectFix(
-            phantoms=[0.884383, -4.013486, 0.935697],
+            phantoms=([0.884383, -4.013486, 0.935697],),
             dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
         ),
         L.Named('people_override'),
     ),
     closest=S.KinectDistance() | S.With(3.8) | S.Min() | S.From(4, 0) | S.F(S.sinramp),
-    mvmt=S.KinectMovement(),
+    mvmt=S.KinectMovement() | S.From(0, 10),
 )
 
 numbers_features = dict(
@@ -203,6 +204,7 @@ defaults = dict(
     fc=0,
     people_sensor=[],
     people_override=None,
+    mvmt=0,
     kinect_dphi=0,
     css_alpha=10,
     palette='gabe_red',
@@ -236,10 +238,13 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['heart', 'sonar', 'charge', 'rnd1'],
+    selected=['presence', 'mvmt', 'heart', 'sonar', 'charge', 'rnd1'],
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
-    features=dict(numbers=numbers_features.keys()),
+    features=dict(
+        numbers=numbers_features.keys(),
+        other=['rnca'],
+    ),
     hidden=[
         # state
         'scene',
