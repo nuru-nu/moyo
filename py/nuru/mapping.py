@@ -190,7 +190,7 @@ def _generate_arms_mapping_xy(arm_configs):
             for i in range(60):
                 pos = i + 60 * (8 * arm_segment.channel + arm_segment.position)
                 mapping[pos, 0] = (x0 + int(arm_segment.front)) % 32
-                mapping[pos, 1] = 60 * (1 + arm_segment.distance) + i
+                mapping[pos, 1] = 30 + 60 * arm_segment.distance + i
     return mapping
 
 

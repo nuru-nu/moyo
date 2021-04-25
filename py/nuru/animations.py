@@ -485,7 +485,7 @@ class Proj(L.Signal):
 class NCA2D(L.Signal):
     """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
 
-    def init(self, data, mapping, speed=1, height=180, width=32, channel_n=12,
+    def init(self, data, mapping, speed=1, height=150, width=32, channel_n=12,
              wrapx=True):
         self.last_data = None
         if wrapx:
