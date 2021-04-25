@@ -435,7 +435,7 @@ export const Transients = (output, {network, defs}) => {
 }
 
 export const Image = (output, refresh_secs) => {
-  refresh_secs = refresh_secs || 2
+  refresh_secs = refresh_secs || .5
   const disp = h.div().of(
     h.img('img'),
   ).into(output).els
