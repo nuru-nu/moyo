@@ -145,3 +145,57 @@ def generate_xyz_mapping(
 
     assert (xyz_mapping == 0.0).sum() == 0
     return xyz_mapping
+
+
+def _generate_sphere_mapping_xy(phi0):
+    """Returns a (nx60)x2 mapping from spherical LED index to (x, y).
+
+    Args:
+      phi0: Angle (in degrees) of the strip0.
+
+    Returns:
+      Mapping from every LED to (x, y) with 0<=x<32 and 0<=6<60.
+    """
+    mapping = np.zeros((60 * 16, 2), np.int32)
+    for idx in range(16):
+        x0 = int(idx + phi0 / 360 * 16) * 2
+        mapping[idx * 60: idx * 60 + 30] = [
+            [x0 % 32, y] for y in range(30)
+        ]
+        mapping[idx * 60 + 30: idx * 60 + 60] = [
+            [(x0 + 1) % 32, y] for y in range(30 - 1, 0 - 1, -1)
+        ]
+    return mapping
+
+
+def _generate_arms_mapping_xy(arm_configs):
+    """Returns a (nx60)x2 mapping from arm LED index to (phi, r).
+
+    Args:
+      arm_configs: List of ArmConfig.
+      r: Function mappig 1..3 to a r.
+
+    Returns:
+      Mapping from every LED to (x, y) with 0<=x<32 and 60<=6<180.
+    """
+    n = max([
+        arm_segment.channel
+        for arm_config in arm_configs
+        for arm_segment in arm_config.segments
+    ])
+    mapping = np.zeros(((n + 1) * 480, 2), np.int32)
+    for arm_config in arm_configs:
+        for arm_segment in arm_config.segments:
+            x0 = int(16 * arm_config.phi / 360)
+            for i in range(60):
+                pos = i + 60 * (8 * arm_segment.channel + arm_segment.position)
+                mapping[pos, 0] = (x0 + int(arm_segment.front)) % 32
+                mapping[pos, 1] = 60 * (1 + arm_segment.distance) + i
+    return mapping
+
+
+def generate_xy_mapping(phi0: float,
+        arm_mapping: Mapping[str, Sequence[settings.FcPos]]) -> np.ndarray:
+    xy_mapping = _generate_arms_mapping_xy(settings.arm_configs)
+    xy_mapping[: 2 * 8 * 60, :] = _generate_sphere_mapping_xy(settings.phi0)
+    return xy_mapping
