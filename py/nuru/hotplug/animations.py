@@ -20,6 +20,11 @@ images = {
     path.split('/')[-1].split('.')[0]: np.array(PIL.Image.open(
         path))[..., :3] / 256
     for path in sorted(glob.glob('images/*'))
+    if path.split('.')[-1].lower() in ('jpg', 'jpeg', 'png')
+}
+ncas = {
+    path.split('/')[-1].split('.')[0]: np.load(path, allow_pickle=True)
+    for path in sorted(glob.glob('images/*.npy'))
 }
 
 palettes = {
@@ -287,6 +292,13 @@ def img():
         rotate=L.Named('v1') | S.To(-180, 180),
     ) | S.To(0, L.Named('v2'))
 
+
+@anim
+def nca():
+    return A.NCA2D(
+        data=S.Dict(N.nca, ncas),
+        mapping=A.xy_mapping,
+    )
 
 @anim
 def charge():

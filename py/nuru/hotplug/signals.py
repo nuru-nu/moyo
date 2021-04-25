@@ -200,6 +200,7 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
+    nca='cephalopod',
     v0=0.5,
     v1=0.5,
     v2=0.5,
