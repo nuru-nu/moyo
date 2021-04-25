@@ -139,7 +139,7 @@ action_signals = dict(
 )
 
 animation_signals = dict(
-    heart=S.TransientPulse('event', 'heart') | S.RateLimit(10, 3)
+heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
     | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
     heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
              | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
@@ -188,7 +188,6 @@ defaults = dict(
     loud=0,
     sonar_sensor=1,
     sonar_override=None,
-    touch_raw=0,
     state=state.State(),
     mode='manual',
     animation='S1',
@@ -203,6 +202,9 @@ defaults = dict(
     v0=0.5,
     v1=0.5,
     v2=0.5,
+    **{
+        f'touch_raw_{i}': 0 for i in range(touch_n)
+    },
 )
 
 transients = ('action', 'midi', 'signal', 'event')
