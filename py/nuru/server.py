@@ -133,6 +133,14 @@ async def send_recs(request):
         )
 
 
+async def send_kinect(request):
+    del request
+    return web.Response(
+        content_type='image/jpeg',
+        body=open('cc/build/kinect_frame.jpg', 'rb').read(),
+    )
+
+
 client = None
 if args.fadecandy:
     client = opc.Client('localhost:7890')
@@ -154,5 +162,6 @@ server.run_periodically(
     PeriodicCallback('/+animation', animator, fps=args.fps))
 server.routes.append(web.get('/defs', send_defs))
 server.routes.append(web.get('/recs', send_recs))
+server.routes.append(web.get('/kinect', send_kinect))
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())
