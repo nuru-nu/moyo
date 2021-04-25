@@ -433,3 +433,14 @@ export const Transients = (output, {network, defs}) => {
 
   network.listenJson('signals', listener)
 }
+
+export const Image = (output, refresh_secs) => {
+  refresh_secs = refresh_secs || 2
+  const disp = h.div().of(
+    h.img('img'),
+  ).into(output).els
+  disp.img.src = '/kinect'
+  window.setInterval(() => {
+    disp.img.src = '/kinect?' + new Date().getTime()
+  }, 1e3 * refresh_secs)
+}

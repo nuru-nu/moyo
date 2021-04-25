@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Vars, Transients } from './widgets.js'
+import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Vars, Transients, Image } from './widgets.js'
 import { Recorder } from './recorder.js'
 import { Rec } from './recording.js'
 import { Kinect } from './kinect.js'
@@ -33,6 +33,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   // Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
   Transients('#transients', {network, defs})
+  Image('#kinect_image')
 
   network
   .listen('animation', Stats('#animation_stats'))
