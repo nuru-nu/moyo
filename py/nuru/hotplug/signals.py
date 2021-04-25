@@ -87,7 +87,7 @@ sensor_signals = dict(
     # touch=N.touch_raw | S.From(0, 1000),
 )
 
-touch_from = [200, 200, 200]
+touch_from = [200] * 16
 touch_n = len(touch_from)
 for i, from_ in enumerate(touch_from):
     sensor_signals[f'touch_{i}'] = (
@@ -203,6 +203,9 @@ defaults = dict(
     v0=0.5,
     v1=0.5,
     v2=0.5,
+    **{
+        f'touch_raw_{i}': 0 for i in range(touch_n)
+    },
 )
 
 transients = ('action', 'midi', 'signal', 'event')
@@ -225,9 +228,9 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    # selected=['heart', 'sonar', 'charge', 'rnd1'],
+    selected=['heart', 'sonar', 'charge', 'rnd1'],
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
-    selected=['heart'] + [f'touch_{i}' for i in range(touch_n)],
+    # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(numbers=numbers_features.keys()),
     hidden=[
         # state
