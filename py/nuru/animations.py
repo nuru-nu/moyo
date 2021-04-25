@@ -5,6 +5,10 @@ import time
 import numpy as np  # type: ignore
 from scipy import stats
 
+# TODO import async
+from self_organising_systems.texture_ca import ca
+import tensorflow as tf
+
 from smanmi import logic as L, util
 from smanmi.midi import Command
 from . import mapping, pixel_functions as pf, settings
@@ -473,6 +477,41 @@ class Proj(L.Signal):
         if pixels.max() > 1:
             raise AssertionError('Make sure `image` has normalized RGB!')
         return pixels
+
+
+# machine learnt
+###############################################################################
+
+class NCA2D(L.Signal):
+    """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
+
+    def init(self, data, mapping, speed=1, height=180, width=32, channel_n=12,
+             wrapx=True):
+        self.last_data = None
+        if wrapx:
+            width += 2
+        self.x = tf.zeros([1, height, width, channel_n])
+        self.counter = 0
+        self.m = tf.constant(mapping)
+
+    def call(self):
+        if self.last_data != self.data:
+            self.f = ca.CAModel(self.data).embody()
+            self.x = tf.zeros_like(self.x)
+            self.last_data = self.data
+        self.counter += 1
+        while self.counter >= 1/self.speed:
+            if self.wrapx:
+                w = self.x.shape[2]
+                self.x = tf.concat([
+                    self.x[:, :, 0: 1, :],
+                    self.x[:, :, 1: w-1, :],
+                    self.x[:, :, w-1:w, :],
+                ], axis=2)
+            self.x = self.f(self.x)
+            self.counter -= 1/self.speed
+        self.img = ca.to_rgb(self.x)[0].numpy()
+        return self.img[self.m[:, 1], self.m[:, 0], :]
 
 
 # debug

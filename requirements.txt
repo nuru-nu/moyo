@@ -5,14 +5,17 @@ aiohttp
 functiontrace
 jupyterlab
 matplotlib
+ml_collections
 mypy
 numpy
 pandas
+git+https://github.com/google-research/self-organising-systems#egg=self_organising_systems
 git+https://github.com/pvigier/perlin-numpy
 pylint
 pytest
 rtmidi_python
 scipy
 pyserial
+tensorflow
 #tensorflow==2.1.0
 yapf
