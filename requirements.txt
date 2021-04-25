@@ -16,6 +16,5 @@ pytest
 rtmidi_python
 scipy
 pyserial
-tensorflow
-#tensorflow==2.1.0
+tensorflow_cpu
 yapf
