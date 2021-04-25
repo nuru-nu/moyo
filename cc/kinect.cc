@@ -1,4 +1,4 @@
-#include <iostream>
+#include <iostream> 
 #include <signal.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -25,26 +25,25 @@ void sigint_handler(int s) {
 
 int main(const int argc, const char** const argv) {
 
-#ifdef USE_PCL
-  std::cout << "Compiled with USE_PCL" << std::endl;
-#endif
-
-#ifdef USE_NITE
-  std::cout << "Compiled with USE_NITE" << std::endl;
-#endif
-
   bool gui = true;
   const std::vector<std::string> args(argv + 1, argv + argc);
-  for (const auto& arg : args) {
-    if (arg == "--no-gui") {
+  for (int i = 0; i < args.size(); ++i) {
+    if (args[i] == "--no-gui") {
       gui = false;
-    } else if (arg == "--help") {
+    } else if (args[i] == "--help") {
       std::cout << R"(kinect sensor; available options:
-  --no-gui: don't show GUI; useful if X not available
-)" << std::endl;
+      --no-gui: don't show GUI; useful if X not available
+      )" << std::endl;
       return 0;
+    } else if (args[i] == "--port") {
+      args[i + 1];
+      // kCmdPort = (int)args[i + 1];
+      i++;
+    }  else if (args[i] == "--dev_id") {
+      // kCmdPort = (int)args[i + 1];
+      i++;
     } else {
-      std::cerr << "Unknown option : " << arg << std::endl;
+      std::cerr << "Unknown option : " << args[i] << std::endl;
       return -1;
     }
   }
@@ -72,6 +71,7 @@ int main(const int argc, const char** const argv) {
     }
 
     cv::Mat depth = hardware.depth(); 
+
     cv::Mat user_pixels = hardware.get_user_pixels();
 
     features.process(depth);
@@ -88,6 +88,7 @@ int main(const int argc, const char** const argv) {
 
     if (viewer.should_store()) {
       pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud = hardware.pcl();
+      std::cout << "Storing pcl" << std::endl;
       hardware.write_pcl("../../data/pcls", pointcloud);
     }
 

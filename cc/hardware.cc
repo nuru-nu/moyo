@@ -59,7 +59,6 @@ void Hardware::load_extrinsic_matrix(std::string path){
   for(int rdx=0; rdx<v["world_matrix"].size(); rdx++) {
     for(int cdx=0; cdx<v["world_matrix"][0].size(); cdx++) {
       trafo_.at<double>(rdx, cdx) = v["world_matrix"][rdx][cdx].as_double();
-      std::cout << "trafo[" << rdx << "," << cdx << "]=" << trafo_.at<double>(rdx, cdx) << std::endl;
     }
   }
 }
@@ -267,6 +266,7 @@ void Hardware::record_pcl(const std::string path, const int nr_frames){
 
 void Hardware::write_pcl(std::string path, pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud){
   pcl::PLYWriter writer;
+  std::cout << "Storing pcl to " << path + "/pcl_" + datetime_str() + ".ply" << std::endl;
   writer.write(path + "/pcl_" + datetime_str() + ".ply", *pointcloud, false, false);
 }
 

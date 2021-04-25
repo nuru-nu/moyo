@@ -69,8 +69,9 @@ int getch() {
 
 }  // namespace
 
+
 Viewer::Viewer(const bool gui) : hz_(kHzFast), gui_(gui) {
-  last_t_ = t0_ = std::chrono::high_resolution_clock::now();
+  last_img_store_t_ = last_t_ = t0_ = std::chrono::high_resolution_clock::now();
   if (gui) {
     cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
   } else {
@@ -187,28 +188,39 @@ void Viewer::update(const cv::Mat& img,
   if (gui_ || should_dump_) {
     double min, max;
     cv::Point minloc, maxloc;
+
     cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
     cv::Mat img_brg;
-    cv::cvtColor((img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
-    img_brg.convertTo(img_brg, CV_8UC3, /*alpha=*/255.0);
+    cv::cvtColor(255 * (img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
+
+    img_brg.convertTo(img_brg, CV_8UC3);
+
+    cv::addWeighted(img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
+
+    cv::Mat vert_flipped;
+    cv::flip(img_brg, vert_flipped, 0);
 
     cv::putText(
-        img_brg, features_string,
+        vert_flipped, fps_string,
         cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
-    cv::putText(
-        img_brg, fps_string,
-        cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
 
 
-    cv::addWeighted( img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
-
-    apply_overlay(graphs_, &img_brg);
-    if (gui_) {
-      cv::imshow("viewer", img_brg);
+    if (false) {// Feature output. Currently not implemented.
+      cv::putText(
+          vert_flipped, features_string,
+          cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+      apply_overlay(graphs_, &vert_flipped);
     }
-    if (should_dump_) {
-      cv::imwrite("kinect_frame.jpg", img_brg);
-      std::cout << "Stored frame to \"kinect_frame.jpg\"" << std::endl;
+    
+    if (gui_) {
+      cv::imshow("viewer", vert_flipped);
+    }
+
+    const long long last_img_store_t_microseconds =
+    std::chrono::duration_cast<std::chrono::microseconds>(t - last_img_store_t_).count();
+    if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
+      last_img_store_t_ = t;
+      cv::imwrite("kinect_frame.jpg", vert_flipped);
     }
   }
   if (!gui_) {

@@ -8,6 +8,10 @@
 #include "settings.h"
 #include "features.h"
 
+#include <chrono>
+#include <thread>
+#include <functional>
+
 
 // Shows Kinect data and lets change parameters via keyboard.
 // In the default GUI mode, the data is shown in a OpenCV window. If GUI mode
@@ -25,6 +29,7 @@ class Viewer {
     bool should_record() const { return should_record_; }
     bool should_reset() const { return should_reset_; }
 
+
   private:
     void draw_process_key();
     void update_graphs(const cv::Mat& img, 
@@ -33,17 +38,19 @@ class Viewer {
 
     const bool gui_;
     float hz_;
-    std::chrono::high_resolution_clock::time_point t0_, last_t_;
+    std::chrono::high_resolution_clock::time_point t0_, last_t_, last_img_store_t_;
     bool should_quit_ = false;
     bool should_store_ = false;
     bool should_record_ = false;
     bool should_reset_ = false;
     bool should_dump_ = false;
     float last_presence_x_ = 0;
+
     std::vector<float> last_depths_ = {0, 0, 0, 0, 0, 0, 
                                        0, 0 ,0 ,0, 0, 0};
 
     cv::Mat graphs_;
+
 };
 
 #endif
