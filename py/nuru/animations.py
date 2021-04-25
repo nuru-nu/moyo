@@ -24,6 +24,7 @@ sphere_mapping = phi_r_mapping[: 2 * 8 * 60, :] = (
 kinect_mapping = json.load(open(settings.kinect_mapping_path))
 xyz_mapping = mapping.generate_xyz_mapping(
     kinect_mapping, settings.arm_mapping)
+xy_mapping = mapping.generate_xy_mapping(settings.phi0, settings.arm_mapping)
 
 
 # utils
