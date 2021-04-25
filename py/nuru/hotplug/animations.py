@@ -64,6 +64,24 @@ def heart():
         | P.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
 
+@anim
+def heart2():
+    inp = N.v1
+    inp = N.heart
+    return A.FullOn(
+        (N.rnd1 | palette) * inp
+        # (N.heart | palette) * N.heart
+    ) * (
+        A.Dist2D(0, 0) | S.From(0, 5) | S.To(1, 0) | S.To(
+            0.0,
+            inp | S.To(0.5, 1)
+        )
+    # ) * (
+    #     A.Dist2D(phi=np.pi / 4, r=0) | S.From(-1, 0)
+    #     | S.To(0, L.Named('heart'))
+    #     # | P.Palette(heart_palette)
+    ) | S.To(0, N.v0)
+
 
 @anim
 def flash():
@@ -85,8 +103,8 @@ def R():
     )
 
 
-def Renv(sig):
-    return R() * S.Const(0.4) * (
+def Renv(sig, value=0.4):
+    return R() * S.Const(value) * (
         A.R() | S.Norm() | S.F(
             S.gauss_std,
             sig
@@ -98,6 +116,7 @@ def Renv(sig):
 def Rr():
     return Renv(
         L.Named('rnd1') | S.To(0.5, 1.2),
+        value=N.v1,
     )
 
 
@@ -167,8 +186,8 @@ def into():
 @anim
 def wheel():
     return (
-        A.Phi() | S.Lin(L.Named('v0') | S.Int(mod=1)) | S.Mod(1)
-        | state_palette | S.Lin(mult=0.2)
+        A.Phi() | S.From(0, 2*np.pi) | S.Lin(N.v1 | S.Int(mod=1)) | S.Mod(1)
+        | palette | S.Lin(mult=N.v0)
     )
 
 
@@ -248,7 +267,7 @@ def cwave():
             (0, P.black_violet),
             #(.5, P.black_white),
             (1, P.coolors_rainbow),
-        )) | S.Lin(mult=L.Named('arousal')) | S.Lin(0, 0.5)
+        )) | S.Lin(mult=L.Named('arousal')) | S.Lin(0, 1)
     )
 
 
