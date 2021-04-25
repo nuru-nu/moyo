@@ -146,7 +146,13 @@ heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
 )
 
 kinect_signals = dict(
-    people=S.Overridable(L.Named('people_sensor'), L.Named('people_override')),
+    people=S.Overridable(
+        L.Named('people_sensor') | S.KinectFix(
+            phantoms=[0.884383, -4.013486, 0.935697],
+            dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+        ),
+        L.Named('people_override'),
+    ),
     closest=S.KinectDistance() | S.With(3.8) | S.Min() | S.From(4, 0) | S.F(S.sinramp),
 )
 
@@ -196,6 +202,7 @@ defaults = dict(
     fc=0,
     people_sensor=[],
     people_override=None,
+    kinect_dphi=0,
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
