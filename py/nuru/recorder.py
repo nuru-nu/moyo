@@ -101,7 +101,7 @@ status_sender = network.StatusSender(name='recorder', logger=logger)
 
 @perf.measure('get_signals')
 def get_signals(features):
-    return hp_signals.audio_runner(features=features)
+    return hp_signals.audio_runner(features=features, t=time.time())
 
 
 sock = network.create_udp_socket(settings.recorder_cmd_port, '127.0.0.1')
