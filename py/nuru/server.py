@@ -117,6 +117,7 @@ async def send_defs(request):
             recordings=recordings,
             animations=list(animator.hp_animations.animations.keys()),
             images=list(animator.hp_animations.images.keys()),
+            ncas=list(animator.hp_animations.ncas.keys()),
             palettes=list(animator.hp_animations.palettes.keys()),
             scenes=animator.hp_midi.scenes,
             modes=hp_signals.modes,
