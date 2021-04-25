@@ -190,6 +190,13 @@ def wheel():
         | palette | S.Lin(mult=N.v0)
     )
 
+@anim
+def white():
+    return A.FullOn(C.RGB(.5, .5, .5))
+
+@anim
+def rnd():
+    return A.FullOn(N.rnd1 | palette) | S.To(0, N.v0)
 
 @anim
 def songrad():
@@ -316,6 +323,13 @@ def img():
 def nca():
     return A.NCA2D(
         data=S.Dict(N.nca, ncas),
+        mapping=A.xy_mapping,
+    )
+
+@anim
+def rnca():
+    return A.NCA2D(
+        data=N.rnca,
         mapping=A.xy_mapping,
     )
 
