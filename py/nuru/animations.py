@@ -517,22 +517,24 @@ class NCA2D(L.Signal):
 # debug
 ###############################################################################
 
+IDENT_COLORS = (
+        (1, 0, 0), # 0 red
+        (0, 1, 0), # 1 green
+        (0, 0, 1), # 2 blue
+        (1, 1, 0), # 3 yellow
+        (1, 0, 1), # 4 magenta
+        (0, 1, 1), # 5 turquise
+        (1, 1, 1), # 6 white
+        (0.3, 0.3, 0.3), # 7 gray
+)
+
 class PositionIdentify(L.Signal):
     """Color cycle for each of the 8 positions of a given fadecandy."""
 
-    ZEROS = np.zeros((8 * 60, 3), dtype='uint8')
+    ZEROS = np.zeros((8 * 60, 3))
     COLORS = np.concatenate([
-        np.zeros((60, 3), dtype='uint8') + col
-        for col in (
-            (1, 0, 0), # 0 red
-            (0, 1, 0), # 1 green
-            (0, 0, 1), # 2 blue
-            (1, 1, 0), # 3 yellow
-            (1, 0, 1), # 4 magenta
-            (0, 1, 1), # 5 turquise
-            (1, 1, 1), # 6 white
-            (0.3, 0.3, 0.3), # 7 gray
-        )
+        np.zeros((60, 3)) + col
+        for col in IDENT_COLORS
     ])
 
     def call(self, fc):
@@ -548,16 +550,7 @@ class CalibrationPattern(L.Signal):
 
     def init(self):
         colors = [
-            col for col in (
-                (1, 0, 0),
-                (0, 1, 0),
-                (0, 0, 1),
-                (1, 1, 0),
-                (1, 0, 1),
-                (0, 1, 1),
-                (1, 1, 1),
-                (0.3, 0.3, 0.3),
-            )
+            col for col in IDENT_COLORS
         ]
         self.pixels = np.array([
             colors[int(np.floor((i / 60) % 8))]
