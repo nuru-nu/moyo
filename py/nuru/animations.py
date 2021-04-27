@@ -493,6 +493,7 @@ class NCA2D(L.Signal):
         self.x = tf.zeros([1, height, width, channel_n])
         self.counter = 0
         self.m = tf.constant(mapping)
+        self.i = 0
 
     def call(self):
         if self.last_data != self.data:
@@ -501,7 +502,7 @@ class NCA2D(L.Signal):
                 print('LOADING', data)
                 data = np.load(f'{self.base}/{data}.npy', allow_pickle=True)
             self.f = ca.CAModel(data).embody()
-            self.x = tf.zeros_like(self.x)
+            self.lastx = self.x = tf.zeros_like(self.x)
             self.last_data = self.data
         self.counter += 1
         while self.counter >= 1/self.speed:
@@ -512,9 +513,17 @@ class NCA2D(L.Signal):
                     self.x[:, :, 1: w-1, :],
                     self.x[:, :, w-1:w, :],
                 ], axis=2)
+            self.lastx = self.x
+            if self.i < 50: print('next')
             self.x = self.f(self.x)
             self.counter -= 1/self.speed
-        self.img = ca.to_rgb(self.x)[0].numpy()
+        f = min(1, self.counter * self.speed)
+        f = (1 + np.cos((f - 1) * np.pi)) / 2
+        if self.i < 50:
+            print(self.i, f)
+            self.i += 1
+        x = self.lastx * min(1, f) + self.x * max(0, 1 - f)
+        self.img = ca.to_rgb(x)[0].numpy()
         return self.img[self.m[:, 1], self.m[:, 0], :]
 
 
