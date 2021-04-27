@@ -331,7 +331,10 @@ def rnca():
     return A.NCA2D(
         data=N.rnca,
         mapping=A.xy_mapping,
-    )
+        speed=N.v0 | S.F(S.fexp) | S.To(0.02, 20),
+    # ) | S.To(0, N.v1)
+    ) | S.To(0, N.rnd1 | S.To(0.1, 0.7))
+    # ) | S.To(0, N.closest | S.To(0.1, 0.7))
 
 @anim
 def charge():
