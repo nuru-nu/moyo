@@ -81,7 +81,7 @@ ooo_signals = dict(
 )
 
 sensor_signals = dict(
-    sonar=S.Overridable(N.sonar_sensor, N.sonar_override),
+    sonar=S.Overridable(N.sonar_0 | S.From(40, 0), N.sonar_override),
     # touch=N.touch_raw | S.From(0, 400) | S.MovingAverage(n=1),
     # touch=N.touch_raw | S.From(0, 500) | S.MovingAverage(n=3),
     # touch=N.touch_raw | S.From(0, 1000),
@@ -89,6 +89,7 @@ sensor_signals = dict(
 
 touch_from = [200] * 16
 touch_n = len(touch_from)
+touch_raws = [f'touch_raw_{i}' for i in range(touch_n)]
 for i, from_ in enumerate(touch_from):
     sensor_signals[f'touch_{i}'] = (
         L.Named(f'touch_raw_{i}') | S.From(0, from_) | S.MovingAverage(n=5))
@@ -125,8 +126,8 @@ state_signals = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
     mode=S.ActionLatch('mode=(.*)', 'manual'),
-    scene=S.ActionLatch('scene=(.*)', 'S1'),
-    animation=S.ActionLatch('animation=(.*)', 'S1'),
+    scene=S.ActionLatch('scene=(.*)', None, sig=N.scene),
+    animation=S.ActionLatch('animation=(.*)', None, sig=N.animation),
 )
 
 action_signals = dict(
@@ -154,7 +155,8 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-    closest=S.KinectDistance() | S.With(3.8) | S.Min() | S.From(4, 0) | S.F(S.sinramp),
+    closest=S.KinectDistance() | S.With(6.5) | S.Min() | S.From(6.5, 0) | S.F(S.sinramp),
+    distance=S.KinectDistance(),
     mvmt=S.KinectMovement() | S.From(0, 10),
 )
 
@@ -194,7 +196,7 @@ defaults = dict(
     iso=0,
     rawloud=0,
     loud=0,
-    sonar_sensor=1,
+    sonar_0=1,
     sonar_override=None,
     state=state.State(),
     mode='manual',
@@ -214,7 +216,7 @@ defaults = dict(
     v1=0.5,
     v2=0.5,
     **{
-        f'touch_raw_{i}': 0 for i in range(touch_n)
+        touch_raw: 0 for touch_raw in touch_raws
     },
 )
 
@@ -259,18 +261,21 @@ monitor_def = dict(
         'people_override',
         # sonar
         'sonar_override',
-        'sonar_sensor',
+        'sonar_0',
         # recorder
         'recorder',
         'playback_t',
         'logmel',
         'mfccs',
         't',
+        # stats
+        *touch_raws,
         # vars
         'image',
         'palette',
         'v0',
         'v1',
         'v2',
+        'kinect_dphi',
     ],
 )
