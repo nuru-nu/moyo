@@ -169,7 +169,7 @@ dg = np.pi / 180
 
 enttec_channel = 6
 
-phi0 = 20
+phi0 = -140
 
 SphereStrip = collections.namedtuple('SphereStrip', [
     # Number of LEDs that would fit between the first LED of the stripe
