@@ -1,4 +1,4 @@
-import { h, colors, ui } from './smanmi/util.js'
+import { h, colors, ui, observe } from './smanmi/util.js'
 import { Scene, Nuru } from './nuru.js';
 
 export const Leds = (output, defs, opts) => {
@@ -31,9 +31,11 @@ export const Leds = (output, defs, opts) => {
         h.button('download').of('download'),
       ),
     ),
-    ui.v(
-      h.canvas('rphi', {width, height}),
-      h.div('xyz', {class: 'xyz'}),
+    h.div('cont').of(
+      ui.v(
+        h.canvas('rphi', {width, height}),
+        h.div('xyz', {class: 'xyz'}),
+      ),
     ),
   ).into(output).els
 
@@ -74,6 +76,14 @@ export const Leds = (output, defs, opts) => {
     disp.pause.textContent = paused ? 'unpause' : 'pause'
   })
 
+  observe(disp.cont).start(() => {
+    paused = false
+    if (view === 'x-y-z') scene.start()
+  }).stop(() => {
+    paused = true
+    if (view === 'x-y-z') scene.stop()
+  })
+
   disp.download.addEventListener('click', () => {
     const s = JSON.stringify(Array.from(lvalues))
     const a = h.a({
@@ -95,7 +105,7 @@ export const Leds = (output, defs, opts) => {
 
   let lvalues = null
   function listener(values) {
-    if (paused || !phi_r_mapping) {
+    if (paused || !phi_r_mapping || view !== 'r-phi') {
       return
     }
     if (view === 'x-y-z') {

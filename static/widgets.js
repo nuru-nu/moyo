@@ -1,4 +1,4 @@
-import { h, u, ui } from './smanmi/util.js'
+import { h, u, ui, observe } from './smanmi/util.js'
 
 export const Sonar = (output, {network}) => {
   const disp = h.div({class: 'flex widget'}).of(
@@ -436,11 +436,21 @@ export const Transients = (output, {network, defs}) => {
 
 export const Image = (output, refresh_secs) => {
   refresh_secs = refresh_secs || .5
-  const disp = h.div().of(
+  const disp = h.div('cont').of(
     h.img('img'),
   ).into(output).els
   disp.img.src = '/kinect'
-  window.setInterval(() => {
+  let id = window.setTimeout(refresh, 1e3 * refresh_secs)
+  function refresh() {
+    id = window.setTimeout(refresh, 1e3 * refresh_secs)
     disp.img.src = '/kinect?' + new Date().getTime()
-  }, 1e3 * refresh_secs)
+  }
+  observe(disp.cont).start(() => {
+    console.log('start')
+    id = window.setTimeout(refresh, 1e3 * refresh_secs)
+  }).stop(() => {
+    console.log('stop')
+    if (id) window.clearTimeout(id)
+    id = null
+  })
 }
