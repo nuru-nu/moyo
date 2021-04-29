@@ -82,6 +82,7 @@ ooo_signals = dict(
 
 sensor_signals = dict(
     sonar=S.Overridable(N.sonar_0 | S.From(40, 0), N.sonar_override),
+    pir=N.pir_0,
     # touch=N.touch_raw | S.From(0, 400) | S.MovingAverage(n=1),
     # touch=N.touch_raw | S.From(0, 500) | S.MovingAverage(n=3),
     # touch=N.touch_raw | S.From(0, 1000),
@@ -135,12 +136,13 @@ action_signals = dict(
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
     css_action=state.CssAction(threshold=0.0),
+    nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
     charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
 )
 
 animation_signals = dict(
-    rnca=S.RandomNCA(),
+    nca=S.ActionLatch('nca=set=(.*)', 'frilly_0093', sig=N.nca),
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
         heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
@@ -197,6 +199,7 @@ defaults = dict(
     rawloud=0,
     loud=0,
     sonar_0=1,
+    pir_0=0,
     sonar_override=None,
     state=state.State(),
     mode='manual',
@@ -224,6 +227,7 @@ transients = ('action', 'midi', 'signal', 'event')
 transient_loops = dict(
     css_action='action',
     sonar_action='action',
+    nca_action='action',
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
@@ -232,7 +236,7 @@ monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
-        sensor=['sonar', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
+        sensor=['sonar', 'pir', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -240,12 +244,12 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['presence', 'mvmt', 'heart', 'sonar', 'charge', 'rnd1'],
+    selected=['presence', 'mvmt', 'heart', 'sonar', 'charge', 'rnd1', 'pir'],
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
         numbers=numbers_features.keys(),
-        other=['rnca'],
+        other=['nca'],
     ),
     hidden=[
         # state
@@ -270,6 +274,7 @@ monitor_def = dict(
         't',
         # stats
         *touch_raws,
+        'pir_0',
         # vars
         'image',
         'palette',

@@ -122,8 +122,10 @@ class Integrator:
             signals[name] = queue.popleft() if queue else None
         signals = hp_signals.integrator_runner(**signals)
         for name, value in signals.items():
-            if name in hp_signals.transient_loops and value is not None:
+            if name in hp_signals.transient_loops and value:
                 transient = hp_signals.transient_loops[name]
+                if value:
+                    print('transient_loop', transient, value)
                 self.transients[transient] += value
         if self.rec_ongoing:
             signals['rec_state'] = dict(start=self.rec_ongoing.info['start'])
