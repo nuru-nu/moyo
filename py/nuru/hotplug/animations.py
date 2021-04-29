@@ -1,5 +1,7 @@
 import glob
 import importlib
+import json
+import os
 
 import numpy as np
 import PIL.Image
@@ -22,10 +24,11 @@ images = {
     for path in sorted(glob.glob('images/*'))
     if path.split('.')[-1].lower() in ('jpg', 'jpeg', 'png')
 }
-ncas = {
-    path.split('/')[-1].split('.')[0]: np.load(path, allow_pickle=True)
-    for path in sorted(glob.glob('images/*.npy'))
-}
+nca_data = json.load(open(os.path.join(
+    os.path.dirname(__file__),
+    os.pardir,
+    'nca.json'
+)))
 
 palettes = {
     name: value
@@ -322,14 +325,7 @@ def img():
 @anim
 def nca():
     return A.NCA2D(
-        data=S.Dict(N.nca, ncas),
-        mapping=A.xy_mapping,
-    )
-
-@anim
-def rnca():
-    return A.NCA2D(
-        data=N.rnca,
+        data=N.nca,
         mapping=A.xy_mapping,
         speed=N.v0 | S.F(S.fexp) | S.To(0.02, 20),
     # ) | S.To(0, N.v1)

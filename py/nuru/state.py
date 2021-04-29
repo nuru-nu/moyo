@@ -7,7 +7,11 @@ There are currently two ways of implementing a state machine:
 2. Split state into normal independent signals and then use looped transient
    actions to update these state signals, like `CssAction`.
 """
+import json
+import glob
+import os
 import random
+import time
 
 from smanmi import logic as L
 from smanmi import util
@@ -100,6 +104,36 @@ class CssAction(L.Signal):
         #     if scene == 'S3' and css[1] < self.threshold:
         #         return ['scene=S1', 'animation=S1']
         return []
+
+
+class NcaAction(L.Signal):
+    """Manages NCA related state."""
+
+    def init(self, timeouts_secs=3*60):
+        self.json = json.load(open(os.path.join(
+            os.path.dirname(__file__), 'nca.json'
+        )))
+        nca_glob = os.path.join(
+            os.path.dirname(__file__),
+            os.path.pardir,
+            os.path.pardir,
+            'nca',
+            f'*.npy',
+        )
+        print('nca_glob', nca_glob)
+        self.names = [
+            path.split('/')[-1][:-4] for path in glob.glob(nca_glob)]
+        self.t = time.time()
+
+    def call(self, t, action):
+        nca_actions = []
+        if action == 'nca=next':
+            self.t = 0
+        if t - self.t > self.timeouts_secs:
+            name = self.names[random.randint(0, len(self.names))]
+            nca_actions.append(f'nca=set={name}')
+            self.t = t
+        return nca_actions
 
 
 class SonarAction(L.Signal):

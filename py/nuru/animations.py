@@ -514,13 +514,13 @@ class NCA2D(L.Signal):
                     self.x[:, :, w-1:w, :],
                 ], axis=2)
             self.lastx = self.x
-            if self.i < 50: print('next')
+            # if self.i < 50: print('next')
             self.x = self.f(self.x)
             self.counter -= 1/self.speed
         f = min(1, self.counter * self.speed)
         f = (1 + np.cos((f - 1) * np.pi)) / 2
         if self.i < 50:
-            print(self.i, f)
+            # print(self.i, f)
             self.i += 1
         x = self.lastx * min(1, f) + self.x * max(0, 1 - f)
         self.img = ca.to_rgb(x)[0].numpy()

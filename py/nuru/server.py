@@ -1,5 +1,7 @@
 import argparse
 import json
+import os
+import random
 import traceback
 
 from aiohttp import web
@@ -11,6 +13,7 @@ from smanmi import perf
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
 from smanmi import util
 from . import animations
+from . import nca
 from . import recording
 from . import state
 from . import settings
@@ -117,7 +120,7 @@ async def send_defs(request):
             recordings=recordings,
             animations=list(animator.hp_animations.animations.keys()),
             images=list(animator.hp_animations.images.keys()),
-            ncas=list(animator.hp_animations.ncas.keys()),
+            nca=animator.hp_animations.nca_data,
             palettes=list(animator.hp_animations.palettes.keys()),
             scenes=animator.hp_midi.scenes,
             modes=hp_signals.modes,
@@ -138,6 +141,37 @@ async def send_kinect(request):
     return web.Response(
         content_type='image/jpeg',
         body=open('cc/build/kinect_frame.jpg', 'rb').read(),
+    )
+
+
+async def send_nca(request):
+    # import pdb; pdb.set_trace()
+    nca_path = os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        os.pardir,
+        'nca',
+    )
+    name = request.query.get('name')
+    if not name:
+        names = [
+            path.split('/')[-1][:-4]
+            for path in glob.glob(f'{nca_path}/*.npy')
+        ]
+        name = names[random.randint(0, len(names))]
+    models = nca.export_models_to_js({
+        name: np.load(f'{nca_path}/{name}.npy', allow_pickle=True),
+    })
+    content = open(os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        os.pardir,
+        'static',
+        'ca.html'
+    )).read().replace('__models__', json.dumps(models))
+    return web.Response(
+        content_type='text/html',
+        body=content,
     )
 
 
@@ -163,5 +197,6 @@ server.run_periodically(
 server.routes.append(web.get('/defs', send_defs))
 server.routes.append(web.get('/recs', send_recs))
 server.routes.append(web.get('/kinect', send_kinect))
+server.routes.append(web.get('/nca', send_nca))
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())

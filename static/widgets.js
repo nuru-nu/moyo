@@ -339,7 +339,6 @@ export const Vars = (output, {network, defs}) => {
     ui.v(
       dropdown('palette', defs.palettes),
       dropdown('image', defs.images),
-      dropdown('nca', defs.ncas),
       'v0 v1 v2 kinect_dphi'.split(' ').map(name => range(name)),
     ),
   ).into(output).els
