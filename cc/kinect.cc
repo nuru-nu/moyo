@@ -96,8 +96,6 @@ int main(const int argc, const char** const argv) {
       hardware.record_pcl("../../data/pcls", 60);
     }
     delete depth.data;
-    // delete user_pixels.data;
-    // depth.release();
   }
 
   hardware.close();

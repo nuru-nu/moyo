@@ -192,24 +192,26 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                                   cv::Point3d((float) x,
                                                               (float) y,
                                                               (float) z)));
+    if(false){ // Skeletal tracking not implemented
+      std::cout << "Point3d - " <<
+                      (float) x << ", " <<
+                      (float) y << ", " <<
+                      (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
 
-    // std::cout << "Point3d - " <<
-    //                 (float) x << ", " <<
-    //                 (float) y << ", " <<
-    //                 (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
-
-    // else if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
-    // {
-    //   const nite::SkeletonJoint& head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
-    //   if (head.getPositionConfidence() > .5)
-    //     printf("%d. (%5.2f, %5.2f, %5.2f) - Head found with condfidence %5.2f\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z, head.getPositionConfidence());
-    // } else {
-    //   printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
-    // }
+      if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
+      {
+        const nite::SkeletonJoint& head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
+        if (head.getPositionConfidence() > .5)
+          printf("%d. (%5.2f, %5.2f, %5.2f) - Head found with condfidence %5.2f\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z, head.getPositionConfidence());
+      } else {
+        printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
+      }
+    }
 
     people.push_back(person);
   }
-
+  
+  delete depthImage.data;
   return people;
 }
 
