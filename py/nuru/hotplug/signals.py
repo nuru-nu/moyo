@@ -256,7 +256,11 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['presence', 'mvmt', 'heart', 'sonar', 'charge', 'rnd1', 'pir'],
+    selected={
+        'default': ['heart', 'rnd1'],
+        'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
+        'empty': [],
+    },
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
