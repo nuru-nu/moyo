@@ -353,10 +353,10 @@ export const ActionsButtons = (output, {name, values, network}) => {
   network.listenJson('signals', data => {
     const v = data[name]
     if (v && v != value) {
-      if (value) {
+      if (value && els[value]) {
         els[value].classList.remove('on')
       }
-      els[v].classList.add('on')
+      if (els[v]) els[v].classList.add('on')
       value = v
     }
   })

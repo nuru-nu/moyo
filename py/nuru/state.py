@@ -98,11 +98,11 @@ class CssAction(L.Signal):
         pass
 
     def call(self, mode, css, scene):
-        # if mode == 'css':
-        #     if scene == 'S1' and css[1] > self.threshold:
-        #         return ['scene=S3', 'animation=S3']
-        #     if scene == 'S3' and css[1] < self.threshold:
-        #         return ['scene=S1', 'animation=S1']
+        if mode == 'css':
+            if scene == 'S1' and css[1] > self.threshold:
+                return ['scene=S3', 'animation=S3']
+            if scene == 'S3' and css[1] < self.threshold:
+                return ['scene=S1', 'animation=S1']
         return []
 
 
@@ -153,6 +153,57 @@ class SonarAction(L.Signal):
                 self.on = False
                 return ['charge=off']
         return []
+
+
+STATE_SLEEP = 'sleep'
+STATE_WAKEUP = 'wakeup'
+STATE_AWAKE = 'awake'
+
+
+class SimpleStateAction(L.Signal):
+    """First trial at a state that is split between sigs & actions."""
+
+    def init(self):
+        ...
+
+    def call(self, mode, state, pir, closest, wakeup, active):
+        actions = []
+        if mode != 'simple':
+            return actions
+        if state == STATE_SLEEP:
+            if pir > 0 or closest > 0:
+                actions.append(f'state={STATE_WAKEUP}')
+                actions.append(f'animation={STATE_WAKEUP}')
+        if state == STATE_WAKEUP:
+            if wakeup == 1:
+                actions.append(f'state={STATE_AWAKE}')
+                actions.append(f'animation={STATE_AWAKE}')
+        if state == STATE_AWAKE:
+            if active == 0 and pir == 0:
+                actions.append(f'state={STATE_SLEEP}')
+                actions.append(f'animation={STATE_SLEEP}')
+        return actions
+
+
+class Reservoir(L.Signal):
+    """When in `state` then starts at `start` and moves by `diff`."""
+
+    def init(self, state, start, diff):
+        self.value = 0
+        self.lt = None
+
+    def call(self, t, state):
+        if state == self.state:
+            if self.lt is None:
+                self.lt = t
+                self.value = self.start
+            dt = t - self.lt
+            self.lt = t
+            self.value += self.diff * dt
+        else:
+            self.lt = None
+        self.value = min(1, max(0, self.value))
+        return self.value
 
 
 class Rizhom(L.Signal):

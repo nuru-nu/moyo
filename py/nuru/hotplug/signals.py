@@ -125,7 +125,21 @@ css_signals = dict(
 
 state_signals = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
-    state=state.Rizhom(),
+    # state=state.Rizhom(),
+    state=S.ActionLatch('state=(.*)', N.state),
+    wakeup=state.Reservoir(
+        state.STATE_WAKEUP,
+        start=0,
+        diff=1/5,
+    ),
+    active=state.Reservoir(
+        state.STATE_AWAKE,
+        start=1,
+        diff=(
+            (N.closest | S.To(0, .4))
+            + S.Const(-1/20)
+        ),
+    ),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     animation=S.ActionLatch('animation=(.*)', N.animation),
@@ -135,6 +149,7 @@ action_signals = dict(
     flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
+    state_action=state.SimpleStateAction(),
     css_action=state.CssAction(threshold=0.0),
     nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
@@ -205,7 +220,8 @@ defaults = dict(
     sonar_0=1,
     pir_0=0,
     sonar_override=None,
-    state=state.State(),
+    # state=state.State(),
+    state=state.STATE_SLEEP,
     mode='manual',
     animation='S1',
     scene='S1',
@@ -240,15 +256,17 @@ transient_loops = dict(
     css_action='action',
     sonar_action='action',
     nca_action='action',
+    state_action='action',
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ('manual', 'css')
+modes = ['manual', 'css', 'simple']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
         sensor=['sonar', 'pir', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
+        state=['wakeup', 'active'],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -259,6 +277,7 @@ monitor_def = dict(
     selected={
         'default': ['heart', 'rnd1'],
         'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
+        'state': ['wakeup', 'active', 'pir', 'closest'],
         'empty': [],
     },
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
