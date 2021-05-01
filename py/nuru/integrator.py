@@ -68,7 +68,7 @@ class Integrator:
         self.t0 = time.time()
         if os.path.isfile(args.signals_json):
             with open(args.signals_json, 'rb') as f:
-                self.signals = util.deserialize(f.read())
+                self.signals.update(util.deserialize(f.read()))
             logger.info('Loaded signals from "%s"...', args.signals_json)
 
     def start(self):

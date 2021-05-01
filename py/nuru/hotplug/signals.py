@@ -218,6 +218,9 @@ defaults = dict(
     v0=0.5,
     v1=0.5,
     v2=0.5,
+    nca_speed=1,
+    nca_clip=0,
+    nca_wrap=0,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -255,6 +258,7 @@ monitor_def = dict(
         # state
         'scene',
         'animation',
+        'mode',
         # css
         'css',
         'target_css',
@@ -282,5 +286,9 @@ monitor_def = dict(
         'v1',
         'v2',
         'kinect_dphi',
+        # NCA
+        'nca_speed',
+        'nca_clip',
+        'nca_wrap',
     ],
 )
