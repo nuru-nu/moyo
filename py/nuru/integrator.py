@@ -151,6 +151,7 @@ class Integrator:
                 enabled=sorted(list(self.rec_enabled)),
                 t=self.rec_t,
                 )
+        self.signals = signals
         self.server.send(signals)
 
     def handle_rec_action(self, rec_action):
