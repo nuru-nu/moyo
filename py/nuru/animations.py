@@ -53,7 +53,7 @@ class Mixer(L.Signal):
         self.t0 = 0
         self.current = self.last = 'off'
 
-    def call(self, animation, t, anim_arms, anim_head, anim_both, **signals):
+    def call(self, animation, t, **signals):
         if animation != self.current:
             self.last = self.current
             self.current = animation
@@ -64,9 +64,6 @@ class Mixer(L.Signal):
             v = (t - self.t0) / dt
             last_pixels = self.animations[self.last](t=t, **signals)
             pixels = v * pixels + (1 - v) * last_pixels
-        pixels[mapping.is_head] *= anim_head
-        pixels[~mapping.is_head] *= anim_arms
-        pixels *= anim_both
         return pixels
 
 
@@ -139,6 +136,23 @@ class Ones(L.Signal):
 
     def call(self):
         return self.value
+
+
+class Mult(L.Signal):
+
+    def init(self, value, which='both'):
+        if which == 'both':
+            self.idxs = np.array(range(len(mapping.is_head)))
+        elif which == 'head':
+            self.idxs = np.where(mapping.is_head)
+        elif which == 'arms':
+            self.idxs = np.where(~mapping.is_head)
+        else:
+            raise ValueError(f'Unknown which={which}')
+
+    def call(self, value):
+        value[self.idxs] *= self.value
+        return value
 
 
 class FullOn(L.Signal):
