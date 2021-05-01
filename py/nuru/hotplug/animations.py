@@ -321,15 +321,18 @@ def img():
         rotate=L.Named('v1') | S.To(-180, 180),
     ) | S.To(0, L.Named('v2'))
 
-
 @anim
 def nca():
     return A.NCA2D(
         data=N.nca,
         mapping=A.xy_mapping,
-        speed=N.v0 | S.F(S.fexp) | S.To(0.02, 20),
-    # ) | S.To(0, N.v1)
-    ) | S.To(0, N.rnd1 | S.To(0.1, 0.7))
+        speed=N.nca_speed,
+        clip=N.nca_clip,
+        wrapx=N.nca_wrap,
+        # width=256, height=256,
+    # ) | S.To(0, N.arousal | S.From(.7, 1) | S.To(.1, .8))
+    ) | S.To(0, N.v1)
+    # ) | S.To(0, N.rnd1 | S.To(0.1, 0.7))
     # ) | S.To(0, N.closest | S.To(0.1, 0.7))
 
 @anim
