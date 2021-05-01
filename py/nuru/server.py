@@ -140,7 +140,7 @@ async def send_kinect(request):
     del request
     return web.Response(
         content_type='image/jpeg',
-        body=open('cc/build/kinect_frame.jpg', 'rb').read(),
+        body=open('tmp/kinect_frame.jpg', 'rb').read(),
     )
 
 
