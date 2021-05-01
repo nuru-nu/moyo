@@ -1,5 +1,19 @@
 import { h, u, ui, observe } from './smanmi/util.js'
 
+export const Header = (name, el) => {
+  const ret = h.div({class: 'flex widget', style: 'cursor:pointer'}).of(
+    h.div('header', {class: 'header'}).of(name),
+    h.div('cont').of(el),
+    h.div('placeholder', {class: 'h'}).of('...'),
+  )
+  const els = ret.els
+  els.header.addEventListener('click', () => {
+    els.cont.classList.toggle('h')
+    els.placeholder.classList.toggle('h')
+  })
+  return ret
+}
+
 export const Sonar = (output, {network}) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('sonar'),
@@ -357,15 +371,12 @@ export const Actions = (output, {name, values, network}) => {
 }
 
 export const Animations = (output, {defs, network}) => {
-  const els = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('anim'),
-    h.div().of(
-      ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
-      ui.range('anim_both', { network, name: 'both', value: 1 }),
-      ui.range('anim_head', { network, name: 'head', value: 1 }),
-      ui.range('anim_arms', { network, name: 'arms', value: 1 }),
-    ),
-  ).into(output).els
+  const els = Header('anim', h.div().of(
+    ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+    ui.range('anim_both', { network, name: 'both', value: 1 }),
+    ui.range('anim_head', { network, name: 'head', value: 1 }),
+    ui.range('anim_arms', { network, name: 'arms', value: 1 }),
+  )).into(output).els
 }
 
 export const Transients = (output, {network, defs}) => {
