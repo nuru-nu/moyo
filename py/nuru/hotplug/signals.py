@@ -159,7 +159,7 @@ kinect_signals = dict(
     ),
     closest=S.KinectDistance() | S.With(6.5) | S.Min() | S.From(6.5, 0) | S.F(S.sinramp),
     distance=S.KinectDistance(),
-    mvmt=S.KinectMovement() | S.From(0, 10),
+    mvmt=S.KinectMovement() | S.From(0, 2),
 )
 
 numbers_features = dict(
