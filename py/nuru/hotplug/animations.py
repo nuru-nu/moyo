@@ -322,17 +322,6 @@ def img():
     ) | S.To(0, L.Named('v2'))
 
 @anim
-def nca():
-    return A.NCA2D(
-        data=N.nca,
-        mapping=A.xy_mapping,
-        speed=N.nca_speed,
-        clip=N.nca_clip,
-        wrapx=N.nca_wrap,
-        # width=256, height=256,
-    )
-
-@anim
 def charge():
     # Abelton charging sound
     # 1. growing brighter
@@ -388,6 +377,59 @@ def S3():
         # | palette
         | S.Lin(mult=L.Named('arousal'))
     ) * (L.Named('arousal') | S.To(0.2, 1))
+
+
+@anim
+def nca():
+    return A.NCA2D(
+        data=N.nca,
+        mapping=A.xy_mapping,
+        speed=N.nca_speed,
+        clip=N.nca_clip,
+        wrapx=N.nca_wrap,
+        # width=256, height=256,
+    )
+
+
+@anim
+def sleep():
+    return A.NCA2D(
+        data='fibrous_0132',
+        mapping=A.xy_mapping,
+        clip=True,
+        speed=0.8,
+        wrapx=True,
+    ) | A.RGauss(N.rnd1 | S.To(1, 4)) | S.To(0, .3)
+
+
+@anim
+def wakeup():
+    ctrl = N.wakeup
+    # ctrl = N.v0  # for testing
+    return A.NCA2D(
+        # data='fibrous_0132',
+        data='frilly_0006',  # For illustration purposes something funky.
+        mapping=A.xy_mapping,
+        clip=True,
+        speed=ctrl | S.To(0.8, 3),
+        wrapx=True,
+    ) | A.RGauss(
+        ctrl | S.To(N.rnd1 | S.To(2, 5), 15)
+    ) | S.To(0, ctrl | S.To(.3, .6))
+
+
+@anim
+def awake():
+    ctrl = N.closest
+    # ctrl = N.v0  # for testing
+    return A.NCA2D(
+        data='striped_0085',
+        mapping=A.xy_mapping,
+        clip=True,
+        speed=ctrl | S.To(1, 3),
+        wrapx=True,
+    ) | S.To(0, ctrl | S.To(.3, .6))
+
 
 pixels = (
     A.Mixer(animations)
