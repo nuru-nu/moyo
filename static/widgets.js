@@ -324,17 +324,15 @@ export const Vars = (output, {network, defs}) => {
   ).into(output)
 }
 
-
-export const Actions = (output, {name, values, network, defs}) => {
+export const ActionsButtons = (output, {name, values, network}) => {
   let value = null
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of(name),
+  const els = h.div('cont').of(
     ui.hw(
       values.map(s => h.button(s).of(s))
     )
   ).into(output).els
   values.forEach(s => {
-    disp[s].addEventListener('click', () => {
+    els[s].addEventListener('click', () => {
       network.sender({action: `${name}=${s}`})
     })
   })
@@ -342,12 +340,32 @@ export const Actions = (output, {name, values, network, defs}) => {
     const v = data[name]
     if (v && v != value) {
       if (value) {
-        disp[value].classList.remove('on')
+        els[value].classList.remove('on')
       }
-      disp[v].classList.add('on')
+      els[v].classList.add('on')
       value = v
     }
   })
+  return els.cont
+}
+
+export const Actions = (output, {name, values, network}) => {
+  h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of(name),
+    ActionsButtons(output, {name, values, network})
+  ).into(output)
+}
+
+export const Animations = (output, {defs, network}) => {
+  const els = h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of('anim'),
+    h.div().of(
+      ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+      ui.range('anim_both', { network, name: 'both', value: 1 }),
+      ui.range('anim_head', { network, name: 'head', value: 1 }),
+      ui.range('anim_arms', { network, name: 'arms', value: 1 }),
+    ),
+  ).into(output).els
 }
 
 export const Transients = (output, {network, defs}) => {

@@ -53,7 +53,7 @@ class Mixer(L.Signal):
         self.t0 = 0
         self.current = self.last = 'off'
 
-    def call(self, animation, t, **signals):
+    def call(self, animation, t, anim_arms, anim_head, anim_both, **signals):
         if animation != self.current:
             self.last = self.current
             self.current = animation
@@ -64,6 +64,9 @@ class Mixer(L.Signal):
             v = (t - self.t0) / dt
             last_pixels = self.animations[self.last](t=t, **signals)
             pixels = v * pixels + (1 - v) * last_pixels
+        pixels[mapping.is_head] *= anim_head
+        pixels[~mapping.is_head] *= anim_arms
+        pixels *= anim_both
         return pixels
 
 
