@@ -392,4 +392,9 @@ def S3():
         | S.Lin(mult=L.Named('arousal'))
     ) * (L.Named('arousal') | S.To(0.2, 1))
 
-pixels = A.Mixer(animations)
+pixels = (
+    A.Mixer(animations)
+    | A.Mult(N.anim_both)
+    | A.Mult(N.anim_head, 'head')
+    | A.Mult(N.anim_arms, 'arms')
+)
