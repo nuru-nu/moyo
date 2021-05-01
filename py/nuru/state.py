@@ -146,10 +146,10 @@ class SonarAction(L.Signal):
 
     def call(self, sonar):
         if sonar is not None:
-            if sonar < self.threshold and not self.on:
+            if sonar > self.threshold and not self.on:
                 self.on = True
                 return ['charge=on']
-            if sonar > self.threshold and self.on:
+            if sonar < self.threshold and self.on:
                 self.on = False
                 return ['charge=off']
         return []
