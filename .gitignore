@@ -12,4 +12,3 @@ __pycache__
 /fadecandy/fcserver
 /fadecandy/fcserver-osx
 /nca/*.npy
-/signals.json

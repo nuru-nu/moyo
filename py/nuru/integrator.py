@@ -25,7 +25,7 @@ parser.add_argument(
     '--server_address', type=str, default='127.0.0.1',
     help='Address of machine running `smanmi.server` script.')
 parser.add_argument(
-    '--signals_json', type=str, default='signals.json',
+    '--signals_json', type=str, default='tmp/signals.json',
     help='Path where to store signals in JSON format.')
 args = parser.parse_args()
 
