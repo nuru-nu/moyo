@@ -126,9 +126,9 @@ css_signals = dict(
 state_signals = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
     state=state.Rizhom(),
-    mode=S.ActionLatch('mode=(.*)', 'manual'),
-    scene=S.ActionLatch('scene=(.*)', None, sig=N.scene),
-    animation=S.ActionLatch('animation=(.*)', None, sig=N.animation),
+    mode=S.ActionLatch('mode=(.*)', N.mode),
+    scene=S.ActionLatch('scene=(.*)', N.scene),
+    animation=S.ActionLatch('animation=(.*)', N.animation),
 )
 
 action_signals = dict(
@@ -142,7 +142,7 @@ action_signals = dict(
 )
 
 animation_signals = dict(
-    nca=S.ActionLatch('nca=set=(.*)', 'frilly_0093', sig=N.nca),
+    nca=S.ActionLatch('nca=set=(.*)', N.nca),
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
         heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
@@ -214,7 +214,7 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
-    nca='cephalopod',
+    nca='smeared_0041',
     v0=0.5,
     v1=0.5,
     v2=0.5,
