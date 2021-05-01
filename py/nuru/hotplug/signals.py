@@ -34,7 +34,7 @@ audio_signals = dict(
     # raw audio
     #_pitch=(
     #    S.Pitcher(tolerance=0.7) | S.Clip(0, 400) |
-    #    S.Exponential(alpha=25*0.8)
+    #    S.Exponential(alpha=0.2)
     #),
     loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
     rawloud=S.Louder(n=3) | S.Lin(mult=2),
@@ -49,8 +49,8 @@ audio_signals = dict(
     tf2=S.Const(0),
     tf3=S.Const(0),
     iso=(L.Named('tf') | S.Median(n=10, threshold=0.7)),
-    iso2=(L.Named('tf') | S.Median(n=10, threshold=0.7))
-    | S.Exponential(alpha=25*0.95),
+    iso2=(L.Named('tf') | S.Median(n=10, threshold=0.7)),
+    # | S.Exponential(alpha=.05)
     # sig1=(
     #     S.Louder(n=10) | S.Lin(mult=20)
     # ) * (
@@ -157,7 +157,11 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-    closest=S.KinectDistance() | S.With(6.5) | S.Min() | S.From(6.5, 0) | S.F(S.sinramp),
+    closest=(
+        S.KinectDistance()
+        | S.With(6.5) | S.Min() | S.From(6.5, 0)
+        # | S.F(S.sinramp),
+    ),
     distance=S.KinectDistance(),
     mvmt=S.KinectMovement() | S.From(0, 2),
 )
@@ -224,6 +228,8 @@ defaults = dict(
     anim_head=1,
     anim_arms=1,
     anim_both=1,
+    one=1,
+    anim_sig='one',
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -258,6 +264,7 @@ monitor_def = dict(
         other=['nca'],
     ),
     hidden=[
+        'one',
         # state
         'scene',
         'animation',
@@ -297,5 +304,6 @@ monitor_def = dict(
         'anim_both',
         'anim_head',
         'anim_arms',
+        'anim_sig',
     ],
 )

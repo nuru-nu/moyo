@@ -394,4 +394,7 @@ pixels = (
     | A.Mult(N.anim_both)
     | A.Mult(N.anim_head, 'head')
     | A.Mult(N.anim_arms, 'arms')
+    | A.Mult(
+        L.Named('anim_sig', meta=True) | S.To(.2, 1) | S.Exponential(.1)
+    )
 )

@@ -376,6 +376,7 @@ export const Animations = (output, {defs, network}) => {
     ui.range('anim_both', { network, name: 'both', value: 1 }),
     ui.range('anim_head', { network, name: 'head', value: 1 }),
     ui.range('anim_arms', { network, name: 'arms', value: 1 }),
+    ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1'] })
   )).into(output).els
 }
 
