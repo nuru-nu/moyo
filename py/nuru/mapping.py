@@ -199,3 +199,6 @@ def generate_xy_mapping(phi0: float,
     xy_mapping = _generate_arms_mapping_xy(settings.arm_configs)
     xy_mapping[: 2 * 8 * 60, :] = _generate_sphere_mapping_xy(settings.phi0)
     return xy_mapping
+
+
+is_head = np.array([i < 2 * 8 * 60 for i in range(1920)])

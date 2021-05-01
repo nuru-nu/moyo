@@ -221,6 +221,9 @@ defaults = dict(
     nca_speed=1,
     nca_clip=0,
     nca_wrap=0,
+    anim_head=1,
+    anim_arms=1,
+    anim_both=1,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -290,5 +293,9 @@ monitor_def = dict(
         'nca_speed',
         'nca_clip',
         'nca_wrap',
+        # anim
+        'anim_both',
+        'anim_head',
+        'anim_arms',
     ],
 )
