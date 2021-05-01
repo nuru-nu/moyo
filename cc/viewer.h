@@ -29,7 +29,6 @@ class Viewer {
     bool should_record() const { return should_record_; }
     bool should_reset() const { return should_reset_; }
 
-
   private:
     void draw_process_key();
     void update_graphs(const cv::Mat& img, 
@@ -45,6 +44,7 @@ class Viewer {
     bool should_reset_ = false;
     bool should_dump_ = false;
     float last_presence_x_ = 0;
+    int frame_idx = 0;
 
     std::vector<float> last_depths_ = {0, 0, 0, 0, 0, 0, 
                                        0, 0 ,0 ,0, 0, 0};
