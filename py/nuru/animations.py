@@ -138,6 +138,23 @@ class Ones(L.Signal):
         return self.value
 
 
+class Mult(L.Signal):
+
+    def init(self, value, which='both'):
+        if which == 'both':
+            self.idxs = np.array(range(len(mapping.is_head)))
+        elif which == 'head':
+            self.idxs = np.where(mapping.is_head)
+        elif which == 'arms':
+            self.idxs = np.where(~mapping.is_head)
+        else:
+            raise ValueError(f'Unknown which={which}')
+
+    def call(self, value):
+        value[self.idxs] *= self.value
+        return value
+
+
 class FullOn(L.Signal):
     """Single color for all pixels."""
 
@@ -486,7 +503,7 @@ class NCA2D(L.Signal):
     """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
 
     def init(self, data, mapping, speed=1, height=150, width=32, channel_n=12,
-             wrapx=True, base='nca'):
+             wrapx=True, base='nca', clip=False):
         self.last_data = None
         if wrapx:
             width += 2
@@ -494,6 +511,7 @@ class NCA2D(L.Signal):
         self.counter = 0
         self.m = tf.constant(mapping)
         self.i = 0
+        self.lastimg = self._img = None
 
     def call(self):
         if self.last_data != self.data:
@@ -505,7 +523,7 @@ class NCA2D(L.Signal):
             self.lastx = self.x = tf.zeros_like(self.x)
             self.last_data = self.data
         self.counter += 1
-        while self.counter >= 1/self.speed:
+        while self.counter >= 1/self.speed or self._img is None:
             if self.wrapx:
                 w = self.x.shape[2]
                 self.x = tf.concat([
@@ -513,17 +531,22 @@ class NCA2D(L.Signal):
                     self.x[:, :, 1: w-1, :],
                     self.x[:, :, w-1:w, :],
                 ], axis=2)
-            self.lastx = self.x
             # if self.i < 50: print('next')
             self.x = self.f(self.x)
+            self.lastimg = self._img
+            self._img = ca.to_rgb(self.x)[0].numpy()
+            if self.lastimg is None: self.lastimg = self._img
             self.counter -= 1/self.speed
+
         f = min(1, self.counter * self.speed)
-        f = (1 + np.cos((f - 1) * np.pi)) / 2
-        if self.i < 50:
-            # print(self.i, f)
+        # f = (1 + np.cos((f - 1) * np.pi)) / 2
+        if self.i < 5:
+            # print(self.i, self.clip)
             self.i += 1
-        x = self.lastx * min(1, f) + self.x * max(0, 1 - f)
-        self.img = ca.to_rgb(x)[0].numpy()
+        self.img = self.lastimg * min(1, f) + self._img * max(0, 1 - f)
+
+        if self.clip > 0:
+            self.img = np.clip(self.img, 0, 1)
         return self.img[self.m[:, 1], self.m[:, 0], :]
 
 

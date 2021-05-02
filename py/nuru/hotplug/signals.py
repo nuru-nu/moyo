@@ -34,7 +34,7 @@ audio_signals = dict(
     # raw audio
     #_pitch=(
     #    S.Pitcher(tolerance=0.7) | S.Clip(0, 400) |
-    #    S.Exponential(alpha=25*0.8)
+    #    S.Exponential(alpha=0.2)
     #),
     loud=S.Louder(n=10) | S.ClipToMaxOfMin(),
     rawloud=S.Louder(n=3) | S.Lin(mult=2),
@@ -49,8 +49,8 @@ audio_signals = dict(
     tf2=S.Const(0),
     tf3=S.Const(0),
     iso=(L.Named('tf') | S.Median(n=10, threshold=0.7)),
-    iso2=(L.Named('tf') | S.Median(n=10, threshold=0.7))
-    | S.Exponential(alpha=25*0.95),
+    iso2=(L.Named('tf') | S.Median(n=10, threshold=0.7)),
+    # | S.Exponential(alpha=.05)
     # sig1=(
     #     S.Louder(n=10) | S.Lin(mult=20)
     # ) * (
@@ -125,16 +125,31 @@ css_signals = dict(
 
 state_signals = dict(
     css=state.Css(alpha=L.Named('css_alpha')),
-    state=state.Rizhom(),
-    mode=S.ActionLatch('mode=(.*)', 'manual'),
-    scene=S.ActionLatch('scene=(.*)', None, sig=N.scene),
-    animation=S.ActionLatch('animation=(.*)', None, sig=N.animation),
+    # state=state.Rizhom(),
+    state=S.ActionLatch('state=(.*)', N.state),
+    wakeup=state.Reservoir(
+        state.STATE_WAKEUP,
+        start=0,
+        diff=1/5,
+    ),
+    active=state.Reservoir(
+        state.STATE_AWAKE,
+        start=1,
+        diff=(
+            (N.closest | S.To(0, .4))
+            + S.Const(-1/20)
+        ),
+    ),
+    mode=S.ActionLatch('mode=(.*)', N.mode),
+    scene=S.ActionLatch('scene=(.*)', N.scene),
+    animation=S.ActionLatch('animation=(.*)', N.animation),
 )
 
 action_signals = dict(
     flash_pulse=L.Named('rawloud') | S.RefractoryPulse(0.5, 2, 40),
     #flash_pulse=S.TriggerPulse(state='flash', secs=3),
     into=Into(),
+    state_action=state.SimpleStateAction(),
     css_action=state.CssAction(threshold=0.0),
     nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
@@ -142,7 +157,7 @@ action_signals = dict(
 )
 
 animation_signals = dict(
-    nca=S.ActionLatch('nca=set=(.*)', 'frilly_0093', sig=N.nca),
+    nca=S.ActionLatch('nca=set=(.*)', N.nca),
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
         heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
@@ -157,9 +172,13 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-    closest=S.KinectDistance() | S.With(6.5) | S.Min() | S.From(6.5, 0) | S.F(S.sinramp),
+    closest=(
+        S.KinectDistance()
+        | S.With(6.5) | S.Min() | S.From(6.5, 0)
+        # | S.F(S.sinramp),
+    ),
     distance=S.KinectDistance(),
-    mvmt=S.KinectMovement() | S.From(0, 10),
+    mvmt=S.KinectMovement(5) | S.From(0, .5) | S.Clip(),
 )
 
 numbers_features = dict(
@@ -201,7 +220,8 @@ defaults = dict(
     sonar_0=1,
     pir_0=0,
     sonar_override=None,
-    state=state.State(),
+    # state=state.State(),
+    state=state.STATE_SLEEP,
     mode='manual',
     animation='S1',
     scene='S1',
@@ -214,10 +234,18 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
-    nca='cephalopod',
+    nca='smeared_0041',
     v0=0.5,
     v1=0.5,
     v2=0.5,
+    nca_speed=1,
+    nca_clip=0,
+    nca_wrap=0,
+    anim_head=1,
+    anim_arms=1,
+    anim_both=1,
+    one=1,
+    anim_sig='one',
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -228,15 +256,17 @@ transient_loops = dict(
     css_action='action',
     sonar_action='action',
     nca_action='action',
+    state_action='action',
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ('manual', 'css')
+modes = ['manual', 'css', 'simple']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
         sensor=['sonar', 'pir', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
+        state=['wakeup', 'active'],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -244,7 +274,12 @@ monitor_def = dict(
         css=css_signals.keys(),
     ),
     transients=cc(transients, transient_loops),
-    selected=['presence', 'mvmt', 'heart', 'sonar', 'charge', 'rnd1', 'pir'],
+    selected={
+        'default': ['heart', 'rnd1'],
+        'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
+        'state': ['wakeup', 'active', 'pir', 'closest'],
+        'empty': [],
+    },
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
@@ -252,9 +287,11 @@ monitor_def = dict(
         other=['nca'],
     ),
     hidden=[
+        'one',
         # state
         'scene',
         'animation',
+        'mode',
         # css
         'css',
         'target_css',
@@ -282,5 +319,14 @@ monitor_def = dict(
         'v1',
         'v2',
         'kinect_dphi',
+        # NCA
+        'nca_speed',
+        'nca_clip',
+        'nca_wrap',
+        # anim
+        'anim_both',
+        'anim_head',
+        'anim_arms',
+        'anim_sig',
     ],
 )

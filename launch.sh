@@ -21,7 +21,7 @@ tmux splitw -p 75
 tmux send-keys './run nuru.recorder' $CM
 # row 3
 tmux splitw -p 66
-tmux send-keys './run nuru.sonar' $CM
+tmux send-keys './run smanmi.arduino --signal_port $(./run nuru.settings integrator_sig_port) --dev_glob /dev/ttyUSB* /dev/ttyACM*' $CM
 # row 4
 tmux splitw
 tmux send-keys "./run nuru.integrator --midi_address=$(getip mbp.local)" $CM

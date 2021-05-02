@@ -1,6 +1,8 @@
 import argparse
 import asyncio
 import collections
+import json
+import os
 import re
 import time
 import traceback
@@ -22,6 +24,9 @@ parser.add_argument(
 parser.add_argument(
     '--server_address', type=str, default='127.0.0.1',
     help='Address of machine running `smanmi.server` script.')
+parser.add_argument(
+    '--signals_json', type=str, default='tmp/signals.json',
+    help='Path where to store signals in JSON format.')
 args = parser.parse_args()
 
 logger = util.createLogger('integrator')
@@ -60,6 +65,11 @@ class Integrator:
         }
         self.rec_play = self.rec_ongoing = self.rec_t = None
         self.rec_enabled = set()
+        self.t0 = time.time()
+        if os.path.isfile(args.signals_json):
+            with open(args.signals_json, 'rb') as f:
+                self.signals.update(util.deserialize(f.read()))
+            logger.info('Loaded signals from "%s"...', args.signals_json)
 
     def start(self):
         self.schedule()
@@ -98,6 +108,11 @@ class Integrator:
             else:
                 self.signals[name] = value
         self.signals.update(signals)
+
+        if time.time() - self.t0 > 10:
+            with open(args.signals_json, 'wb') as f:
+                f.write(util.serialize(self.signals, indent=2))
+            self.t0 = time.time()
         # if not self.rec_play:
         #     # Note: Only use fixed FPS during playback to avoid doubling
         #     # frequency when mixing data from sensor/recording.
@@ -136,6 +151,7 @@ class Integrator:
                 enabled=sorted(list(self.rec_enabled)),
                 t=self.rec_t,
                 )
+        self.signals = signals
         self.server.send(signals)
 
     def handle_rec_action(self, rec_action):

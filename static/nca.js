@@ -17,8 +17,12 @@ export const NCA = (output, {network, defs}) => {
     h.div({class: 'header'}).of('NCA'),
     h.div().of(
       h.div().of(
-        h.a('nca', {href: '#'}).of('?'),
+        ui.toggle('nca_clip', {network, text: 'clip'}), ' ',
+        ui.toggle('nca_wrap', {network, text: 'wrap'}), ' ',
+        h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
+        h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
       ),
+      ui.range('nca_speed', {network, min: 0.01, max: 10, trafo: [Math.exp, Math.log]}),
       h.div('buttons', {style: 'flex-wrap:wrap'}).of(
         h.button('next').of('ᐅ'),
       ),
@@ -50,6 +54,8 @@ export const NCA = (output, {network, defs}) => {
       }
       els.nca.textContent = data.nca
       els.nca.href = `/nca?name=${data.nca}`
+      const [group, num] = data.nca.split('_')
+      els.img.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
     }
   })
 };
