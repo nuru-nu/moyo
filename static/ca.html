@@ -8,19 +8,17 @@ body {
 }
 canvas {
   margin: 0 auto;
+  cursor: pointer;
 }
 </style>
 
 <canvas width="512" height="512"></canvas>
-<!-- <canvas width="100%" height="100%"></canvas> -->
-<div style="height:2000px">&nbps;</div>
 
 <script src="ca.js" type="module"></script>
 
 <script type="module">
 
-let mini = true;
-mini = false;
+let mini = window.location.href.indexOf('&mini') !== -1
 
 import { CA } from './ca.js';
 
@@ -80,7 +78,7 @@ requestAnimationFrame(render);
 
 function resize() {
   if (mini) {
-    const f = 3;
+    const f = 10;
     canvas.width = W * f;
     canvas.height = H * f;
     canvas.style['margin-left'] = `${(window.innerWidth - canvas.width)/2}px`;
@@ -112,11 +110,22 @@ document.addEventListener('visibilitychange', () => {
 
 // This messes up internal state in quite an interesting way...
 canvas.addEventListener('click', () => {
-  mini = !mini;
-  let W = mini ? 150 : 256, H = mini ? 32 : 256;  // Can only be increased slightly above 256...
-  param.zoom = mini?1:3.3;
-  ca = new CA(gl, models, [W, H], gui);
-  resize();
+  if (mini) {
+    window.location.href = window.location.href.replace('&mini', '')
+  } else {
+    window.location.href = window.location.href + '&mini'
+  }
+
+  // Note: There are some funky swirly animations going on when doing below 2x.
+  // mini = !mini;
+  // let W = mini ? 150 : 256, H = mini ? 32 : 256;  // Can only be increased slightly above 256...
+  // param.zoom = mini?1:3.3;
+  // ca = new CA(gl, models, [W, H], gui);
+  // resize();
+})
+
+canvas.addEventListener('wheel', e => {
+  param.zoom = Math.max(1, Math.min(32, param.zoom + 0.01 * e.deltaY))
 })
 
 </script>
