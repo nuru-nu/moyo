@@ -48,7 +48,6 @@ int main(const int argc, const char** const argv) {
     }
   }
 
-
   Hardware hardware;
 
   Features features;
@@ -62,17 +61,22 @@ int main(const int argc, const char** const argv) {
       return -1;
     } 
 
-    std::vector<person_t> people = hardware.get_tracking_data();
+    std::map<std::string, std::vector<person_t>> people;
+
+    cv::Mat depth = hardware.depth(); 
+
+    cv::Mat user_pixels = hardware.get_user_pixels();
+    cv::Mat depth_segments = hardware.get_depth_segments(depth);
+
+    people["people_sensor"] = hardware.get_tracking_data();
+    people["people_sensor_2"] = hardware.deduce_3D_cos(depth);  
+
     const int bytesS = sender.send_tracking_data(
                                   people, 
                                   {{"presence", features.presence()},}); 
     if (bytesS < 0) {
       std::cerr << "### errno=" << errno << std::endl;
     }
-
-    cv::Mat depth = hardware.depth(); 
-
-    cv::Mat user_pixels = hardware.get_user_pixels();
 
     features.process(depth);
     const int bytes_sent = sender.send({
@@ -81,7 +85,7 @@ int main(const int argc, const char** const argv) {
     if (bytes_sent < 0) {
       std::cerr << "### errno=" << errno << std::endl;
     }
-    viewer.update(depth, features, people, user_pixels);
+    viewer.update(depth, features, user_pixels, hardware.depth_seg_cos_);
     if (viewer.should_reset()) {
       features.reset();
     }
@@ -96,6 +100,8 @@ int main(const int argc, const char** const argv) {
       hardware.record_pcl("../../data/pcls", 60);
     }
     delete depth.data;
+    // delete user_pixels.data;
+    // delete depth_segments.data;
   }
 
   hardware.close();
