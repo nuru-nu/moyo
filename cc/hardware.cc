@@ -153,6 +153,17 @@ cv::Mat Hardware::get_user_pixels(){
   return user_pixels;
 }
 
+cv::Mat Hardware::get_depth_segmnents(){
+  cv::Mat kernel = cv::Mat::ones(4, 4, CV_8U);
+
+  cv::Mat depthImage = this->depth();
+
+  cv::threshold(src_gray, dst, threshold_value, max_binary_value, threshold_type );
+
+  delete depthImage.data;
+  return _;
+}
+
 std::vector<person_t> Hardware::get_tracking_data() {
   const nite::Array<nite::UserData>& users = userTrackerFrame_.getUsers();
 

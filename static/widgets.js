@@ -1,5 +1,19 @@
 import { h, u, ui, observe } from './smanmi/util.js'
 
+export const Header = (name, el) => {
+  const ret = h.div({class: 'flex widget', style: 'cursor:pointer'}).of(
+    h.div('header', {class: 'header'}).of(name),
+    h.div('cont').of(el),
+    h.div('placeholder', {class: 'h'}).of('...'),
+  )
+  const els = ret.els
+  els.header.addEventListener('click', () => {
+    els.cont.classList.toggle('h')
+    els.placeholder.classList.toggle('h')
+  })
+  return ret
+}
+
 export const Sonar = (output, {network}) => {
   const disp = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('sonar'),
@@ -313,61 +327,57 @@ export const Vars = (output, {network, defs}) => {
     return dropdown
   }
 
-  function range(name, value) {
-    value = value || 0.5
-    const span = h.span().of(`${name}=0.50`).el
-    const range = ui.range(name, {value: .5}).change(value => {
-      value = parseFloat(value)
-      span.textContent = `${name}=${value.toFixed(2)}`
-      network.sender({[name]: value})
-    })
-    const el = h.div().of(span, range).el
-    let initialized = false
-    network.listenJson('signals', data => {
-      if (!initialized && data.hasOwnProperty(name)) {
-        range.value = data[name]
-        span.textContent = `${name}=${data[name].toFixed(2)}`
-        initialized = true
-      }
-    })
-    return el
-  }
-
-  const disp = h.div({class: 'flex widget'}).of(
+  h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('vars'),
     // ui.hw(
     ui.v(
       dropdown('palette', defs.palettes),
       dropdown('image', defs.images),
-      'v0 v1 v2 kinect_dphi'.split(' ').map(name => range(name)),
+      'v0 v1 v2 kinect_dphi'.split(' ').map(name => ui.range(name, {network})),
     ),
-  ).into(output).els
+  ).into(output)
 }
 
-
-export const Actions = (output, {name, values, network, defs}) => {
+export const ActionsButtons = (output, {name, values, network}) => {
   let value = null
-  const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of(name),
+  const els = h.div('cont').of(
     ui.hw(
       values.map(s => h.button(s).of(s))
     )
   ).into(output).els
   values.forEach(s => {
-    disp[s].addEventListener('click', () => {
+    els[s].addEventListener('click', () => {
       network.sender({action: `${name}=${s}`})
     })
   })
   network.listenJson('signals', data => {
     const v = data[name]
     if (v && v != value) {
-      if (value) {
-        disp[value].classList.remove('on')
+      if (value && els[value]) {
+        els[value].classList.remove('on')
       }
-      disp[v].classList.add('on')
+      if (els[v]) els[v].classList.add('on')
       value = v
     }
   })
+  return els.cont
+}
+
+export const Actions = (output, {name, values, network}) => {
+  h.div({class: 'flex widget'}).of(
+    h.div({class: 'header'}).of(name),
+    ActionsButtons(output, {name, values, network})
+  ).into(output)
+}
+
+export const Animations = (output, {defs, network}) => {
+  const els = Header('anim', h.div().of(
+    ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+    ui.range('anim_both', { network, name: 'both', value: 1 }),
+    ui.range('anim_head', { network, name: 'head', value: 1 }),
+    ui.range('anim_arms', { network, name: 'arms', value: 1 }),
+    ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] })
+  )).into(output).els
 }
 
 export const Transients = (output, {network, defs}) => {

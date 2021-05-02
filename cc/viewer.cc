@@ -200,9 +200,9 @@ void Viewer::update(const cv::Mat& img,
     cv::Mat vert_flipped;
     cv::flip(img_brg, vert_flipped, 0);
 
-    cv::putText(
-        vert_flipped, fps_string,
-        cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+    // cv::putText(
+    //     vert_flipped, fps_string,
+    //     cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
 
 
     if (false) {// Feature output. Currently not implemented.
@@ -220,7 +220,9 @@ void Viewer::update(const cv::Mat& img,
     std::chrono::duration_cast<std::chrono::microseconds>(t - last_img_store_t_).count();
     if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
       last_img_store_t_ = t;
-      cv::imwrite("kinect_frame.jpg", vert_flipped);
+      cv::imwrite("../../tmp/kinect_frame.jpg", vert_flipped);
+      // cv::imwrite("../../tmp/depth_imgs/kinect_frame_" + std::to_string(frame_idx) + ".jpg", vert_flipped);
+      // frame_idx++;
     }
   }
   if (!gui_) {
