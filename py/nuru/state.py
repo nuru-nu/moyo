@@ -143,15 +143,17 @@ class SonarAction(L.Signal):
 
     def init(self, threshold=0.5):
         self.on = False
+        self.lastanim = None
 
-    def call(self, sonar):
+    def call(self, sonar, animation):
         if sonar is not None:
             if sonar > self.threshold and not self.on:
                 self.on = True
-                return ['charge=on']
+                self.lastanim = animation
+                return ['charge=on', 'animation=charge']
             if sonar < self.threshold and self.on:
                 self.on = False
-                return ['charge=off']
+                return ['charge=off', f'animation={self.lastanim}']
         return []
 
 
