@@ -127,7 +127,7 @@ def Rr():
 def Rc():
     return Renv(
         L.Named('closest') | S.To(0.2, 1.2),
-    ) + heart()
+    )
 
 
 @anim
@@ -195,7 +195,7 @@ def wheel():
 
 @anim
 def white():
-    return A.FullOn(C.RGB(.5, .5, .5))
+    return A.FullOn(C.RGB(1, 1, 1))
 
 @anim
 def rnd():
@@ -333,7 +333,7 @@ def charge():
     anim1 = anim1 | S.To(0, L.Named('charge') | S.To(0.8, 1))
     anim2 = A.Proj(images['covid_nmn'], scale=0.6, rotate=rot2)
     anim2 = anim2 | S.To(0, L.Named('charge') | S.From(0.5, 1) | S.To(0, 0.8) | S.Clip())
-    return A.Sum(anim1, anim2) + heart()
+    return A.Sum(anim1, anim2)
 
 @anim
 def rotimg():
@@ -364,7 +364,7 @@ def make_image(image):
 
 @anim
 def S1():
-    return noise() + heart()
+    return noise()
 
 @anim
 def S3():
@@ -432,7 +432,10 @@ def awake():
 
 
 pixels = (
-    A.Mixer(animations)
+    (
+        A.Mixer(animations)
+        + (heart() * N.anim_heart)
+    )
     | A.Mult(N.anim_both)
     | A.Mult(N.anim_head, 'head')
     | A.Mult(N.anim_arms, 'arms')
