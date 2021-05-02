@@ -16,7 +16,7 @@ class SignalSender {
     // Returns numbers of bytes sent.
     int send(const Values& values);
     // Returns numbers of bytes sent.
-    int send_tracking_data(const std::vector<person_t>& people, 
+    int send_tracking_data(const std::map<std::string, std::vector<person_t>>& people, 
                            const std::map<std::string, float>& values);
 
   private:

@@ -22,8 +22,8 @@ class Viewer {
     Viewer(bool gui = true);
     void update(const cv::Mat& img, 
                 const Features& features, 
-                const std::vector<person_t>& people,
-                const cv::Mat user_pixels);
+                const cv::Mat user_pixels,
+                std::map<int, cv::Point2i>& depth_seg_cos);
     bool should_quit() const { return should_quit_; }
     bool should_store() const { return should_store_; }
     bool should_record() const { return should_record_; }
@@ -42,6 +42,7 @@ class Viewer {
     bool should_store_ = false;
     bool should_record_ = false;
     bool should_reset_ = false;
+    bool should_ref_img_ = false;
     bool should_dump_ = false;
     float last_presence_x_ = 0;
     int frame_idx = 0;
