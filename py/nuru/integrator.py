@@ -70,6 +70,8 @@ class Integrator:
             with open(args.signals_json, 'rb') as f:
                 self.signals.update(util.deserialize(f.read()))
             logger.info('Loaded signals from "%s"...', args.signals_json)
+            if 'rec_state' in self.signals:
+                del self.signals['rec_state']
 
     def start(self):
         self.schedule()
@@ -165,8 +167,11 @@ class Integrator:
                 self.rec_ongoing = None
             elif self.rec_play:
                 self.rec_play = None
+                self.signals['rec_state']
             else:
-                logger.warn('Ignoring rec_action=stop')
+                logger.warning('Ignoring rec_action=stop')
+            if 'rec_state' in self.signals:
+                del self.signals['rec_state']
         m = re.match(r'^play=(.*)', rec_action)
         if m:
             self.rec_play = recording.Recording.load(m.group(1))
