@@ -260,7 +260,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['manual', 'css', 'simple']
+modes = ['rnca', 'manual', 'css', 'simple']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
