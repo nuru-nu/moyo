@@ -125,11 +125,11 @@ class NcaAction(L.Signal):
             path.split('/')[-1][:-4] for path in glob.glob(nca_glob)]
         self.t = time.time()
 
-    def call(self, t, action):
+    def call(self, state, t, action):
         nca_actions = []
         if action == 'nca=next':
             self.t = 0
-        if t - self.t > self.timeouts_secs:
+        if t - self.t > self.timeouts_secs and state == 'rnca':
             name = self.names[random.randint(0, len(self.names))]
             nca_actions.append(f'nca=set={name}')
             self.t = t
