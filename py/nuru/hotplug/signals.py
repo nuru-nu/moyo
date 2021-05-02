@@ -91,6 +91,7 @@ sensor_signals = dict(
 touch_from = [200] * 16
 touch_n = len(touch_from)
 touch_raws = [f'touch_raw_{i}' for i in range(touch_n)]
+touchs = [touch_raw.replace('_raw', '') for touch_raw in touch_raws]
 for i, from_ in enumerate(touch_from):
     sensor_signals[f'touch_{i}'] = (
         L.Named(f'touch_raw_{i}') | S.From(0, from_) | S.MovingAverage(n=5))
@@ -140,6 +141,7 @@ state_signals = dict(
             + S.Const(-1/20)
         ),
     ),
+    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     animation=S.ActionLatch('animation=(.*)', N.animation),
@@ -153,7 +155,6 @@ action_signals = dict(
     css_action=state.CssAction(threshold=0.0),
     nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
-    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
 )
 
 animation_signals = dict(
@@ -178,7 +179,7 @@ kinect_signals = dict(
         # | S.F(S.sinramp),
     ),
     distance=S.KinectDistance(),
-    mvmt=S.KinectMovement(5) | S.From(0, .5) | S.Clip(),
+    mvmt=S.KinectMovement(5),
 )
 
 numbers_features = dict(
@@ -246,6 +247,7 @@ defaults = dict(
     anim_both=1,
     one=1,
     anim_sig='one',
+    anim_heart=0,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -277,7 +279,8 @@ monitor_def = dict(
     selected={
         'default': ['heart', 'rnd1'],
         'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
-        'state': ['wakeup', 'active', 'pir', 'closest'],
+        'touch': touchs,
+        'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
         'empty': [],
     },
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
@@ -328,5 +331,6 @@ monitor_def = dict(
         'anim_head',
         'anim_arms',
         'anim_sig',
+        'anim_heart',
     ],
 )
