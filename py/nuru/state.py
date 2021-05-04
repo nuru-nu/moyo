@@ -145,11 +145,13 @@ class SonarAction(L.Signal):
         self.on = False
         self.lastanim = None
 
-    def call(self, sonar, animation):
+    def call(self, sonar, state, animation):
         if sonar is not None:
             if sonar > self.threshold and not self.on:
                 self.on = True
                 self.lastanim = animation
+                if state == 'rnca':
+                    return ['nca=next']
                 return ['charge=on', 'animation=charge']
             if sonar < self.threshold and self.on:
                 self.on = False
@@ -176,14 +178,17 @@ class SimpleStateAction(L.Signal):
             if pir > 0 or closest > 0:
                 actions.append(f'state={STATE_WAKEUP}')
                 actions.append(f'animation={STATE_WAKEUP}')
+                actions.append(f'scene={STATE_WAKEUP}')
         if state == STATE_WAKEUP:
             if wakeup == 1:
                 actions.append(f'state={STATE_AWAKE}')
                 actions.append(f'animation={STATE_AWAKE}')
+                actions.append(f'scene={STATE_AWAKE}')
         if state == STATE_AWAKE:
             if active == 0 and pir == 0:
                 actions.append(f'state={STATE_SLEEP}')
                 actions.append(f'animation={STATE_SLEEP}')
+                actions.append(f'scene={STATE_SLEEP}')
         return actions
 
 
