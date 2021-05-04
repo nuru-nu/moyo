@@ -1,6 +1,7 @@
 from typing import Dict, Sequence, Tuple
 
 from smanmi import midi
+from .. import state
 
 
 def onoff(note: str, channel: int = 1) -> Tuple[midi.Command]:
@@ -29,18 +30,12 @@ def signal2midi(data) -> Sequence[midi.Command]:
     global _last_signals
     action = data.get('action')
     commands: Tuple[midi.Command] = ()
-    if action == 'scene=S1':
-        commands += onoff('C2')
-    elif action == 'scene=S2':
-        commands += onoff('C#2')
-    elif action == 'scene=S3':
-        commands += onoff('D2')
-    elif action == 'scene=S4':
-        commands += onoff('D#2')
-    elif action == 'scene=S5':
-        commands += onoff('E2')
-    elif action == 'scene=S6':
-        commands += onoff('F2')
+    if action == f'scene={state.STATE_SLEEP}':
+        commands += onoff('C0')
+    elif action == f'scene={state.STATE_WAKEUP}':
+        commands += onoff('C#0')
+    elif action == f'scene={state.STATE_AWAKE}':
+        commands += onoff('D0')
     elif action == 'scene=stop':
         commands += onoff('B2')
     elif action == 'charge=on':
@@ -70,11 +65,8 @@ def midi2signal(command: str) -> Sequence[Dict[str, str]]:
 
 
 scenes = (
-    'S1',
-    'S2',
-    'S3',
-    'S4',
-    'S5',
-    'S6',
+    state.STATE_SLEEP,
+    state.STATE_WAKEUP,
+    state.STATE_AWAKE,
     'stop',
 )
