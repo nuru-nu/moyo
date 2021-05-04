@@ -231,11 +231,12 @@ cv::Mat Hardware::get_depth_segments(cv::Mat &depth_img){
 std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
   std::vector<person_t> people;
   int idx = 0;
+
   for(const auto& p : depth_seg_cos_){
     person_t person;
     float x, y, z;
 
-    convertDepthCoordinatesToWorld(int(p.second.x), int(p.second.y), depth_image.at<int>(int(p.second.x), int(p.second.y)), x, y, z);
+    convertDepthCoordinatesToWorld(int(p.second.y), int(p.second.x), depth_image.at<ushort>(int(p.second.y), int(p.second.x)), x, y, z);
 
     cv::Matx41d loc(x, y, z, 1);
     cv::Mat local_point = trafo_*loc;
@@ -245,9 +246,9 @@ std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
     z = local_point.at<double>(0,2);
 
     person.id = idx;
-    
-    person.depth.insert(std::pair<std::string, float>("cm_depth", 0));
 
+    person.depth.insert(std::pair<std::string, float>("cm_depth", depth_image.at<ushort>(int(p.second.y), int(p.second.x))));
+    
     person.points3d.insert(std::pair<std::string, cv::Point3d>("cm",
                                                   cv::Point3d((float) x,
                                                               (float) y,
@@ -262,7 +263,6 @@ std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
 std::vector<person_t> Hardware::get_tracking_data() {
   const nite::Array<nite::UserData>& users = userTrackerFrame_.getUsers();
 
-  cv::Mat depthImage = this->depth();
   std::vector<person_t> people;
   for (int i = 0; i < users.getSize(); ++i)
   {
@@ -317,7 +317,6 @@ std::vector<person_t> Hardware::get_tracking_data() {
     people.push_back(person);
   }
   
-  delete depthImage.data;
   return people;
 }
 
