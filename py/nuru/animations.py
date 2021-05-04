@@ -2,6 +2,7 @@ import functools
 import json
 import time
 
+import matplotlib
 import numpy as np  # type: ignore
 from scipy import stats
 
@@ -42,8 +43,25 @@ def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
         [lambda r: r * inner_mult, lambda r: (r - 1) * outer_mult + inner_mult]
     )
 
+# colors
+###############################################################################
 
-# state related
+class HsvMod(L.Signal):
+    """Modifies HSV values."""
+
+    def init(self, hue_shift=0, sat_mult=1):
+        pass
+
+    def call(self, value):
+        hsv = matplotlib.colors.rgb_to_hsv(value)
+        if self.hue_shift:
+            hsv[:, 0] = (hsv[:, 0] + self.hue_shift) % 1
+        if self.sat_mult != 1:
+            hsv[:, 1] = np.clip((hsv[:, 1] * self.sat_mult), 0, 1)
+        return matplotlib.colors.hsv_to_rgb(hsv)
+
+
+# mixing + combining
 ###############################################################################
 
 class Mixer(L.Signal):
@@ -94,9 +112,6 @@ class MidiMixer(L.Signal):
         return self.lanim(**signals) * (1 - v) + v * self.anim(**signals)
 
 
-# mixing
-###############################################################################
-
 class Max(L.Signal):
     """Keeps maximum of RGB values from provided animations."""
 
@@ -117,12 +132,21 @@ class Sum(L.Signal):
         x = np.transpose([self.anim1, self.anim2], [1, 2, 0]).sum(axis=-1)
         return np.clip(x, 0, 1)
 
-# animation combiners
-###############################################################################
 
 def add(anims):
     """Reduces an iterable of animations by addition."""
     return functools.reduce(lambda acc, a: acc + a, anims[1:], anims[0])
+
+
+class Overwrite(L.Signal):
+    """Uses `additive` as a mask & sets value instead of adding RGB."""
+
+    def init(self, additive, f=1):
+        ...
+
+    def call(self, value):
+        value *= np.clip((1 - self.f * self.additive.mean(axis=-1)), 0, 1)[:, None]
+        return value + self.additive
 
 
 # simple animations

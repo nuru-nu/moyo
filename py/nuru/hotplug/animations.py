@@ -63,7 +63,8 @@ heart_palette = P.parse_colors_hex([
 def heart():
     return (
         A.Dist2D(phi=np.pi / 4, r=0) | S.Lin(1, -.5)
-        | S.Lin(0, L.Named('heart'))
+        | S.Lin(0, N.heart)
+        # | S.Lin(0, N.heart_a)
         | P.Palette(heart_palette)
     ) | S.Lin(mult=0.2)
 
@@ -90,11 +91,6 @@ def heart2():
 def flash():
     x = S.Const(10) | S.Int(mod=1) | S.Tocos()
     return A.FullOn(C.RGB(x, x, x))
-
-@anim
-def test():
-    return A.FullOn(C.RGB(1, 1, 1)) | A.GaussianActivation(
-        min=0.05, std=N.rnd1 | S.To(0.5, 1.5))
 
 
 def R():
@@ -193,13 +189,16 @@ def wheel():
         | palette | S.Lin(mult=N.v0)
     )
 
+
 @anim
 def white():
     return A.FullOn(C.RGB(1, 1, 1))
 
+
 @anim
 def rnd():
     return A.FullOn(N.rnd1 | palette) | S.To(0, N.v0)
+
 
 @anim
 def songrad():
@@ -388,22 +387,34 @@ def nca():
         clip=N.nca_clip,
         wrapx=N.nca_wrap,
         # width=256, height=256,
-    )
+    ) | A.HsvMod(N.v0)
 
 
 @anim
-def sleep():
+def sleep2():
     return A.NCA2D(
         data='fibrous_0132',
         mapping=A.xy_mapping,
         clip=True,
         speed=0.8,
         wrapx=True,
-    ) | A.RGauss(N.rnd1 | S.To(1, 4)) | S.To(0, .3)
+    ) | A.RGauss(N.rnd1 | S.To(2, 5)
+    ) | S.To(0, N.v0)
 
 
 @anim
-def wakeup():
+def sleep():
+    return (A.NCA2D(
+        data='scaly_0147',
+        mapping=A.xy_mapping,
+        clip=True,
+        speed=1.44,
+        wrapx=True,
+    ) | S.To(0, 0.23) | A.Overwrite(heart() * S.Const(.3), 50))
+
+
+@anim
+def wakeup2():
     ctrl = N.wakeup
     # ctrl = N.v0  # for testing
     return A.NCA2D(
@@ -419,22 +430,54 @@ def wakeup():
 
 
 @anim
+def wakeup():
+    ctrl = N.v0
+    return ((
+        A.R() | S.Lin(
+            ctrl | S.To(-.7, -1) | S.Int(mod=1)
+        ) | S.Mod(1)
+        | palette
+    # ) * (
+    #     A.NCA2D(
+    #         # data='stratified_0115',  # For illustration purposes something funky.
+    #         data='frilly_0093',  # For illustration purposes something funky.
+    #         mapping=A.xy_mapping,
+    #         clip=True,
+    #         speed=8,
+    #         wrapx=True,
+    #     ) | S.To(.5, 1.5)
+    ) | A.RGauss(ctrl | S.To(2, 7)) | S.To (0, 0.2) 
+      | A.Overwrite(heart() * S.Const(.7), 20))
+
+
+@anim
 def awake():
-    ctrl = N.closest
+    # ctrl = N.closest
     # ctrl = N.v0  # for testing
-    return A.NCA2D(
+    ctrl = S.Const(1)
+    return ((A.NCA2D(
         data='striped_0085',
         mapping=A.xy_mapping,
         clip=True,
         speed=ctrl | S.To(1, 3),
         wrapx=True,
-    ) | S.To(0, ctrl | S.To(.3, .6))
+    ) | S.To(0, ctrl | S.To(.3, 1)))# | A.HsvMod(N.v0)) 
+        | A.Overwrite(heart() * S.Const(1.7), 10)
+    )
+
+
+@anim
+def test():
+    return nca() | A.HsvMod(hue_shift=N.v0, sat_mult=N.v1 | S.To(0, 2))
 
 
 pixels = (
     (
-        A.Mixer(animations)
-        + (heart() * N.anim_heart)
+        # dims dynamically ... needs some tuning
+        A.Mixer(animations) | A.Overwrite(heart() * N.anim_heart * S.Const(1.3), 10)
+
+        # dims statically ... loses quite a lot of brightness in head
+        # (A.Mixer(animations) | A.Mult(0.5, 'head')) + (heart() * N.anim_heart * S.Const(1.3))
     )
     | A.Mult(N.anim_both)
     | A.Mult(N.anim_head, 'head')
