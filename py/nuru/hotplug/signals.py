@@ -10,7 +10,6 @@ from .. import state
 importlib.reload(E)
 importlib.reload(S)
 importlib.reload(state)
-importlib.reload(state)
 E.init(settings)
 S.init(settings)
 N = L.N
@@ -159,7 +158,7 @@ action_signals = dict(
 
 animation_signals = dict(
     nca=S.ActionLatch('nca=set=(.*)', N.nca),
-    heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
+    heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 2)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
         heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
                 | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
