@@ -94,24 +94,26 @@ export const Subsample = (output, {network}) => {
 
 export const Cmd = (output, {network}) => {
   const actions = [
-    '', 'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next',
+    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next', 'state=sleep',
   ]
-  let disp = h.div('cont', {class: 'flex widget'}).of(
+  let els = h.div('cont', {class: 'flex widget'}).of(
     h.div({class: 'header'}).of('cmd'),
-    ui.h(
-      'send action: ',
-      h.select('sel').of(actions.map(a => h.option({value: a}).of(a))),
-      ' - manual: ',
+    h.div().of(
+      actions.map(a => h.button(a).of(a)),
       h.input('input', {type: 'text'}),
     ),
   ).into(output).els
 
-  disp.sel.addEventListener('change', e => {
-    network.sender({action: e.target.value})
-    disp.sel.value = ''
-  })
+  actions.forEach(action => els[action].addEventListener('click', () => {
+    network.sender({ action })
+  }))
 
-  disp.input.addEventListener('keyup', e => {
+  // els.sel.addEventListener('change', e => {
+  //   network.sender({action: e.target.value})
+  //   els.sel.value = ''
+  // })
+
+  els.input.addEventListener('keyup', e => {
     if (e.keyCode === 13) {
       network.sender({ action: e.target.value })
       e.target.value = ''
@@ -379,7 +381,7 @@ export const Animations = (output, {defs, network}) => {
     ui.h(
       ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
       '...',
-      ui.toggle('anim_heart', { network, name: 'haert' }),
+      ui.toggle('anim_heart', { network, text: 'heart' }),
     ),
   )).into(output).els
 }
