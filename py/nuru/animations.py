@@ -149,6 +149,27 @@ class Overwrite(L.Signal):
         return value + self.additive
 
 
+class TailSig(L.Signal):
+
+    def init(self, ok, not_ok):
+        ...
+
+    def call(self, value, likes, people):
+        R_Z2 = 2 # TODO
+
+        not_ok = ok = False
+        for person in people:
+            like = likes.get(str(person['id']))
+            dist = np.linalg.norm(person['cm'][:2])
+            if dist < R_Z2:
+                ok |= like > 1
+                not_ok |= like < 1
+        if not_ok:
+            value[-120:] = self.not_ok
+        elif ok:
+            value[-120:] = self.ok
+        return value
+
 # simple animations
 ###############################################################################
 

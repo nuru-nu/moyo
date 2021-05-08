@@ -103,6 +103,15 @@ class CssAction(L.Signal):
                 return ['scene=S3', 'animation=S3']
             if scene == 'S3' and css[1] < self.threshold:
                 return ['scene=S1', 'animation=S1']
+        if mode == 'simple':
+            if scene != 'angry' and css[0] < -0.8:
+                return ['scene=angry', 'animation=angry']
+            if scene == 'angry' and css[0] > -0.2:
+                return ['scene=awake', 'animation=awake']
+            if scene == 'awake' and css[0] > 0.95:
+                return ['scene=happy', 'animation=happy']
+            if scene == 'happy' and css[0] < 0.1:
+                return ['scene=awake', 'animation=awake']
         return []
 
 
