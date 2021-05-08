@@ -260,19 +260,24 @@ export const Css = (output, {network}) => {
     ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = '#666'
     ctx.beginPath()
-    const r = Math.min(width, height) * 0.45
-    ctx.arc(width/2, height/2, r, 0, 2*Math.PI)
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
     ctx.moveTo(width/2, 0)
     ctx.lineTo(width/2, height)
-    for(let i=1; i < 6; i++) {
-      const phi = i * Math.PI / 6;
-      const x = r * Math.cos(phi), y = r * Math.sin(phi)
-      ctx.moveTo(width / 2 + x, height / 2 + y)
-      ctx.lineTo(width / 2 - x, height / 2 - y)
-    }
-    // Arrowheads.
+
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 2
+    ctx.fillStyle = 'red';
+    ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0));
+    ctx.fillStyle = 'pink';
+    ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0));
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0));
+    ctx.fillStyle = 'white';
+    ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1));
+    ctx.globalAlpha = 1;
+
+
     const darr = 5
     ctx.stroke()
     ctx.beginPath()
@@ -288,6 +293,17 @@ export const Css = (output, {network}) => {
     ctx.lineTo(width/2+darr, darr)
     ctx.closePath()
     ctx.fill()
+
+    // ctx.stroke()
+    // ctx.beginPath()
+    // ctx.strokeStyle = ctx.fillStyle = 'red'
+    // ctx.moveTo(tox(-0.5), toy(-1))
+    // ctx.lineTo(tox(0.5), toy(-1))
+    // ctx.lineTo(tox(0.5), toy(-0.5))
+    // ctx.lineTo(tox(-0.5), toy(-0.5))
+    // ctx.lineTo(tox(-0.5), toy(-1))
+    // ctx.closePath()
+    // ctx.fill()
   }
 
   network.listenJson('signals', function listener(data) {
