@@ -259,6 +259,7 @@ defaults = dict(
     one=1,
     anim_sig='one',
     anim_heart=0,
+    anim_into=1,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },

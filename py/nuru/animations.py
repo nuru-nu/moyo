@@ -548,17 +548,19 @@ class NCA2D(L.Signal):
     """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
 
     def init(self, data, mapping=xy_mapping, speed=1, height=150, width=32, channel_n=12,
-             wrapx=True, base='nca', clip=True):
+             wrapx=True, wrapy=True, base='nca', clip=True, dydt=0):
         self.last_data = None
         if wrapx:
             width += 2
         self.x = tf.zeros([1, height, width, channel_n])
         self.counter = 0
+        self.ycounter = 0
         self.m = tf.constant(mapping)
         self.i = 0
         self.lastimg = self._img = None
+        self.lt = 0
 
-    def call(self):
+    def call(self, t):
         if self.last_data != self.data:
             data = self.data
             if isinstance(data, str):
@@ -567,6 +569,17 @@ class NCA2D(L.Signal):
             self.f = ca.CAModel(data).embody()
             self.lastx = self.x = tf.zeros_like(self.x)
             self.last_data = self.data
+
+        if self.lt:
+            self.ycounter += (t - self.lt) * self.dydt
+            if self.ycounter > 1:
+                dy = int(self.ycounter)
+                self.ycounter -= dy
+                self.x = tf.roll(self.x, -int(dy), 1)
+                # self._img = tf.roll(self._img, -int(dy), 0)
+                # self.lastimg = tf.roll(self.lastimg, -int(dy), 0)
+        self.lt = t
+
         self.counter += 1
         while self.counter >= 1/self.speed or self._img is None:
             if self.wrapx:
@@ -576,6 +589,13 @@ class NCA2D(L.Signal):
                     self.x[:, :, 1: w-1, :],
                     self.x[:, :, w-1:w, :],
                 ], axis=2)
+            # if self.wrapy:
+            #     h = self.x.shape[1]
+            #     self.x = tf.concat([
+            #         self.x[:, 0: 1, :, :],
+            #         self.x[:, 1: h-1, :, :],
+            #         self.x[:, h-1:h, :, :],
+            #     ], axis=1)
             # if self.i < 50: print('next')
             self.x = self.f(self.x)
             self.lastimg = self._img
