@@ -205,6 +205,9 @@ export const Kinect = (output, {network}) => {
         }
         ctx.fillStyle = ctx.strokeStyle = cmap.get(p.id)
         let [x, y] = p.cm
+
+        ctx.font = "15px Arial";
+        ctx.fillText(data.likes[p.id].toFixed(2), tox(p.cm[0]) + 7, toy(p.cm[1]) - 7);
         if (x == 0 && y == 0 && lcm.has(p.id)) {
           [x, y] = lcm.get(p.id)
         }
