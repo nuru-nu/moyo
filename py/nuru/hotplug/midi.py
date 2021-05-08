@@ -68,5 +68,7 @@ scenes = (
     state.STATE_SLEEP,
     state.STATE_WAKEUP,
     state.STATE_AWAKE,
+    'angry',
+    'happy',
     'stop',
 )
