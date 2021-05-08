@@ -137,7 +137,7 @@ state_signals = dict(
         start=1,
         diff=(
             (N.closest | S.To(0, .4))
-            + S.Const(-1/20)
+            + S.Const(-1/180)
         ),
     ),
     charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
@@ -160,8 +160,12 @@ animation_signals = dict(
     nca=S.ActionLatch('nca=set=(.*)', N.nca),
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 2)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
-        heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
-                | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
+    heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+            | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
+
+    # TODO flashing "charge"
+    # heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+    #         | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
 R_Z2 = 2
@@ -175,6 +179,11 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
+    people_2=L.Named('people_sensor_2') | S.KinectFix(
+        phantoms=(),
+        dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+    ),
+
     closest=(
         S.KinectDistance()
         | S.With(6.5) | S.Min() | S.From(6.5, 0)
