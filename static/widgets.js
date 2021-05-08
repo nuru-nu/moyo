@@ -382,6 +382,7 @@ export const Animations = (output, {defs, network}) => {
       ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
       '...',
       ui.toggle('anim_heart', { network, text: 'heart' }),
+      ui.toggle('anim_into', { network, text: 'into' }),
     ),
   )).into(output).els
 }
