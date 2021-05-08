@@ -154,6 +154,14 @@ export const Kinect = (output, {network}) => {
     ctx.arc(tox(0), toy(0), tox(r) - tox(0), Math.PI/2 + phi, Math.PI/2 - phi, true)
     ctx.lineTo(tox(xlim[1]), toy(-xlim[1] * Math.tan(phi)))
     ctx.stroke()
+
+    const r_z2 = 2.5
+    ctx.beginPath()
+    ctx.moveTo(tox(r_z2 * Math.cos(Math.PI/2 + phi)), toy(-r_z2 * Math.sin(Math.PI/2 + phi)))
+    ctx.arc(tox(0), toy(0), tox(r_z2) - tox(0), Math.PI/2 + phi, Math.PI/2 - phi, true)
+    ctx.stroke()
+
+
     ctx.lineWidth = 1
     ctx.beginPath()
     for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {

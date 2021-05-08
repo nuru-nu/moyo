@@ -164,7 +164,10 @@ animation_signals = dict(
                 | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
+R_Z2 = 2
 kinect_signals = dict(
+    likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
+
     people=S.Overridable(
         L.Named('people_sensor') | S.KinectFix(
             phantoms=([0.884383, -4.013486, 0.935697],),
