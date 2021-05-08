@@ -67,13 +67,33 @@ class Css(L.Signal):
         """Time constants for target (alpha) and zero (beta)."""
         self.valence = self.valence0 = 0
         self.arousal = self.arousal0 = -0.9
+        self.lt = None
 
-    def call(self, target_css, randval, closest, n_people):
+    def call(self, t, target_css, randval, closest, mvmt):
+
+        # stay angry
+        if self.lt:
+          if t - self.lt < 20:
+            return [self.valence, self.arousal]
+          self.lt = None
+
         # Reversal to the mean.
         self.valence -= (self.valence - self.valence0) / self.beta
         self.arousal -= (self.arousal - self.arousal0) / self.beta
-        # Moodswings.
-        self.valence += 2 * (randval - 0.5) / self.gamma
+
+        # Random moodswings.
+        # self.valence += 2 * (randval - 0.5) / self.gamma
+
+        # Getting angry...
+        if mvmt > 0.8:
+          self.valence += (-1 - self.valence) * .9 ** 20
+          if self.valence < -0.8:
+            self.lt = t
+
+        # Getting interested.
+        if mvmt < 0.1 and closest > 0.6:
+          self.valence = min(1, self.valence + 1 / 20 / 10)
+
         if target_css:
             valence, arousal = target_css
             self.valence += (valence - self.valence) / self.alpha
