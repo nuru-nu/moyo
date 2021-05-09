@@ -124,9 +124,7 @@ css_signals = dict(
 )
 
 state_signals = dict(
-    state_one=state.One(),
-    state_rnca=state.RNCA(),
-    css=state.Css(alpha=L.Named('css_alpha')),
+    dt=S.Dt(),
     # state=state.Rizhom(),
     state=S.ActionLatch('state=(.*)', N.state),
     wakeup=state.Reservoir(
@@ -143,9 +141,12 @@ state_signals = dict(
         ),
     ),
     charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
-    mode=S.ActionLatch('mode=(.*)', N.mode),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     animation=S.ActionLatch('animation=(.*)', N.animation),
+    mode=S.ActionLatch('mode=(.*)', N.mode),
+    # One of these is selected by "mode".
+    state_one=state.One(),
+    css=state.Css(alpha=L.Named('css_alpha')),
 )
 
 action_signals = dict(
@@ -172,7 +173,6 @@ R_Z2 = 2
 kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
 
- 
     people=S.Overridable(
         L.Named('people_sensor') | S.KinectFix(
             phantoms=([0.884383, -4.013486, 0.935697],),
@@ -229,6 +229,7 @@ integrator_runner = make_runner(
 # Used when initializing new signals (i.e. after deleting tmp/integrator.json)
 defaults = dict(
     t=0,
+    dt=0,
     iso=0,
     rawloud=0,
     loud=0,
@@ -246,7 +247,7 @@ defaults = dict(
     people_sensor_2=[],
     people_override=None,
     mvmt=0,
-    kinect_dphi=0,
+    kinect_dphi=0.39,
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
