@@ -80,7 +80,7 @@ ooo_signals = dict(
 )
 
 sensor_signals = dict(
-    sonar=S.Overridable(N.sonar_0 | S.From(40, 0), N.sonar_override),
+    sonar=S.Overridable(S.Sonar(N.sonar_0), N.sonar_override),
     pir=N.pir_0,
     # touch=N.touch_raw | S.From(0, 400) | S.MovingAverage(n=1),
     # touch=N.touch_raw | S.From(0, 500) | S.MovingAverage(n=3),
