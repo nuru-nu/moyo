@@ -250,12 +250,10 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
-    nca=dict(
-        nca='smeared_0041',
-        speed=1,
-        clip=True,
-        wrap=True,
-    ),
+    nca='smeared_0041',
+    nca_speed=1,
+    nca_clip=True,
+    nca_wrap=True,
     v0=0.5,
     v1=0.5,
     v2=0.5,
@@ -265,7 +263,7 @@ defaults = dict(
     one=1,
     anim_sig='one',
     anim_heart=0,
-    anim_into=1,
+    anim_into=0,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
