@@ -33,6 +33,14 @@ logger = util.createLogger('integrator')
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 
+def get(signals, key):
+    """Hierarchical getter with key="parent.child"."""
+    for part in key.split('.'):
+        if not signals or part not in signals:
+            return
+        signals = signals[part]
+    return signals
+
 class Integrator:
 
     def __init__(self):
@@ -144,6 +152,10 @@ class Integrator:
                 if value:
                     print('transient_loop', transient, value)
                 self.transients[transient] += value
+        for overwrites in hp_signals.overwrites:
+            overwrites = get(signals, overwrites)
+            if overwrites:
+                util.update(signals, overwrites, transients=self.transients)
         if self.rec_ongoing:
             signals['rec_state'] = dict(start=self.rec_ongoing.info['start'])
         if self.rec_play:
