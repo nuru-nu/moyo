@@ -292,7 +292,7 @@ export const Css = (output, {network}) => {
     if (css[0] > -0.25 && css[0] < 0.25 && css[1] > 0){
       ctx.globalAlpha = 1
     }
-    ctx.fillStyle = 'yellow' // Neutral
+    ctx.fillStyle = '#ebc034' // Neutral
     ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0))
 
     ctx.globalAlpha = 0.2
