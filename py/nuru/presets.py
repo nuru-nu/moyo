@@ -17,14 +17,22 @@ NCA_GLOB = os.path.join(
     f'*.npy',
 )
 
+_nca_defaults = dict(
+    nca_speed=1,
+    nca_clip=1,
+    nca_wrapx=1,
+)
+
+
 
 def _upgrade_presets(presets):
     ret = {}
     for k, v in presets.items():
         if isinstance(v, str):
             v = dict(nca=v)
-        # if '_emotion' not in v and '_' in k:
-        #     v['_emotion'] = k.split('_')[-1]
+        for kk, vv in _nca_defaults.items():
+            if kk not in v:
+                v[kk] = vv
         ret[k] = v
     return ret
 

@@ -91,10 +91,7 @@ class One(L.Signal):
         overwrites['animation'] = 'nca'
         ncas = getattr(self, f'{which}_ncas')
         nca = _nca_presets[np.random.choice(ncas)]
-        overwrites['nca'] = nca['nca']
-        for name in ('speed', 'clip', 'wrapx'):
-            if name in nca:
-                overwrites[f'nca_{name}'] = nca[name]
+        overwrites.update({k: v for k, v in nca.items() if k != 'info'})
         print(f'One next {which} nca={nca}')
 
     def call(self, mode, action, dt, closest, pir, people, likes):
