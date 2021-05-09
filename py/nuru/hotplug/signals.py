@@ -157,7 +157,6 @@ action_signals = dict(
 )
 
 animation_signals = dict(
-    nca=S.ActionLatch('nca=set=(.*)', N.nca),
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 2)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
     heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))

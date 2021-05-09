@@ -3,13 +3,19 @@ import { h, u, ui } from './smanmi/util.js'
 export const NCA = (output, {network, defs}) => {
   const ncanames = {}
   const ncabuttons = {}
+  const presets = defs.nca.presets
 
   function addbutton(name, value) {
     ncabuttons[name] = h.button().of(name).into(els.buttons).el
     ncanames[value] = name
     ncabuttons[name].addEventListener('click', () => {
-      const value = defs.nca.ncas[name]
-      network.sender({ action: `nca=set=${value}`})
+      let nca = presets[name]
+      if ('object' !== typeof nca) nca = {nca}
+      network.sender({nca: nca.nca})
+      for (const [key, value] of Object.entries(nca)) {
+        if (key === 'nca' || key[0] == '_') continue
+        network.sender({[`nca_${key}`]: value})
+      }
     })
   }
   
@@ -29,8 +35,8 @@ export const NCA = (output, {network, defs}) => {
     ),
   ).into(output).els
 
-  Object.keys(defs.nca.ncas).forEach(name => {
-    addbutton(name, defs.nca.ncas[name])
+  Object.keys(defs.nca.presets).forEach(name => {
+    addbutton(name, defs.nca.presets[name])
   })
 
   els.next.addEventListener('click', () => {

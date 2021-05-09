@@ -1,5 +1,5 @@
 {
-  "ncas": {
+  "presets": {
     "pink_alien_surprise": "frilly_0093",
     "red_signal": "chequered_0210",
     "bunt_happy": "swirly_0063",
@@ -7,7 +7,15 @@
     "cristal_neutral": "crystalline_0146",
     "pink_love": "dotted_0130",
     "jittery_sad": "sprinkled_0005",
-    "orange_bluespots": "striped_0094",
+    "orange_bluespots": {
+      "nca": "striped_0094",
+      "speed": 3,
+      "clip": false,
+      "wrapx": false,
+      "_emotion": "excited",
+      "_who": "andreas",
+      "_comments": "non-clipping makes for electric sparkles"
+    },
     "lachsblau_angry": "smeared_0041",
     "green_redflash": "blotchy_0084",
     "konfetti_sleep": "spiralled_0136",
@@ -39,6 +47,7 @@
     "another_angy": "porous_0122",
     "spiral_underwater": "spiralled_0062",
     "spotted_inward": "studded_0192",
-    "white_radial": "grid_0065"
+    "white_radial": "grid_0065",
+    "center_spiral": "striped_0094"
   }
 }
