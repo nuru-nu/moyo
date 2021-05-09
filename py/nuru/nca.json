@@ -10,15 +10,20 @@
     "orange_bluespots": {
       "nca": "striped_0094",
       "speed": 3,
-      "clip": false,
-      "wrapx": false,
-      "_emotion": "excited",
-      "_who": "andreas",
-      "_comments": "non-clipping makes for electric sparkles"
+      "clip": 0,
+      "wrapx": 0,
+      "info": {
+        "emotion": "excited",
+        "who": "andreas",
+        "comments": "non-clipping makes for electric sparkles"
+      }
     },
     "lachsblau_angry": "smeared_0041",
     "green_redflash": "blotchy_0084",
-    "konfetti_sleep": "spiralled_0136",
+    "konfetti_sleep": {
+      "nca": "spiralled_0136",
+      "clip": 0
+    },
     "happy": "striped_0085",
     "beer_sad": "bubbly_0166",
     "konfetti": "smeared_0085",
