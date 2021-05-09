@@ -146,16 +146,20 @@ class Integrator:
         for name, queue in self.transients.items():
             signals[name] = queue.popleft() if queue else None
         signals = hp_signals.integrator_runner(**signals)
+        overwrites = {}
         for name, value in signals.items():
             if name in hp_signals.transient_loops and value:
                 transient = hp_signals.transient_loops[name]
                 if value:
                     print('transient_loop', transient, value)
                 self.transients[transient] += value
-        for overwrites in hp_signals.overwrites:
-            overwrites = get(signals, overwrites)
-            if overwrites:
-                util.update(signals, overwrites, transients=self.transients)
+            if isinstance(value, dict) and 'overwrites' in value:
+                overwrites.update(value['overwrites'])
+        for name, value in overwrites.items():
+            if name in self.transients:
+                self.transients[name] += value
+            else:
+                signals[name] = value
         if self.rec_ongoing:
             signals['rec_state'] = dict(start=self.rec_ongoing.info['start'])
         if self.rec_play:

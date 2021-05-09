@@ -13,6 +13,8 @@ import os
 import random
 import time
 
+import numpy as np
+
 from smanmi import logic as L
 from smanmi import util
 
@@ -28,6 +30,7 @@ STATE_OK = 'ok'
 STATE_HAPPY = 'happy'
 
 _nca_presets = presets.get_nca()
+logger = util.createLogger('state')
 
 
 class One(L.Signal):
@@ -62,7 +65,12 @@ class One(L.Signal):
     sleep_next: float
     awake_next: float
 
-    def init(self, sleep_next=180, awake_next=180):
+    def init(self,
+            # How frequently to cycle animations.
+            sleep_next=180, awake_next=180,
+            # Transition times.
+             wakeup_duration=5, asleep_duration=300,
+        ):
         self.valency = 0
         self.arousal = -1
         self.state = STATE_SLEEP
@@ -76,23 +84,41 @@ class One(L.Signal):
             "spiral_underwater",
         ]
 
-    def call(self, mode, t, closest, people, pir):
+    def call(self, mode, action, t, closest, people, pir):
         if mode != 'one':
             return None
         valency_attractors, actions, overwrites = [], [], {}
 
         if not self.lt: self.lt = t
-        dt, self.lt = t - self.lt, t
+        dt = t - self.lt
 
         if self.state == STATE_SLEEP:
-            if dt > self.sleep_next:
-                ...
+            if dt > self.sleep_next or action == 'one=next':
+                animation = np.random.choice(self.sleep_ncas)
+                logger.info('One sleep animation=%s', animation)
+                overwrites['animation'] = animation
+                self.lt = t
+
+            if pir or closest:
+                self.state = STATE_WAKEUP
+                logger.info('One pir/closest -> wakeup')
+                self.lt = t
 
         elif self.state == STATE_WAKEUP:
-            ...
+            self.arousal = -1 + dt / self.wakeup_duration
+            if dt >= self.wakeup_duration:
+                logger.info('One wakeup done')
+                self.state = STATE_AWAKE
+                self.lt = t
 
         elif self.state == STATE_AWAKE:
-            ...
+            if pir or closest:
+                self.arousal = closest
+                self.lt = t
+            else:
+                self.arousal = -dt / self.asleep_duration
+            if self.arousal < -0.9:
+                self.state = STATE_SLEEP
 
         elif self.state == STATE_ANGRY:
             ...
@@ -103,6 +129,10 @@ class One(L.Signal):
         elif self.state == STATE_HAPPY:
             ...
 
+        overwrites['css'] = [
+            max(-1, min(1, self.valency)),
+            max(-1, min(1, self.arousal)),
+        ]
         return dict(
             state=self.state,
             valency=self.valency,
@@ -250,7 +280,7 @@ class RNCA(L.Signal):
             self.t = 0
         if t - self.t > self.timeouts_secs:
             name = self.names[random.randint(0, len(self.names))]
-            overwrites['nca.nca'] = name
+            overwrites['nca'] = name
             self.t = t
         return dict(
             overwrites=overwrites,
