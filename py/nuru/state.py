@@ -55,8 +55,7 @@ class One(L.Signal):
     - arousal: -1..+1
     - state: string (from module's STATE_*)
     - valency_attractors
-    - actions: to be emitted
-    - overwrites: directly change signals
+    - overwrites: changed signals incl. actions
     """
 
     sleep_next: float
@@ -88,7 +87,7 @@ class One(L.Signal):
             assert name in _nca_presets, name
 
     def next_nca(self, which, overwrites):
-        overwrites['animation'] = 'nca'
+        overwrites['action'].append('animation=nca')
         ncas = getattr(self, f'{which}_ncas')
         nca = _nca_presets[np.random.choice(ncas)]
         overwrites.update({k: v for k, v in nca.items() if k != 'info'})
@@ -97,7 +96,7 @@ class One(L.Signal):
     def call(self, mode, action, dt, closest, pir, people, likes):
         if mode != 'one':
             return None
-        valency_attractors, actions, overwrites = [], [], {}
+        valency_attractors, overwrites = [], {'action': []}
 
         self.timer = max(0, self.timer - dt)
 
@@ -137,11 +136,11 @@ class One(L.Signal):
             if self.valency < -0.25:
                 self.state = STATE_ANGRY
                 print('One getting angry')
-                overwrites['animation'] = 'angry'
+                overwrites['action'].append('animation=angry')
             elif self.valency > 0.25:
                 self.state = STATE_HAPPY
                 print('One getting happy')
-                overwrites['animation'] = 'happy'
+                overwrites['action'].append('animation=happy')
 
             if self.arousal < -0.9:
                 self.state = STATE_SLEEP
@@ -183,7 +182,6 @@ class One(L.Signal):
             valency=self.valency,
             arousal=self.arousal,
             valency_attractors=valency_attractors,
-            actions=actions,
             overwrites=overwrites,
         )
 

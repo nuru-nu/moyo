@@ -143,6 +143,7 @@ state_signals = dict(
         ),
     ),
     charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
+    animation=S.ActionLatch('animation=(.*)', N.animation),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
