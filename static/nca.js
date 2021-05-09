@@ -16,8 +16,8 @@ export const NCA = (output, {network, defs}) => {
     ncabuttons[name].addEventListener('click', () => {
       network.sender({nca: nca.nca})
       for (const [key, value] of Object.entries(nca)) {
-        if (key === 'nca' || key[0] == '_') continue
-        network.sender({[`nca_${key}`]: value})
+        if (key === 'info') continue
+        network.sender({[key]: value})
       }
     })
   }
