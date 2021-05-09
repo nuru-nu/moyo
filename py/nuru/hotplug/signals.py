@@ -14,6 +14,8 @@ E.init(settings)
 S.init(settings)
 N = L.N
 
+R_Z2 = 2
+
 
 class Into(L.Signal):
     """Turns on when head presence is detected by sonar."""
@@ -142,10 +144,9 @@ state_signals = dict(
     ),
     charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
     scene=S.ActionLatch('scene=(.*)', N.scene),
-    animation=S.ActionLatch('animation=(.*)', N.animation),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
-    state_one=state.One(),
+    state_one=state.One(r_z2=R_Z2, awake_next=10),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
 
@@ -169,7 +170,6 @@ animation_signals = dict(
     #         | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
-R_Z2 = 2
 kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
 

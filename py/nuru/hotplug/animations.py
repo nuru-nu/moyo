@@ -502,7 +502,9 @@ def mix():
     )
 
 @anim
-def happy(ctrl=N.v0):
+def happy(ctrl=None):
+    if ctrl is None:
+        ctrl = N.css | S.ElementAt(0) | S.From(0.25, 1) | S.To(0, 1)
     return (
         # v0=0
         (A.NCA2D('frilly_0019', speed=4) * (S.Const(1) - ctrl)) | S.To(0, .5) | A.HsvMod(0, 2)
