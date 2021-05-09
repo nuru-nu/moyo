@@ -16,6 +16,102 @@ import time
 from smanmi import logic as L
 from smanmi import util
 
+from . import presets
+
+
+# See individual states for exact definition.
+STATE_SLEEP = 'sleep'
+STATE_WAKEUP = 'wakeup'
+STATE_AWAKE = 'awake'
+STATE_ANGRY = 'angry'
+STATE_OK = 'ok'
+STATE_HAPPY = 'happy'
+
+_nca_presets = presets.get_nca()
+
+
+class One(L.Signal):
+    """State Version One (KOSMOS).
+
+    States:
+    - sleep:
+    - wakeup
+    - awake
+    - angry
+    - ok
+    - happy
+
+    Transitions:
+    - sleep->wakeup
+    - wakeup->awake
+    - awake->angry
+    - angry->awake
+    - awake->ok
+    - ok->happy
+    - happy->awake
+
+    Attributes:
+    - valency: -1..+1
+    - arousal: -1..+1
+    - state: string (from module's STATE_*)
+    - valency_attractors
+    - actions: to be emitted
+    - overwrites: directly change signals
+    """
+
+    sleep_next: float
+    awake_next: float
+
+    def init(self, sleep_next=180, awake_next=180):
+        self.valency = 0
+        self.arousal = -1
+        self.state = STATE_SLEEP
+        self.lt = 0
+        self.sleep_ncas = [
+            "konfetti_sleep",
+            "blue_sleep",
+        ]
+        self.awake_ncas = [
+            "holz",
+            "spiral_underwater",
+        ]
+
+    def call(self, mode, t, closest, people, pir):
+        if mode != 'one':
+            return None
+        valency_attractors, actions, overwrites = [], [], {}
+
+        if not self.lt: self.lt = t
+        dt, self.lt = t - self.lt, t
+
+        if self.state == STATE_SLEEP:
+            if dt > self.sleep_next:
+                ...
+
+        elif self.state == STATE_WAKEUP:
+            ...
+
+        elif self.state == STATE_AWAKE:
+            ...
+
+        elif self.state == STATE_ANGRY:
+            ...
+
+        elif self.state == STATE_OK:
+            ...
+
+        elif self.state == STATE_HAPPY:
+            ...
+
+        return dict(
+            state=self.state,
+            valency=self.valency,
+            arousal=self.arousal,
+            valency_attractors=valency_attractors,
+            actions=actions,
+            overwrites=overwrites,
+        )
+
 
 @util.register_serializer('state')
 class State:
@@ -135,34 +231,30 @@ class CssAction(L.Signal):
         return []
 
 
-class NcaAction(L.Signal):
-    """Manages NCA related state."""
+class RNCA(L.Signal):
+    """Random NCA state."""
 
     def init(self, timeouts_secs=3*60):
         self.json = json.load(open(os.path.join(
             os.path.dirname(__file__), 'nca.json'
         )))
-        nca_glob = os.path.join(
-            os.path.dirname(__file__),
-            os.path.pardir,
-            os.path.pardir,
-            'nca',
-            f'*.npy',
-        )
-        print('nca_glob', nca_glob)
-        self.names = [
-            path.split('/')[-1][:-4] for path in glob.glob(nca_glob)]
+        self.names = _nca_presets['all_names']
         self.t = time.time()
 
     def call(self, mode, t, action):
-        nca_actions = []
+        if mode != 'rnca':
+            return None
+
+        overwrites = {}
         if action == 'nca=next':
             self.t = 0
-        if t - self.t > self.timeouts_secs and mode == 'rnca':
+        if t - self.t > self.timeouts_secs:
             name = self.names[random.randint(0, len(self.names))]
-            nca_actions.append(f'nca=set={name}')
+            overwrites['nca.nca'] = name
             self.t = t
-        return nca_actions
+        return dict(
+            overwrites=overwrites,
+        )
 
 
 class SonarAction(L.Signal):
@@ -186,11 +278,6 @@ class SonarAction(L.Signal):
                 self.on = False
                 return ['charge=off', f'animation={self.lastanim}']
         return []
-
-
-STATE_SLEEP = 'sleep'
-STATE_WAKEUP = 'wakeup'
-STATE_AWAKE = 'awake'
 
 
 class SimpleStateAction(L.Signal):
