@@ -29,8 +29,7 @@ STATE_ANGRY = 'angry'
 STATE_OK = 'ok'
 STATE_HAPPY = 'happy'
 
-_nca_presets = presets.get_nca()
-logger = util.createLogger('state')
+_nca_presets = presets.get_nca()['presets']
 
 
 class One(L.Signal):
@@ -41,7 +40,6 @@ class One(L.Signal):
     - wakeup
     - awake
     - angry
-    - ok
     - happy
 
     Transitions:
@@ -49,7 +47,6 @@ class One(L.Signal):
     - wakeup->awake
     - awake->angry
     - angry->awake
-    - awake->ok
     - ok->happy
     - happy->awake
 
@@ -64,70 +61,120 @@ class One(L.Signal):
 
     sleep_next: float
     awake_next: float
+    wakeup_duration: float
+    asleep_duration: float
 
     def init(self,
+            r_z2,
             # How frequently to cycle animations.
             sleep_next=180, awake_next=180,
             # Transition times.
-             wakeup_duration=5, asleep_duration=300,
+            wakeup_duration=5, asleep_duration=300,
         ):
         self.valency = 0
         self.arousal = -1
         self.state = STATE_SLEEP
-        self.lt = 0
+        self.timer = sleep_next
         self.sleep_ncas = [
             "konfetti_sleep",
             "blue_sleep",
         ]
         self.awake_ncas = [
             "holz",
+            "flow_calm",
             "spiral_underwater",
         ]
+        for name in self.sleep_ncas + self.awake_ncas:
+            assert name in _nca_presets, name
 
-    def call(self, mode, action, t, closest, people, pir):
+    def next_nca(self, which, overwrites):
+        overwrites['animation'] = 'nca'
+        ncas = getattr(self, f'{which}_ncas')
+        nca = _nca_presets[np.random.choice(ncas)]
+        overwrites['nca'] = nca['nca']
+        for name in ('speed', 'clip', 'wrapx'):
+            if name in nca:
+                overwrites[f'nca_{name}'] = nca[name]
+        print(f'One next {which} nca={nca}')
+
+    def call(self, mode, action, dt, closest, pir, people, likes):
         if mode != 'one':
             return None
         valency_attractors, actions, overwrites = [], [], {}
 
-        if not self.lt: self.lt = t
-        dt = t - self.lt
+        self.timer = max(0, self.timer - dt)
 
         if self.state == STATE_SLEEP:
-            if dt > self.sleep_next or action == 'one=next':
-                animation = np.random.choice(self.sleep_ncas)
-                logger.info('One sleep animation=%s', animation)
-                overwrites['animation'] = animation
-                self.lt = t
+            if self.timer <= 0 or action == 'one=next':
+                self.next_nca('sleep', overwrites)
+                self.timer = self.sleep_next
 
             if pir or closest:
                 self.state = STATE_WAKEUP
-                logger.info('One pir/closest -> wakeup')
-                self.lt = t
+                print('One pir/closest -> wakeup')
 
         elif self.state == STATE_WAKEUP:
-            self.arousal = -1 + dt / self.wakeup_duration
-            if dt >= self.wakeup_duration:
-                logger.info('One wakeup done')
+            self.arousal += dt / self.wakeup_duration
+            if self.arousal >= .1:
                 self.state = STATE_AWAKE
-                self.lt = t
+                self.timer = self.awake_next
 
         elif self.state == STATE_AWAKE:
+            if self.timer <= 0 or action == 'one=next':
+                self.next_nca('awake', overwrites)
+                self.timer = self.sleep_next
+
             if pir or closest:
                 self.arousal = closest
-                self.lt = t
             else:
                 self.arousal = -dt / self.asleep_duration
+
+            if people:
+                closest = sorted(
+                    people,
+                    key=lambda person: np.linalg.norm(person['cm'][:2]),
+                )[0]
+                like = likes.get(str(closest['id']), 0)
+                overwrites['anim_into'] = 1 * (like > 1)
+
+            if self.valency < -0.25:
+                self.state = STATE_ANGRY
+                print('One getting angry')
+                overwrites['animation'] = 'angry'
+            elif self.valency > 0.25:
+                self.state = STATE_HAPPY
+                print('One getting happy')
+                overwrites['animation'] = 'happy'
+
             if self.arousal < -0.9:
                 self.state = STATE_SLEEP
+                self.timer = self.sleep_next
 
         elif self.state == STATE_ANGRY:
-            ...
-
-        elif self.state == STATE_OK:
-            ...
+            if self.valency > -0.25:
+                self.state = STATE_AWAKE
+                self.timer = 0
 
         elif self.state == STATE_HAPPY:
-            ...
+            if self.valency < 0.25:
+                self.state = STATE_AWAKE
+                self.timer = 0
+
+        for person in people:
+            dist = np.linalg.norm(person['cm'][:2])
+            if dist < self.r_z2:
+                like = likes.get(str(person['id']), 0)
+                if like > 1:
+                    valency_attractors.append([1.5, .4])
+                else:
+                    valency_attractors.append([-0.4, 1])
+                    self.arousal = max(0, self.arousal)
+
+        dvdt = 0
+        valency_attractors.append([0, .2])
+        for target, alpha in valency_attractors:
+            dvdt += (target - self.valency) * alpha
+        self.valency += dt * dvdt
 
         overwrites['css'] = [
             max(-1, min(1, self.valency)),
@@ -135,6 +182,7 @@ class One(L.Signal):
         ]
         return dict(
             state=self.state,
+            timer=self.timer,
             valency=self.valency,
             arousal=self.arousal,
             valency_attractors=valency_attractors,
