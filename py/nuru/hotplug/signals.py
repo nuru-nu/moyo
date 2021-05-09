@@ -124,8 +124,8 @@ css_signals = dict(
 )
 
 state_signals = dict(
-    # state_one=state.One(),
-    # state_rnca=state.RNCA(),
+    state_one=state.One(),
+    state_rnca=state.RNCA(),
     css=state.Css(alpha=L.Named('css_alpha')),
     # state=state.Rizhom(),
     state=S.ActionLatch('state=(.*)', N.state),
@@ -194,7 +194,7 @@ kinect_signals = dict(
     distance=S.KinectDistance(),
     mvmt=S.KinectMovement(5),
 )
-
+    
 numbers_features = dict(
     fc=S.ActionLatch('fc=(.*)', 0, int),
     n_people=L.Named('people') | S.Length(),
@@ -238,7 +238,7 @@ defaults = dict(
     # state=state.State(),
     state=state.STATE_SLEEP,
     mode='manual',
-    animation='S1',
+    animation='nca',
     scene='S1',
     target_css=None,
     fc=0,
@@ -275,11 +275,6 @@ transient_loops = dict(
     sonar_action='action',
     state_action='action',
 )
-# This is a bit easier than transient_loops & ActionLatch...
-overwrites = [
-    'state_one.overwrites',
-    'state_rnca.overwrites',
-]
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
 modes = ['rnca', 'manual', 'css', 'simple', 'one']
