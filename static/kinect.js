@@ -168,7 +168,7 @@ export const Kinect = (output, {network}) => {
     ctx.stroke()
 
     ctx.globalAlpha = z1_alpha;
-    ctx.fillStyle = ctx.strokeStyle = "orange";
+    ctx.fillStyle = ctx.strokeStyle = "#ff6600";
     ctx.beginPath()
     ctx.moveTo(tox(-r_z1 * Math.cos(Math.PI/2 + phi)), toy(-r_z1 * Math.sin(Math.PI/2 + phi)))
     ctx.arc(tox(0), toy(0), tox(r_z1) - tox(0), Math.PI/2 - phi, Math.PI/2 + phi, false)  
@@ -179,7 +179,7 @@ export const Kinect = (output, {network}) => {
     ctx.stroke()
 
     ctx.globalAlpha = z2_alpha;
-    ctx.fillStyle = ctx.strokeStyle = "yellow";
+    ctx.fillStyle = ctx.strokeStyle = "#ebc034";
     ctx.beginPath()
     ctx.moveTo(tox(-r_z1 * Math.cos(Math.PI/2 + phi)), toy(-r_z1 * Math.sin(Math.PI/2 + phi)))
     ctx.arc(tox(0), toy(0), tox(r_z1) - tox(0), Math.PI/2 - phi, Math.PI/2 + phi, false) 
