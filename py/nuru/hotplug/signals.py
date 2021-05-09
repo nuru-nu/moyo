@@ -124,6 +124,8 @@ css_signals = dict(
 )
 
 state_signals = dict(
+    # state_one=state.One(),
+    # state_rnca=state.RNCA(),
     css=state.Css(alpha=L.Named('css_alpha')),
     # state=state.Rizhom(),
     state=S.ActionLatch('state=(.*)', N.state),
@@ -152,7 +154,6 @@ action_signals = dict(
     into=Into(),
     state_action=state.SimpleStateAction(),
     css_action=state.CssAction(threshold=0.0),
-    nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
 )
 
@@ -171,10 +172,12 @@ R_Z2 = 2
 kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
 
+ 
     people=S.Overridable(
         L.Named('people_sensor') | S.KinectFix(
             phantoms=([0.884383, -4.013486, 0.935697],),
             dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+            augment=N.people_2,
         ),
         L.Named('people_override'),
     ),
@@ -223,6 +226,7 @@ integrator_runner = make_runner(
 # Signal metadata
 #################
 
+# Used when initializing new signals (i.e. after deleting tmp/integrator.json)
 defaults = dict(
     t=0,
     iso=0,
@@ -245,13 +249,15 @@ defaults = dict(
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
-    nca='smeared_0041',
+    nca=dict(
+        nca='smeared_0041',
+        speed=1,
+        clip=True,
+        wrap=True,
+    ),
     v0=0.5,
     v1=0.5,
     v2=0.5,
-    nca_speed=1,
-    nca_clip=0,
-    nca_wrap=0,
     anim_head=1,
     anim_arms=1,
     anim_both=1,
@@ -268,12 +274,16 @@ transients = ('action', 'midi', 'signal', 'event')
 transient_loops = dict(
     css_action='action',
     sonar_action='action',
-    nca_action='action',
     state_action='action',
 )
+# This is a bit easier than transient_loops & ActionLatch...
+overwrites = [
+    'state_one.overwrites',
+    'state_rnca.overwrites',
+]
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['rnca', 'manual', 'css', 'simple']
+modes = ['rnca', 'manual', 'css', 'simple', 'one']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
