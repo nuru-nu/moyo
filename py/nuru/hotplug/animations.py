@@ -1,7 +1,5 @@
 import glob
 import importlib
-import json
-import os
 
 import numpy as np
 import PIL.Image
@@ -24,11 +22,6 @@ images = {
     for path in sorted(glob.glob('images/*'))
     if path.split('.')[-1].lower() in ('jpg', 'jpeg', 'png')
 }
-nca_data = json.load(open(os.path.join(
-    os.path.dirname(__file__),
-    os.pardir,
-    'nca.json'
-)))
 
 palettes = {
     name: value

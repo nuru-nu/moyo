@@ -100,7 +100,14 @@ export const Cmd = (output, {network}) => {
     h.div({class: 'header'}).of('cmd'),
     h.div().of(
       actions.map(a => h.button(a).of(a)),
-      h.input('input', {type: 'text'}),
+    ),
+    h.div().of(
+      'action',
+      h.input('action', {type: 'text'}),
+    ),
+    h.div().of(
+      'raw',
+      h.input('raw', {type: 'text'}),
     ),
   ).into(output).els
 
@@ -113,9 +120,16 @@ export const Cmd = (output, {network}) => {
   //   els.sel.value = ''
   // })
 
-  els.input.addEventListener('keyup', e => {
+  els.action.addEventListener('keyup', e => {
     if (e.keyCode === 13) {
       network.sender({ action: e.target.value })
+      e.target.value = ''
+    }
+  })
+  els.raw.addEventListener('keyup', e => {
+    if (e.keyCode === 13) {
+      const [name, value] = e.target.value.split('=')
+      network.sender({[name]: value})
       e.target.value = ''
     }
   })
@@ -259,6 +273,8 @@ export const Css = (output, {network}) => {
   function background() {
     ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = '#666'
+    ctx.font = "15px Arial";
+    ctx.fillText("CSS", 0, height);
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
@@ -269,7 +285,7 @@ export const Css = (output, {network}) => {
     ctx.lineWidth = 2
     ctx.fillStyle = 'red';
     ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0));
-    ctx.fillStyle = 'pink';
+    ctx.fillStyle = '#fc03fc';
     ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0));
     ctx.fillStyle = 'yellow';
     ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0));
@@ -293,17 +309,6 @@ export const Css = (output, {network}) => {
     ctx.lineTo(width/2+darr, darr)
     ctx.closePath()
     ctx.fill()
-
-    // ctx.stroke()
-    // ctx.beginPath()
-    // ctx.strokeStyle = ctx.fillStyle = 'red'
-    // ctx.moveTo(tox(-0.5), toy(-1))
-    // ctx.lineTo(tox(0.5), toy(-1))
-    // ctx.lineTo(tox(0.5), toy(-0.5))
-    // ctx.lineTo(tox(-0.5), toy(-0.5))
-    // ctx.lineTo(tox(-0.5), toy(-1))
-    // ctx.closePath()
-    // ctx.fill()
   }
 
   network.listenJson('signals', function listener(data) {
