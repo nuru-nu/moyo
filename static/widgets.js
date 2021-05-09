@@ -270,31 +270,50 @@ export const Css = (output, {network}) => {
     network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
   })
 
-  function background() {
-    ctx.lineWidth = 1
-    ctx.strokeStyle = ctx.fillStyle = '#666'
+  function background(css) {
+    ctx.lineWidth = 4
+    ctx.strokeStyle = ctx.fillStyle = 'white'
     ctx.font = "15px Arial";
+    ctx.globalAlpha = 0.2
+    if (css[0] < -0.25 && css[1] > 0){
+      ctx.globalAlpha = 1
+    }
+    ctx.fillStyle = 'red' // Angry
+    ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0))
+
+    ctx.globalAlpha = 0.2
+    if (css[0] > 0.25 && css[1] > 0){
+      ctx.globalAlpha = 1
+    }
+    ctx.fillStyle = '#fc03fc' // Happy
+    ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0))
+
+    ctx.globalAlpha = 0.2
+    if (css[0] > -0.25 && css[0] < 0.25 && css[1] > 0){
+      ctx.globalAlpha = 1
+    }
+    ctx.fillStyle = 'yellow' // Neutral
+    ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0))
+
+    ctx.globalAlpha = 0.2
+    if (css[0] > -0.5 && css[0] < 0.5 && css[1] < -0.5){
+      ctx.globalAlpha = 1
+    }
+    ctx.fillStyle = 'gray' // Sleeping
+    ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1))
+    ctx.globalAlpha = 1
+    
+    ctx.lineWidth = 1
+    ctx.strokeStyle = ctx.fillStyle = 'white'
     ctx.fillText("CSS", 0, height);
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
     ctx.moveTo(width/2, 0)
     ctx.lineTo(width/2, height)
+    ctx.closePath()
 
-    ctx.globalAlpha = 0.5;
-    ctx.lineWidth = 2
-    ctx.fillStyle = 'red';
-    ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0));
-    ctx.fillStyle = '#fc03fc';
-    ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0));
-    ctx.fillStyle = 'yellow';
-    ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0));
-    ctx.fillStyle = 'white';
-    ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1));
-    ctx.globalAlpha = 1;
-
-
-    const darr = 5
+    const darr = 10
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width, height/2)
@@ -302,6 +321,7 @@ export const Css = (output, {network}) => {
     ctx.lineTo(width-darr, height/2+darr)
     ctx.closePath()
     ctx.fill()
+
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width/2, 0)
@@ -313,8 +333,8 @@ export const Css = (output, {network}) => {
 
   network.listenJson('signals', function listener(data) {
     ctx.clearRect(0, 0, width, height)
-    background(0.25)
     const { target_css, css, css_alpha } = data
+    background(css)
 
     if (target_css) {
       ctx.strokeStyle = '#f00'
