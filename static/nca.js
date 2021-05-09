@@ -5,12 +5,15 @@ export const NCA = (output, {network, defs}) => {
   const ncabuttons = {}
   const presets = defs.nca.presets
 
-  function addbutton(name, value) {
+  function addbutton(name) {
+    let nca = presets[name]
+    if ('object' !== typeof nca) nca = {nca}
     ncabuttons[name] = h.button().of(name).into(els.buttons).el
-    ncanames[value] = name
+    if (ncanames.hasOwnProperty(nca.nca)) {
+      console.warn('Using', nca.nca, 'multiple times:', ncanames[nca.nca], name)
+    }
+    ncanames[nca.nca] = name
     ncabuttons[name].addEventListener('click', () => {
-      let nca = presets[name]
-      if ('object' !== typeof nca) nca = {nca}
       network.sender({nca: nca.nca})
       for (const [key, value] of Object.entries(nca)) {
         if (key === 'nca' || key[0] == '_') continue
@@ -18,7 +21,7 @@ export const NCA = (output, {network, defs}) => {
       }
     })
   }
-  
+
   const els = h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of('NCA'),
     h.div().of(
@@ -28,16 +31,18 @@ export const NCA = (output, {network, defs}) => {
         h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
         h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
       ),
-      ui.range('nca_speed', {network, min: 0.01, max: 10, trafo: [Math.exp, Math.log]}),
+      ui.range('nca_speed', {
+        network, min: 0.01, max: 10,
+        // trafo: [x =>x**5, x=>x**(1/5)],
+        // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
+      }),
       h.div('buttons', {style: 'flex-wrap:wrap'}).of(
         h.button('next').of('ᐅ'),
       ),
     ),
   ).into(output).els
 
-  Object.keys(defs.nca.presets).forEach(name => {
-    addbutton(name, defs.nca.presets[name])
-  })
+  Object.keys(defs.nca.presets).forEach(addbutton)
 
   els.next.addEventListener('click', () => {
     network.sender({ action: 'nca=next' })
