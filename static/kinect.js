@@ -4,96 +4,68 @@ import { h, ui, colors } from './smanmi/util.js'
 const color = id => (
   colors.user_colors[(id - 1) % colors.user_colors.length])
 
-function Person(id) {
-  const data = {id, x: 0, y: -3.5, selected: false}
-  const els = h.div('cont', {style: 'margin-bottom: 0.5rem;'}).of(
-    h.div('id').of(`id=${id}`),
-    ui.h(
-      h.span('x').of(`x=${data.x}`),
-      ', ',
-      h.span('y').of(`y=${data.y}`),
-    )
-  ).els
-  function update() {
-    els.id.style.backgroundColor = data.selected ? color(id) : null
-    els.id.style.color = data.selected ? 'black' : color(id)
-  }
-  function set(selected) {
-    data.selected = selected
-    update()
-  }
-  update()
-  return {
-    els,
-    data,
-    set,
-  }
-}
-
 const Simulating = (pr) => {
-  const people = new Map()
+  let last_people = null
+  let n = null
   const targets = new Map()
   let selid = null
-  let id = 0
   function add() {
-    ++id
-    const p = Person(id)
-    people.set(id, p)
-    click(p.data.x, p.data.y)
+    n++
   }
   function del() {
-    if (!id) return
-    people.delete(id--)
+    n--
   }
-  function click(x, y) {
-    if (!id) return
-    const dists = Array.from(people.keys()).map(id => {
-      const p = people.get(id)
-      const dist = ((x - p.data.x)**2 + (y - p.data.y)**2)**.5
-      return [dist, id]
+  function click(cx, cy) {
+    if (!last_people) return
+    const dists = last_people.map(p => {
+      const [x, y] = p.cm
+      const dist = ((cx - x)**2 + (cy - y)**2)**.5
+      return [dist, p.id]
     })
     dists.sort()
     if (dists[0][0] < pr) {
       if (selid === dists[0][1]) selid = null
       else selid = dists[0][1]
-      return
-    }
-    if (selid) {
-      targets.set(selid, [x, y])
+    } else if (selid) {
+      targets.set(selid, [cx, cy])
     }
   }
-  function tick() {
-    for(let id of people.keys()) {
-      const p = people.get(id)
-      if (targets.has(id)) {
-          let [tx, ty] = targets.get(id)
-          let dx = (tx - p.data.x)
-          let dy = (ty - p.data.y)
-          const d = Math.sqrt(dx * dx + dy * dy)
-          dx /= d * 30
-          dy /= d * 30
-          if (Math.abs(dx) < Math.abs(tx - p.data.x)) {
-            p.data.x += dx
-            p.data.y += dy
-          } else {
-            p.data.x = tx
-            p.data.y = ty
-            targets.delete(id)
-          }
+  function tick(people) {
+    last_people = people.map(p => {
+      let [x, y] = p.cm
+      if (targets.has(p.id)) {
+        const [tx, ty] = targets.get(p.id)
+        let dx = tx - x, dy = ty - y
+        const d = Math.sqrt(dx * dx + dy * dy)
+        dx /= d * 30
+        dy /= d * 30
+        if (Math.abs(dx) < Math.abs(tx - x)) {
+          x += dx
+          y += dy
+        } else {
+          x = tx
+          y = ty
+          targets.delete(p.id)
+        }
       }
+      return {id: p.id, cm: [x, y, 0]}
+    })
+    if (n === null) n = last_people.length
+    if (n > last_people.length) {
+      last_people.push({id: last_people.length + 1, cm: [0, -3.5, 0]})
+    } else if (n < last_people.length) {
+      last_people = last_people.slice(0, n)
     }
+    return last_people
   }
   return {
-    people: () => Array.from(people.values()).map(p => ({
-      id: p.data.id,
-      cm: [p.data.x, p.data.y, 0],
-    })),
     click,
     tick,
     add,
     del,
     sel: () => selid,
     target: id => targets.get(id),
+    should_update: () => targets.size || (last_people !== null && n != last_people.length)
   }
 }
 
@@ -117,7 +89,7 @@ export const Kinect = (output, {network}) => {
     h.div({class: 'header'}).of('kinect'),
     ui.v(
       ui.h(
-        ui.toggle('simulate'),
+        h.button('simulate').of('simulate'),
         h.button('add', {class: 'h'}).of('add'),
         h.button('del', {class: 'h'}).of('del'),
       ),
@@ -136,11 +108,8 @@ export const Kinect = (output, {network}) => {
   })
 
   let simulate = false
-  disp.simulate.change(value => {
-      simulate = value
-      disp.add.classList[simulate ? 'remove' : 'add']('h')
-      disp.del.classList[simulate ? 'remove' : 'add']('h')
-      if (!simulate) network.sender({people_override: null})
+  disp.simulate.addEventListener('click', () => {
+    network.sender({people_override: simulate ? null : [] })
   })
 
   function background(z0_alpha, z1_alpha, z2_alpha, z3_alpha) {
@@ -218,11 +187,21 @@ export const Kinect = (output, {network}) => {
   const cmap = new Map()
   const lcm = new Map()
   network.listenJson('signals', function(data) {
-    if (simulate) {
-      simulating.tick()
-      network.sender({
-        people_override: simulating.people(),
-      }, 'silent')
+
+    if (data.people_override) {
+      simulate = true
+      disp.add.classList.remove('h')
+      disp.del.classList.remove('h')
+      const people_override = simulating.tick(data.people_override)
+      if (simulating.should_update()) {
+        network.sender({ people_override }, 'silent')
+      }
+      disp.simulate.classList.add('on')
+    } else {
+      simulate = false
+      disp.add.classList.add('h')
+      disp.del.classList.add('h')
+      disp.simulate.classList.remove('on')
     }
     ctx.clearRect(0, 0, width, height)
 
