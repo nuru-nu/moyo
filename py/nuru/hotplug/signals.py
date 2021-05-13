@@ -10,7 +10,6 @@ from .. import state
 importlib.reload(E)
 importlib.reload(S)
 importlib.reload(state)
-importlib.reload(state)
 E.init(settings)
 S.init(settings)
 N = L.N
@@ -91,6 +90,7 @@ sensor_signals = dict(
 touch_from = [200] * 16
 touch_n = len(touch_from)
 touch_raws = [f'touch_raw_{i}' for i in range(touch_n)]
+touchs = [touch_raw.replace('_raw', '') for touch_raw in touch_raws]
 for i, from_ in enumerate(touch_from):
     sensor_signals[f'touch_{i}'] = (
         L.Named(f'touch_raw_{i}') | S.From(0, from_) | S.MovingAverage(n=5))
@@ -137,9 +137,10 @@ state_signals = dict(
         start=1,
         diff=(
             (N.closest | S.To(0, .4))
-            + S.Const(-1/20)
+            + S.Const(-1/180)
         ),
     ),
+    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     animation=S.ActionLatch('animation=(.*)', N.animation),
@@ -153,18 +154,24 @@ action_signals = dict(
     css_action=state.CssAction(threshold=0.0),
     nca_action=state.NcaAction(),
     sonar_action=state.SonarAction(threshold=0.3),
-    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
 )
 
 animation_signals = dict(
     nca=S.ActionLatch('nca=set=(.*)', N.nca),
-    heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 1)
+    heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 2)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
-        heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
-                | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
+    heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+            | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
+
+    # TODO flashing "charge"
+    # heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
+    #         | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
+R_Z2 = 2
 kinect_signals = dict(
+    likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
+
     people=S.Overridable(
         L.Named('people_sensor') | S.KinectFix(
             phantoms=([0.884383, -4.013486, 0.935697],),
@@ -172,13 +179,18 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
+    people_2=L.Named('people_sensor_2') | S.KinectFix(
+        phantoms=(),
+        dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+    ),
+
     closest=(
         S.KinectDistance()
         | S.With(6.5) | S.Min() | S.From(6.5, 0)
         # | S.F(S.sinramp),
     ),
     distance=S.KinectDistance(),
-    mvmt=S.KinectMovement(5) | S.From(0, .5) | S.Clip(),
+    mvmt=S.KinectMovement(5),
 )
 
 numbers_features = dict(
@@ -246,6 +258,8 @@ defaults = dict(
     anim_both=1,
     one=1,
     anim_sig='one',
+    anim_heart=0,
+    anim_into=1,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -260,7 +274,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['manual', 'css', 'simple']
+modes = ['rnca', 'manual', 'css', 'simple']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
@@ -277,7 +291,8 @@ monitor_def = dict(
     selected={
         'default': ['heart', 'rnd1'],
         'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
-        'state': ['wakeup', 'active', 'pir', 'closest'],
+        'touch': touchs,
+        'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
         'empty': [],
     },
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
@@ -328,5 +343,6 @@ monitor_def = dict(
         'anim_head',
         'anim_arms',
         'anim_sig',
+        'anim_heart',
     ],
 )

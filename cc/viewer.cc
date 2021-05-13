@@ -83,6 +83,7 @@ Commands:
   - q : quit
   - s : stores a single pointcloud
   - r : starts pointcloud recording
+  - i : stores ref img
 )" << std::endl;
   }
 }
@@ -98,6 +99,7 @@ void Viewer::draw_process_key() {
   should_store_ = key == (int) 's';
   should_record_ = key == (int) 'r';
   should_reset_ = key == (int) ' ';
+  should_ref_img_ = key == (int) 'i';
   should_dump_ = key == 13;
 }
 
@@ -160,11 +162,17 @@ void Viewer::update_graphs(const cv::Mat& img,
 
 void Viewer::update(const cv::Mat& img, 
                     const Features& features,
-                    const std::vector<person_t>& people,
-                    const cv::Mat user_pixels) {
+                    const cv::Mat user_pixels,
+                    std::map<int, cv::Point2i>& depth_seg_cos) {
+
+  if (should_ref_img_){
+    std::cout << "Storing ref image." << std::endl;
+    cv::imwrite("../../data/ref_image.png", img);
+    should_ref_img_ = false;
+  }
+
   // Performs actual drawing. Read key every cycle for better ui.
   draw_process_key();
-  update_graphs(img, features, people);
 
   if (!should_dump_ && !gui_) return;
 
@@ -197,31 +205,34 @@ void Viewer::update(const cv::Mat& img,
 
     cv::addWeighted(img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
 
-    cv::Mat vert_flipped;
-    cv::flip(img_brg, vert_flipped, 0);
+    for(const auto& p : depth_seg_cos){
+      cv::circle(img_brg, p.second, 2.0, cv::Scalar( 255, 255, 255 ), 2);
+    }
 
-    // cv::putText(
-    //     vert_flipped, fps_string,
-    //     cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+    cv::flip(img_brg, img_brg, 0);
+    cv::flip(img_brg, img_brg, 1);
 
+    cv::putText(
+        img_brg, fps_string,
+        cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
 
     if (false) {// Feature output. Currently not implemented.
       cv::putText(
-          vert_flipped, features_string,
+          img_brg, features_string,
           cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
-      apply_overlay(graphs_, &vert_flipped);
+      apply_overlay(graphs_, &img_brg);
     }
     
     if (gui_) {
-      cv::imshow("viewer", vert_flipped);
+      cv::imshow("viewer", img_brg);
     }
 
     const long long last_img_store_t_microseconds =
     std::chrono::duration_cast<std::chrono::microseconds>(t - last_img_store_t_).count();
     if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
       last_img_store_t_ = t;
-      cv::imwrite("../../tmp/kinect_frame.jpg", vert_flipped);
-      // cv::imwrite("../../tmp/depth_imgs/kinect_frame_" + std::to_string(frame_idx) + ".jpg", vert_flipped);
+      cv::imwrite("../../tmp/kinect_frame.jpg", img_brg);
+      // cv::imwrite("../../tmp/depth_imgs/kinect_frame_" + std::to_string(frame_idx) + ".jpg", img_brg);
       // frame_idx++;
     }
   }

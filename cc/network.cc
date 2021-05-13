@@ -87,7 +87,7 @@ int SignalSender::send(const std::map<std::string, float>& values) {
 }
 
 int SignalSender::send_tracking_data(
-                                    const std::vector<person_t>& people, 
+                                    const std::map<std::string, std::vector<person_t>>& people_sigs, 
                                     const std::map<std::string, float>& values){
 
   jute::jValue json(jute::JOBJECT);
@@ -101,38 +101,39 @@ int SignalSender::send_tracking_data(
     json.add_property(pair.first, value);
   }
 
-  jute::jValue people_jarray(jute::JARRAY);
-  for(const auto& person : people) {
-    jute::jValue person_jobject(jute::JOBJECT);
+  for(const auto& people : people_sigs){
+    jute::jValue people_jarray(jute::JARRAY);
+    for(const auto& person : people.second) {
+      jute::jValue person_jobject(jute::JOBJECT);
 
-    jute::jValue id_value(jute::JNUMBER);
-    id_value.set_string(std::to_string(person.id));
-    person_jobject.add_property("id", id_value);
+      jute::jValue id_value(jute::JNUMBER);
+      id_value.set_string(std::to_string(person.id));
+      person_jobject.add_property("id", id_value);
 
-    for(const auto& pair : person.depth) {
-      jute::jValue value(jute::JNUMBER);
-      value.set_string(std::to_string(pair.second));
-      person_jobject.add_property(pair.first, value);
+      for(const auto& pair : person.depth) {
+        jute::jValue value(jute::JNUMBER);
+        value.set_string(std::to_string(pair.second));
+        person_jobject.add_property(pair.first, value);
+      }
+
+      for(const auto& joint : person.points3d) {
+        jute::jValue point3d(jute::JARRAY);
+
+        jute::jValue nvalue(jute::JNUMBER);
+        nvalue.set_string(std::to_string(joint.second.x));
+        point3d.add_element(nvalue);
+        nvalue.set_string(std::to_string(joint.second.y));
+        point3d.add_element(nvalue);
+        nvalue.set_string(std::to_string(joint.second.z));
+        point3d.add_element(nvalue);
+
+        person_jobject.add_property(joint.first, point3d);
+      }
+
+      people_jarray.add_element(person_jobject);
     }
-
-    for(const auto& joint : person.points3d) {
-      jute::jValue point3d(jute::JARRAY);
-
-      jute::jValue nvalue(jute::JNUMBER);
-      nvalue.set_string(std::to_string(joint.second.x));
-      point3d.add_element(nvalue);
-      nvalue.set_string(std::to_string(joint.second.y));
-      point3d.add_element(nvalue);
-      nvalue.set_string(std::to_string(joint.second.z));
-      point3d.add_element(nvalue);
-
-      person_jobject.add_property(joint.first, point3d);
-    }
-
-    people_jarray.add_element(person_jobject);
+    json.add_property(people.first, people_jarray);
   }
-
-  json.add_property("people_sensor", people_jarray);
   const std::string msg = json.to_string();
 
   // std::cout << msg << std::endl;

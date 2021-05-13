@@ -94,24 +94,26 @@ export const Subsample = (output, {network}) => {
 
 export const Cmd = (output, {network}) => {
   const actions = [
-    '', 'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next',
+    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next', 'state=sleep',
   ]
-  let disp = h.div('cont', {class: 'flex widget'}).of(
+  let els = h.div('cont', {class: 'flex widget'}).of(
     h.div({class: 'header'}).of('cmd'),
-    ui.h(
-      'send action: ',
-      h.select('sel').of(actions.map(a => h.option({value: a}).of(a))),
-      ' - manual: ',
+    h.div().of(
+      actions.map(a => h.button(a).of(a)),
       h.input('input', {type: 'text'}),
     ),
   ).into(output).els
 
-  disp.sel.addEventListener('change', e => {
-    network.sender({action: e.target.value})
-    disp.sel.value = ''
-  })
+  actions.forEach(action => els[action].addEventListener('click', () => {
+    network.sender({ action })
+  }))
 
-  disp.input.addEventListener('keyup', e => {
+  // els.sel.addEventListener('change', e => {
+  //   network.sender({action: e.target.value})
+  //   els.sel.value = ''
+  // })
+
+  els.input.addEventListener('keyup', e => {
     if (e.keyCode === 13) {
       network.sender({ action: e.target.value })
       e.target.value = ''
@@ -258,19 +260,24 @@ export const Css = (output, {network}) => {
     ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = '#666'
     ctx.beginPath()
-    const r = Math.min(width, height) * 0.45
-    ctx.arc(width/2, height/2, r, 0, 2*Math.PI)
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
     ctx.moveTo(width/2, 0)
     ctx.lineTo(width/2, height)
-    for(let i=1; i < 6; i++) {
-      const phi = i * Math.PI / 6;
-      const x = r * Math.cos(phi), y = r * Math.sin(phi)
-      ctx.moveTo(width / 2 + x, height / 2 + y)
-      ctx.lineTo(width / 2 - x, height / 2 - y)
-    }
-    // Arrowheads.
+
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 2
+    ctx.fillStyle = 'red';
+    ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0));
+    ctx.fillStyle = 'pink';
+    ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0));
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0));
+    ctx.fillStyle = 'white';
+    ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1));
+    ctx.globalAlpha = 1;
+
+
     const darr = 5
     ctx.stroke()
     ctx.beginPath()
@@ -286,6 +293,17 @@ export const Css = (output, {network}) => {
     ctx.lineTo(width/2+darr, darr)
     ctx.closePath()
     ctx.fill()
+
+    // ctx.stroke()
+    // ctx.beginPath()
+    // ctx.strokeStyle = ctx.fillStyle = 'red'
+    // ctx.moveTo(tox(-0.5), toy(-1))
+    // ctx.lineTo(tox(0.5), toy(-1))
+    // ctx.lineTo(tox(0.5), toy(-0.5))
+    // ctx.lineTo(tox(-0.5), toy(-0.5))
+    // ctx.lineTo(tox(-0.5), toy(-1))
+    // ctx.closePath()
+    // ctx.fill()
   }
 
   network.listenJson('signals', function listener(data) {
@@ -376,7 +394,12 @@ export const Animations = (output, {defs, network}) => {
     ui.range('anim_both', { network, name: 'both', value: 1 }),
     ui.range('anim_head', { network, name: 'head', value: 1 }),
     ui.range('anim_arms', { network, name: 'arms', value: 1 }),
-    ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] })
+    ui.h(
+      ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
+      '...',
+      ui.toggle('anim_heart', { network, text: 'heart' }),
+      ui.toggle('anim_into', { network, text: 'into' }),
+    ),
   )).into(output).els
 }
 

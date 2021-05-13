@@ -51,6 +51,13 @@ class Hardware {
                                         float &tx, float &ty, float &tz) const;
     // Returns a depth map sized matrix with tracked user ID elements
     cv::Mat get_user_pixels();
+
+    cv::Mat get_depth_segments(cv::Mat &depth_image);
+
+    std::map<int, cv::Point2i> depth_seg_cos_;
+
+    std::vector<person_t> deduce_3D_cos(cv::Mat &depth_img);
+
     // Shuts down the device, irreversibly.
     void close();
 
@@ -72,6 +79,11 @@ class Hardware {
     void update_user_state(const nite::UserData& user, unsigned long long ts);
 
     cv::Mat trafo_ = cv::Mat::eye(4, 4, CV_64F);
+    cv::Mat ref_img_;
+
+    cv::Mat kernel_shrink_; 
+    cv::Mat kernel_grow_; 
+
 
 };
 
