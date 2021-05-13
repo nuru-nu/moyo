@@ -240,6 +240,7 @@ defaults = dict(
     target_css=None,
     fc=0,
     people_sensor=[],
+    people_sensor_2=[],
     people_override=None,
     mvmt=0,
     kinect_dphi=0,
