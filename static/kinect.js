@@ -154,6 +154,14 @@ export const Kinect = (output, {network}) => {
     ctx.arc(tox(0), toy(0), tox(r) - tox(0), Math.PI/2 + phi, Math.PI/2 - phi, true)
     ctx.lineTo(tox(xlim[1]), toy(-xlim[1] * Math.tan(phi)))
     ctx.stroke()
+
+    const r_z2 = 2.5
+    ctx.beginPath()
+    ctx.moveTo(tox(r_z2 * Math.cos(Math.PI/2 + phi)), toy(-r_z2 * Math.sin(Math.PI/2 + phi)))
+    ctx.arc(tox(0), toy(0), tox(r_z2) - tox(0), Math.PI/2 + phi, Math.PI/2 - phi, true)
+    ctx.stroke()
+
+
     ctx.lineWidth = 1
     ctx.beginPath()
     for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {
@@ -180,6 +188,16 @@ export const Kinect = (output, {network}) => {
     }
     ctx.clearRect(0, 0, width, height)
     background()
+    if (data.hasOwnProperty('people_2')) {
+      data.people_2.forEach(p => {
+        let [x, y] = p.cm
+        ctx.strokeStyle = '#c0c0c0'
+        ctx.beginPath()
+        const r = p.id === simulating.sel() ? pr * 1.2 : pr
+        ctx.arc(tox(x), toy(y), r, 0, 2 * Math.PI)
+        ctx.stroke()
+      })
+    }
     if (data.hasOwnProperty('people')) {
       data.people.forEach(p => {
         if (!cmap.has(p.id)) {
@@ -187,6 +205,9 @@ export const Kinect = (output, {network}) => {
         }
         ctx.fillStyle = ctx.strokeStyle = cmap.get(p.id)
         let [x, y] = p.cm
+
+        ctx.font = "15px Arial";
+        ctx.fillText(data.likes[p.id].toFixed(2), tox(p.cm[0]) + 7, toy(p.cm[1]) - 7);
         if (x == 0 && y == 0 && lcm.has(p.id)) {
           [x, y] = lcm.get(p.id)
         }

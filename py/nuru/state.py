@@ -67,13 +67,33 @@ class Css(L.Signal):
         """Time constants for target (alpha) and zero (beta)."""
         self.valence = self.valence0 = 0
         self.arousal = self.arousal0 = -0.9
+        self.lt = None
 
-    def call(self, target_css, randval, closest, n_people):
+    def call(self, t, target_css, randval, closest, mvmt):
+
+        # stay angry
+        if self.lt:
+          if t - self.lt < 20:
+            return [self.valence, self.arousal]
+          self.lt = None
+
         # Reversal to the mean.
         self.valence -= (self.valence - self.valence0) / self.beta
         self.arousal -= (self.arousal - self.arousal0) / self.beta
-        # Moodswings.
-        self.valence += 2 * (randval - 0.5) / self.gamma
+
+        # Random moodswings.
+        # self.valence += 2 * (randval - 0.5) / self.gamma
+
+        # Getting angry...
+        if mvmt > 0.8:
+          self.valence += (-1 - self.valence) * .9 ** 20
+          if self.valence < -0.8:
+            self.lt = t
+
+        # Getting interested.
+        if mvmt < 0.1 and closest > 0.6:
+          self.valence = min(1, self.valence + 1 / 20 / 10)
+
         if target_css:
             valence, arousal = target_css
             self.valence += (valence - self.valence) / self.alpha
@@ -103,6 +123,15 @@ class CssAction(L.Signal):
                 return ['scene=S3', 'animation=S3']
             if scene == 'S3' and css[1] < self.threshold:
                 return ['scene=S1', 'animation=S1']
+        if mode == 'simple':
+            if scene != 'angry' and css[0] < -0.8:
+                return ['scene=angry', 'animation=angry']
+            if scene == 'angry' and css[0] > -0.2:
+                return ['scene=awake', 'animation=awake']
+            if scene == 'awake' and css[0] > 0.95:
+                return ['scene=happy', 'animation=happy']
+            if scene == 'happy' and css[0] < 0.1:
+                return ['scene=awake', 'animation=awake']
         return []
 
 
@@ -125,11 +154,11 @@ class NcaAction(L.Signal):
             path.split('/')[-1][:-4] for path in glob.glob(nca_glob)]
         self.t = time.time()
 
-    def call(self, t, action):
+    def call(self, mode, t, action):
         nca_actions = []
         if action == 'nca=next':
             self.t = 0
-        if t - self.t > self.timeouts_secs:
+        if t - self.t > self.timeouts_secs and mode == 'rnca':
             name = self.names[random.randint(0, len(self.names))]
             nca_actions.append(f'nca=set={name}')
             self.t = t
@@ -143,15 +172,19 @@ class SonarAction(L.Signal):
 
     def init(self, threshold=0.5):
         self.on = False
+        self.lastanim = None
 
-    def call(self, sonar):
+    def call(self, sonar, state, animation):
         if sonar is not None:
             if sonar > self.threshold and not self.on:
                 self.on = True
-                return ['charge=on']
+                self.lastanim = animation
+                if state == 'rnca':
+                    return ['nca=next']
+                return ['charge=on', 'animation=charge']
             if sonar < self.threshold and self.on:
                 self.on = False
-                return ['charge=off']
+                return ['charge=off', f'animation={self.lastanim}']
         return []
 
 
@@ -174,14 +207,17 @@ class SimpleStateAction(L.Signal):
             if pir > 0 or closest > 0:
                 actions.append(f'state={STATE_WAKEUP}')
                 actions.append(f'animation={STATE_WAKEUP}')
+                actions.append(f'scene={STATE_WAKEUP}')
         if state == STATE_WAKEUP:
             if wakeup == 1:
                 actions.append(f'state={STATE_AWAKE}')
                 actions.append(f'animation={STATE_AWAKE}')
+                actions.append(f'scene={STATE_AWAKE}')
         if state == STATE_AWAKE:
             if active == 0 and pir == 0:
                 actions.append(f'state={STATE_SLEEP}')
                 actions.append(f'animation={STATE_SLEEP}')
+                actions.append(f'scene={STATE_SLEEP}')
         return actions
 
 

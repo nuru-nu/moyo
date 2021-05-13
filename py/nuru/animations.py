@@ -2,6 +2,7 @@ import functools
 import json
 import time
 
+import matplotlib
 import numpy as np  # type: ignore
 from scipy import stats
 
@@ -42,8 +43,25 @@ def r_piecewise(r, inner_mult=np.pi / 2, outer_mult=0.5):
         [lambda r: r * inner_mult, lambda r: (r - 1) * outer_mult + inner_mult]
     )
 
+# colors
+###############################################################################
 
-# state related
+class HsvMod(L.Signal):
+    """Modifies HSV values."""
+
+    def init(self, hue_shift=0, sat_mult=1):
+        pass
+
+    def call(self, value):
+        hsv = matplotlib.colors.rgb_to_hsv(value)
+        if self.hue_shift:
+            hsv[:, 0] = (hsv[:, 0] + self.hue_shift) % 1
+        if self.sat_mult != 1:
+            hsv[:, 1] = np.clip((hsv[:, 1] * self.sat_mult), 0, 1)
+        return matplotlib.colors.hsv_to_rgb(hsv)
+
+
+# mixing + combining
 ###############################################################################
 
 class Mixer(L.Signal):
@@ -94,9 +112,6 @@ class MidiMixer(L.Signal):
         return self.lanim(**signals) * (1 - v) + v * self.anim(**signals)
 
 
-# mixing
-###############################################################################
-
 class Max(L.Signal):
     """Keeps maximum of RGB values from provided animations."""
 
@@ -117,13 +132,43 @@ class Sum(L.Signal):
         x = np.transpose([self.anim1, self.anim2], [1, 2, 0]).sum(axis=-1)
         return np.clip(x, 0, 1)
 
-# animation combiners
-###############################################################################
 
 def add(anims):
     """Reduces an iterable of animations by addition."""
     return functools.reduce(lambda acc, a: acc + a, anims[1:], anims[0])
 
+
+class Overwrite(L.Signal):
+    """Uses `additive` as a mask & sets value instead of adding RGB."""
+
+    def init(self, additive, f=1):
+        ...
+
+    def call(self, value):
+        value *= np.clip((1 - self.f * self.additive.mean(axis=-1)), 0, 1)[:, None]
+        return value + self.additive
+
+
+class TailSig(L.Signal):
+
+    def init(self, ok, not_ok):
+        ...
+
+    def call(self, value, likes, people):
+        R_Z2 = 2 # TODO
+
+        not_ok = ok = False
+        for person in people:
+            like = likes.get(str(person['id']))
+            dist = np.linalg.norm(person['cm'][:2])
+            if dist < R_Z2:
+                ok |= like > 1
+                not_ok |= like < 1
+        if not_ok:
+            value[-120:] = self.not_ok
+        elif ok:
+            value[-120:] = self.ok
+        return value
 
 # simple animations
 ###############################################################################
@@ -502,18 +547,20 @@ class Proj(L.Signal):
 class NCA2D(L.Signal):
     """Runs a neural cellular automaton in 2D & retrieves mapped pixels."""
 
-    def init(self, data, mapping, speed=1, height=150, width=32, channel_n=12,
-             wrapx=True, base='nca', clip=False):
+    def init(self, data, mapping=xy_mapping, speed=1, height=150, width=32, channel_n=12,
+             wrapx=True, wrapy=True, base='nca', clip=True, dydt=0):
         self.last_data = None
         if wrapx:
             width += 2
         self.x = tf.zeros([1, height, width, channel_n])
         self.counter = 0
+        self.ycounter = 0
         self.m = tf.constant(mapping)
         self.i = 0
         self.lastimg = self._img = None
+        self.lt = 0
 
-    def call(self):
+    def call(self, t):
         if self.last_data != self.data:
             data = self.data
             if isinstance(data, str):
@@ -522,6 +569,17 @@ class NCA2D(L.Signal):
             self.f = ca.CAModel(data).embody()
             self.lastx = self.x = tf.zeros_like(self.x)
             self.last_data = self.data
+
+        if self.lt:
+            self.ycounter += (t - self.lt) * self.dydt
+            if self.ycounter > 1:
+                dy = int(self.ycounter)
+                self.ycounter -= dy
+                self.x = tf.roll(self.x, -int(dy), 1)
+                # self._img = tf.roll(self._img, -int(dy), 0)
+                # self.lastimg = tf.roll(self.lastimg, -int(dy), 0)
+        self.lt = t
+
         self.counter += 1
         while self.counter >= 1/self.speed or self._img is None:
             if self.wrapx:
@@ -531,6 +589,13 @@ class NCA2D(L.Signal):
                     self.x[:, :, 1: w-1, :],
                     self.x[:, :, w-1:w, :],
                 ], axis=2)
+            # if self.wrapy:
+            #     h = self.x.shape[1]
+            #     self.x = tf.concat([
+            #         self.x[:, 0: 1, :, :],
+            #         self.x[:, 1: h-1, :, :],
+            #         self.x[:, h-1:h, :, :],
+            #     ], axis=1)
             # if self.i < 50: print('next')
             self.x = self.f(self.x)
             self.lastimg = self._img

@@ -35,6 +35,19 @@ Hardware::Hardware(void) {
 
   std::string default_trafo_path = "../../blender/data/kinect_trafo.json";
   load_extrinsic_matrix(default_trafo_path);
+
+  ref_img_ = imread("../../data/ref_image.png", cv::IMREAD_GRAYSCALE);
+  if (ref_img_.empty()) {
+      std::cout << "Error : Ref image cannot be loaded!" << std::endl;
+  }
+  ref_img_.convertTo(ref_img_, CV_16U, 255);
+
+  kernel_shrink_ = cv::Mat::ones(20, 20, CV_8U); 
+  kernel_grow_ = cv::Mat::zeros(70, 70, CV_8U);
+
+  for (int y = 0; y < kernel_grow_.rows; ++y) {
+    kernel_grow_.at<std::uint8_t>(y, (int)(kernel_grow_.cols / 2)) = 1;
+  }
 }
 
 void Hardware::load_extrinsic_matrix(std::string path){
@@ -153,21 +166,103 @@ cv::Mat Hardware::get_user_pixels(){
   return user_pixels;
 }
 
-cv::Mat Hardware::get_depth_segmnents(){
-  cv::Mat kernel = cv::Mat::ones(4, 4, CV_8U);
+cv::Mat Hardware::get_depth_segments(cv::Mat &depth_img){
+  double min, max;
 
-  cv::Mat depthImage = this->depth();
+  cv::Mat diff_img;
+  cv::absdiff(depth_img, ref_img_, diff_img);
 
-  cv::threshold(src_gray, dst, threshold_value, max_binary_value, threshold_type );
+  cv::erode(diff_img, diff_img, kernel_shrink_);
+  cv::dilate(diff_img, diff_img, kernel_grow_);
 
-  delete depthImage.data;
-  return _;
+  cv::Mat bin_img;
+  cv::threshold(diff_img, bin_img, 1000, 65536, cv::THRESH_BINARY);
+
+  // cv::minMaxLoc(bin_img, &min, &max);
+  // std::cout << min << " - " << max << " : ";
+  // cv::minMaxLoc(diff_img, &min, &max);
+  // std::cout << min << " - " << max << std::endl;
+
+  bin_img.convertTo(bin_img, CV_8S);
+
+  cv::Mat labelled_img;
+  cv::connectedComponents(bin_img, labelled_img);
+
+  cv::Mat user_pixels(depth_img.rows,
+                      depth_img.cols,
+                      CV_8UC3, cv::Scalar(0,0,0));
+
+  int nr_colors = (sizeof(USER_COLORS)/sizeof(*USER_COLORS));
+
+  std::map<int, std::vector<cv::Point2d>> depth_cos;
+  for (int y = 0; y < labelled_img.rows; ++y) {
+    for (int x = 0; x < labelled_img.cols; ++x){
+      int label = labelled_img.at<int>(y, x);
+      if(label == 0)
+        continue;
+
+      depth_cos[label].push_back(cv::Point(y, x));
+
+      cv::Scalar color = USER_COLORS[(label - 1)%nr_colors];
+      cv::Vec3b vec_color{
+          static_cast<unsigned char>(color(0)),
+          static_cast<unsigned char>(color(1)),
+          static_cast<unsigned char>(color(2))
+        };
+
+      user_pixels.at<cv::Vec3b>(y, x) = vec_color;
+    }
+  }
+
+  std::map<int, cv::Point2i> depth_seg_cos;
+  for(const auto& p : depth_cos){
+    cv::Point2i mean  = std::accumulate(p.second.begin(), p.second.end(), cv::Point2d(0,0));
+    mean.x = (int)(mean.x / p.second.size());
+    mean.y = (int)(mean.y / p.second.size());
+
+    depth_seg_cos[p.first] = cv::Point2i(mean.y, mean.x);
+  }
+  depth_seg_cos_ = depth_seg_cos;
+
+  return user_pixels;
 }
+
+
+std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
+  std::vector<person_t> people;
+  int idx = 0;
+
+  for(const auto& p : depth_seg_cos_){
+    person_t person;
+    float x, y, z;
+
+    convertDepthCoordinatesToWorld(int(p.second.y), int(p.second.x), depth_image.at<ushort>(int(p.second.y), int(p.second.x)), x, y, z);
+
+    cv::Matx41d loc(x, y, z, 1);
+    cv::Mat local_point = trafo_*loc;
+
+    x = local_point.at<double>(0,0);
+    y = local_point.at<double>(0,1);
+    z = local_point.at<double>(0,2);
+
+    person.id = idx;
+
+    person.depth.insert(std::pair<std::string, float>("cm_depth", depth_image.at<ushort>(int(p.second.y), int(p.second.x))));
+    
+    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm",
+                                                  cv::Point3d((float) x,
+                                                              (float) y,
+                                                              (float) z)));
+    idx++;
+    people.push_back(person);
+  }
+  return people;
+}
+
 
 std::vector<person_t> Hardware::get_tracking_data() {
   const nite::Array<nite::UserData>& users = userTrackerFrame_.getUsers();
 
-  cv::Mat depthImage = this->depth();
   std::vector<person_t> people;
   for (int i = 0; i < users.getSize(); ++i)
   {
@@ -222,7 +317,6 @@ std::vector<person_t> Hardware::get_tracking_data() {
     people.push_back(person);
   }
   
-  delete depthImage.data;
   return people;
 }
 
