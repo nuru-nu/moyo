@@ -191,7 +191,7 @@ if args.fadecandy:
 
 index_html = 'index2.html' if args.secondary else 'index.html'
 server = Server(static_dir='static', logger=logger, index_html=index_html)
-sig_port = settings.server_sig_port if args.secondary else settings.server_sig_port
+sig_port = settings.server2_sig_port if args.secondary else settings.server_sig_port
 udp_forwarding = UdpForwarding(
     '/+signals',
     in_udp=UdpEndpoint(args.integrator_address, sig_port),
