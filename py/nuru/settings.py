@@ -135,6 +135,7 @@ recorder_cmd_port = 6107
 cmd_cmd_port = 6108
 midi_sig_port = 6109
 kinect_cmd_port = 6111
+server2_sig_port = 6112
 
 
 # files

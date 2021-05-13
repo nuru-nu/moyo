@@ -1,0 +1,29 @@
+* {
+  font-family: "Euclid Regular", Helvetica, Arial, sans-serif;
+  color: white; 
+}
+html {
+
+}
+body {
+  padding: 10px;
+  background: black;
+}
+h1 {
+  font-size: 10vw;
+  /* font-family: "Euclid Bold", Helvetica, Arial, sans-serif; */
+}
+button {
+  background: black;
+  border: 2px solid white;
+  padding: 5px 20px;
+}
+.flex {
+  display:flex;
+}
+.label {
+  margin-right: 20px;
+}
+.grow {
+  flex-grow: 1;
+}
