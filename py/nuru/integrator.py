@@ -27,6 +27,9 @@ parser.add_argument(
 parser.add_argument(
     '--signals_json', type=str, default='tmp/signals.json',
     help='Path where to store signals in JSON format.')
+parser.add_argument(
+    '--fps', type=float, default=25,
+    help='Integrator target frames per second')
 args = parser.parse_args()
 
 logger = util.createLogger('integrator')
@@ -79,7 +82,7 @@ class Integrator:
         if hasattr(self, 'handle'):
             self.handle.cancel()  # pylint: disable=access-member-before-definition
         self.handle = asyncio.get_event_loop().call_later(
-            1 / settings.integrator_fps, util.print_exc(self.integrate))
+            1 / args.fps, util.print_exc(self.integrate))
 
     def onsignal(self, signals, playback=False):
         if self.rec_play:
