@@ -125,7 +125,7 @@ async def send_defs(request):
         animations=list(animator.hp_animations.animations.keys()),
         images=list(animator.hp_animations.images.keys()),
         # 1. update nca.json  2. save hp_animatinos  3. reload
-        nca=animator.hp_animations.nca_data,
+        nca=presets.get_nca(),
         palettes=list(animator.hp_animations.palettes.keys()),
         scenes=animator.hp_midi.scenes,
         modes=hp_signals.modes,
