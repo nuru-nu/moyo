@@ -241,6 +241,7 @@ defaults = dict(
     state=state.STATE_SLEEP,
     mode='manual',
     animation='nca',
+    charge=0,
     scene='S1',
     target_css=None,
     fc=0,
