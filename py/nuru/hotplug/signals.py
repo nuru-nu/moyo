@@ -158,17 +158,14 @@ action_signals = dict(
     state_action=state.SimpleStateAction(),
     css_action=state.CssAction(threshold=0.0),
     sonar_action=state.SonarAction(threshold=0.3),
+    heart_action=state.ArtificialHeart(
+        N.heart_sim, N.arousal | S.To(.5, 1.2), 0.15),
 )
 
 animation_signals = dict(
     heart=S.TransientPulse('event', 'heart') | S.RateLimit(8, 2)
         | S.Tocos(),  #| S.Lin(-5, 10) | S.Int() | S.Clip(),
-    heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
-            | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
-
     # TODO flashing "charge"
-    # heart_a=(S.Saw(hz=L.Named('arousal') | S.Lin(0, 2))
-    #         | S.Lin(0, 3) | S.Clip() | S.Lin(0, 2) | S.Tocos()),
 )
 
 kinect_signals = dict(
@@ -266,6 +263,7 @@ defaults = dict(
     one=1,
     anim_sig='one',
     anim_heart=0,
+    heart_sim=0,
     anim_into=0,
     **{
         touch_raw: 0 for touch_raw in touch_raws
@@ -273,10 +271,12 @@ defaults = dict(
 )
 
 transients = ('action', 'midi', 'signal', 'event')
+# TODO? implement these as "overwrites"
 transient_loops = dict(
     css_action='action',
     sonar_action='action',
     state_action='action',
+    heart_action='event',
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])

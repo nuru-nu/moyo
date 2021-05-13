@@ -186,6 +186,29 @@ class One(L.Signal):
         )
 
 
+class ArtificialHeart(L.Signal):
+    """Simulates Ableton heart if `on`."""
+
+    def init(self, on, freq, duration=0.3):
+        self.lt = 0
+        self.state = 0
+
+    def call(self, t):
+        if not self.lt:
+            self.lt = t
+        if self.on:
+            dt = t - self.lt
+            if dt > 1 / self.freq + self.duration:
+                self.state = 0
+                self.lt = t + self.duration
+                return ['heart off']
+            elif dt > 1 / self.freq:
+                if self.state == 0:
+                    self.state = 1
+                    return ['heart on']
+        return []
+
+
 @util.register_serializer('state')
 class State:
     """For (de)serializing S.State."""
