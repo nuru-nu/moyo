@@ -153,12 +153,6 @@ kinect_mapping_path = os.path.join(
     root_dir, 'blender', 'data', 'kinect_mapping.json')
 
 
-# integrator
-###############################################################################
-
-integrator_fps = 25
-
-
 # animation
 ###############################################################################
 
