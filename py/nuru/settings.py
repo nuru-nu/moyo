@@ -135,6 +135,7 @@ recorder_cmd_port = 6107
 cmd_cmd_port = 6108
 midi_sig_port = 6109
 kinect_cmd_port = 6111
+server2_sig_port = 6112
 
 
 # files
@@ -151,12 +152,6 @@ samples_dir = os.path.join(root_dir, 'data', 'samples')
 model_path = os.path.join(os.path.dirname(__file__), '../../data/models')
 kinect_mapping_path = os.path.join(
     root_dir, 'blender', 'data', 'kinect_mapping.json')
-
-
-# integrator
-###############################################################################
-
-integrator_fps = 25
 
 
 # animation

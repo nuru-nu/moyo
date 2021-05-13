@@ -27,6 +27,13 @@ parser.add_argument(
 parser.add_argument(
     '--signals_json', type=str, default='tmp/signals.json',
     help='Path where to store signals in JSON format.')
+parser.add_argument(
+    '--init', action='store_true',
+    help='Prevents reading of --signals_json on startup.'
+)
+parser.add_argument(
+    '--fps', type=float, default=25,
+    help='Integrator target frames per second')
 args = parser.parse_args()
 
 logger = util.createLogger('integrator')
@@ -51,6 +58,7 @@ class Integrator:
             ),
             sig_out_ports=(
                 (args.server_address, settings.server_sig_port),
+                settings.server2_sig_port,
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,
@@ -74,7 +82,7 @@ class Integrator:
         self.rec_play = self.rec_ongoing = self.rec_t = None
         self.rec_enabled = set()
         self.t0 = time.time()
-        if os.path.isfile(args.signals_json):
+        if not args.init and os.path.isfile(args.signals_json):
             with open(args.signals_json, 'rb') as f:
                 self.signals.update(util.deserialize(f.read()))
             logger.info('Loaded signals from "%s"...', args.signals_json)
@@ -89,7 +97,7 @@ class Integrator:
         if hasattr(self, 'handle'):
             self.handle.cancel()  # pylint: disable=access-member-before-definition
         self.handle = asyncio.get_event_loop().call_later(
-            1 / settings.integrator_fps, util.print_exc(self.integrate))
+            1 / args.fps, util.print_exc(self.integrate))
 
     def onsignal(self, signals, playback=False):
         if self.rec_play:

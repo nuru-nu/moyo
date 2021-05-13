@@ -12,7 +12,6 @@ from smanmi import hotplug
 from smanmi import perf
 from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
 from smanmi import util
-from . import animations
 from . import nca
 from . import presets
 from . import recording
@@ -26,6 +25,8 @@ parser.add_argument('--fps', type=int, default=60,
                     help='Frames per second for animation streaming.')
 parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
+parser.add_argument('--secondary', action='store_true',
+                    help='Secondary server does not generate animations.')
 parser.add_argument('--port', type=int, default=8080,
                     help='Port for HTTP server.')
 parser.add_argument('--server_address', type=str, default='127.0.0.1',
@@ -33,6 +34,10 @@ parser.add_argument('--server_address', type=str, default='127.0.0.1',
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
                     help='Address of machine running `smanmi.integrator`.')
 args = parser.parse_args()
+
+if not args.secondary:
+    # Avoid loading expensive frameworks if not needed.
+    from . import animations
 
 logger = util.createLogger('server')
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
@@ -110,24 +115,25 @@ recordings = {
 
 async def send_defs(request):
     del request
+    data = dict(
+        mapping=dict(
+            phi_r=animations.phi_r_mapping,
+            xyz=animations.xyz_mapping,
+        ),
+        colors=state.Rizhom.COLORS,
+        recordings=recordings,
+        animations=list(animator.hp_animations.animations.keys()),
+        images=list(animator.hp_animations.images.keys()),
+        # 1. update nca.json  2. save hp_animatinos  3. reload
+        nca=animator.hp_animations.nca_data,
+        palettes=list(animator.hp_animations.palettes.keys()),
+        scenes=animator.hp_midi.scenes,
+        modes=hp_signals.modes,
+        monitor_def=hp_signals.monitor_def,
+    )
     return web.Response(
         content_type='Application/JSON',
-        text=json.dumps(util.pythonize(dict(
-            mapping=dict(
-                phi_r=animations.phi_r_mapping,
-                xyz=animations.xyz_mapping,
-            ),
-            colors=state.Rizhom.COLORS,
-            recordings=recordings,
-            animations=list(animator.hp_animations.animations.keys()),
-            images=list(animator.hp_animations.images.keys()),
-            # 1. update nca.json  2. save hp_animatinos  3. reload
-            nca=presets.get_nca(),
-            palettes=list(animator.hp_animations.palettes.keys()),
-            scenes=animator.hp_midi.scenes,
-            modes=hp_signals.modes,
-            monitor_def=hp_signals.monitor_def,
-        ))))
+        text=json.dumps(util.pythonize(data)))
 
 
 async def send_recs(request):
@@ -179,26 +185,34 @@ async def send_nca(request):
 
 client = None
 if args.fadecandy:
+    assert not args.secondary
     client = opc.Client('localhost:7890')
     assert client.can_connect()
     client.set_interpolation(False)
-animator = Animator(client, logger)
 
-server = Server(static_dir='static', logger=logger)
-animator.stats = server.stats
-server.forward_udp(UdpForwarding(
+index_html = 'index2.html' if args.secondary else 'index.html'
+server = Server(static_dir='static', logger=logger, index_html=index_html)
+sig_port = settings.server2_sig_port if args.secondary else settings.server_sig_port
+udp_forwarding = UdpForwarding(
     '/+signals',
-    in_udp=UdpEndpoint(args.integrator_address, settings.server_sig_port),
+    in_udp=UdpEndpoint(args.integrator_address, sig_port),
     out_udp=UdpEndpoint(args.integrator_address, settings.integrator_cmd_port),
-).with_callbacks(
-    animator.received_from_udp,
-    animator.received_from_ws,
-))
-server.run_periodically(
-    PeriodicCallback('/+animation', animator, fps=args.fps))
-server.routes.append(web.get('/defs', send_defs))
-server.routes.append(web.get('/recs', send_recs))
-server.routes.append(web.get('/kinect', send_kinect))
+)
+server.forward_udp(udp_forwarding)
 server.routes.append(web.get('/nca', send_nca))
+
+if not args.secondary:
+    server.routes.append(web.get('/defs', send_defs))
+    animator = Animator(client, logger)
+    animator.stats = server.stats
+    udp_forwarding.with_callbacks(
+        animator.received_from_udp,
+        animator.received_from_ws,
+    )
+    server.run_periodically(
+        PeriodicCallback('/+animation', animator, fps=args.fps))
+    server.routes.append(web.get('/recs', send_recs))
+    server.routes.append(web.get('/kinect', send_kinect))
+
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())
