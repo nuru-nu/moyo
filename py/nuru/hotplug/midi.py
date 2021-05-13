@@ -36,6 +36,10 @@ def signal2midi(data) -> Sequence[midi.Command]:
         commands += onoff('C#0')
     elif action == f'scene={state.STATE_AWAKE}':
         commands += onoff('D0')
+    elif action == f'scene=angry':
+        commands += onoff('D#0')
+    elif action == f'scene=happy':
+        commands += onoff('E0')
     elif action == 'scene=stop':
         commands += onoff('B2')
     elif action == 'charge=on':
