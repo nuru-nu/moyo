@@ -28,6 +28,10 @@ parser.add_argument(
     '--signals_json', type=str, default='tmp/signals.json',
     help='Path where to store signals in JSON format.')
 parser.add_argument(
+    '--init', action='store_true',
+    help='Prevents reading of --signals_json on startup.'
+)
+parser.add_argument(
     '--fps', type=float, default=25,
     help='Integrator target frames per second')
 args = parser.parse_args()
@@ -70,7 +74,7 @@ class Integrator:
         self.rec_play = self.rec_ongoing = self.rec_t = None
         self.rec_enabled = set()
         self.t0 = time.time()
-        if os.path.isfile(args.signals_json):
+        if not args.init and os.path.isfile(args.signals_json):
             with open(args.signals_json, 'rb') as f:
                 self.signals.update(util.deserialize(f.read()))
             logger.info('Loaded signals from "%s"...', args.signals_json)
