@@ -1,0 +1,20 @@
+@font-face {
+  font-family: 'Euclid Light';
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.eot");
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.eot?#iefix") format("embedded-opentype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.woff2") format("woff2"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.woff") format("woff"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.ttf") format("truetype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Light-WebS.svg#Euclid Regular") format("svg");
+  font-weight: normal;
+  font-style: normal; }
+
+@font-face {
+  font-family: 'Euclid Regular';
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.eot");
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.eot?#iefix") format("embedded-opentype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.woff2") format("woff2"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.woff") format("woff"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.ttf") format("truetype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Regular-WebS.svg#Euclid Regular") format("svg");
+  font-weight: normal;
+  font-style: normal; }
+
+@font-face {
+  font-family: 'Euclid Bold';
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.eot");
+  src: url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.eot?#iefix") format("embedded-opentype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.woff2") format("woff2"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.woff") format("woff"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.ttf") format("truetype"), url("https://kosmos.ch/library/fonts/WebS/EuclidKOSMOS-Bold-WebS.svg#Euclid Bold") format("svg");
+  font-weight: normal;
+  font-style: normal; }

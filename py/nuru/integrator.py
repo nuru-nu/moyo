@@ -46,6 +46,7 @@ class Integrator:
             ),
             sig_out_ports=(
                 (args.server_address, settings.server_sig_port),
+                settings.server2_sig_port,
                 settings.player_sig_port,
                 settings.player2_sig_port,
                 settings.dmx_sig_port,
