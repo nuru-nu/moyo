@@ -15,6 +15,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "frilly_0093"
       }
     },
@@ -33,6 +36,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "chequered_0210"
       }
     },
@@ -51,6 +57,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "swirly_0063"
       }
     },
@@ -69,6 +78,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "perforated_0161"
       }
     },
@@ -87,6 +99,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "crystalline_0146"
       }
     },
@@ -105,6 +120,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "dotted_0130"
       }
     },
@@ -123,6 +141,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "sprinkled_0005"
       }
     },
@@ -144,6 +165,9 @@
         "nca_speed": 3,
         "nca_wrapx": 0,
         "nca_clip": 0,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "striped_0094"
       }
     },
@@ -162,6 +186,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "smeared_0041"
       }
     },
@@ -180,6 +207,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "blotchy_0084"
       }
     },
@@ -198,6 +228,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 0,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "spiralled_0136"
       }
     },
@@ -216,6 +249,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "striped_0085"
       }
     },
@@ -234,6 +270,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "bubbly_0166"
       }
     },
@@ -252,6 +291,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "smeared_0085"
       }
     },
@@ -270,6 +312,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "lacelike_0085"
       }
     },
@@ -288,6 +333,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "stratified_0115"
       }
     },
@@ -306,6 +354,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "fibrous_0132"
       }
     },
@@ -324,6 +375,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "bumpy_0185"
       }
     },
@@ -342,6 +396,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "waffled_0185"
       }
     },
@@ -360,6 +417,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "grooved_0074"
       }
     },
@@ -378,6 +438,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "bubbly_0136"
       }
     },
@@ -396,6 +459,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "frilly_0006"
       }
     },
@@ -414,6 +480,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "sprinkled_0049"
       }
     },
@@ -432,6 +501,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "smeared_0146"
       }
     },
@@ -450,6 +522,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "braided_0149"
       }
     },
@@ -468,6 +543,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "gauzy_0146"
       }
     },
@@ -486,6 +564,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "smeared_0114"
       }
     },
@@ -504,6 +585,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "smeared_0100"
       }
     },
@@ -522,6 +606,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "pitted_0117"
       }
     },
@@ -540,6 +627,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "honeycombed_0083"
       }
     },
@@ -558,6 +648,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "stratified_0129"
       }
     },
@@ -576,6 +669,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "waffled_0108"
       }
     },
@@ -594,6 +690,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "stained_0044"
       }
     },
@@ -612,6 +711,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "frilly_0019"
       }
     },
@@ -630,6 +732,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "scaly_0193"
       }
     },
@@ -648,6 +753,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 0,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "porous_0122"
       }
     },
@@ -666,6 +774,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "spiralled_0062"
       }
     },
@@ -684,6 +795,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "studded_0192"
       }
     },
@@ -702,6 +816,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "grid_0065"
       }
     },
@@ -718,6 +835,9 @@
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": true,
+        "v0": 0.5,
+        "v1": 0.5,
+        "v2": 0.5,
         "nca": "woven_0094"
       },
       "mtime": "20210515_1530",

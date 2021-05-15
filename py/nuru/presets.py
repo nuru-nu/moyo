@@ -53,6 +53,7 @@ if __name__ == '__main__':
         'anim_both': 1, 'anim_head': 1, 'anim_arms': 1,
         'anim_hue': 0, 'anim_sat': 1,
         'nca_speed': 1, 'nca_wrapx': 1, 'nca_clip': 1,
+        'v0': .5, 'v1': .5, 'v2': .5,
     }
     del presets['ncas']
     presets['animations'] = [
