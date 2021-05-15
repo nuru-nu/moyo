@@ -146,8 +146,8 @@ class Integrator:
             if rec_action:
                 self.handle_rec_action(rec_action)
                 return
-            preset = cmd.get('preset')
-            if preset:
+            if 'preset' in cmd:
+                preset = cmd.pop('preset')
                 preset['signals'] = {
                     k: v for k, v in preset['signals'].items()
                     if k in hp_signals.monitor_def['preset_signals']
