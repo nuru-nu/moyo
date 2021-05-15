@@ -120,9 +120,9 @@ css_signals = dict(
              (S.RandomPulse(hz=0.1, duration=1) | S.To(0, 0.5)) +
              (S.RandomPulse(hz=0.1, duration=1) | S.To(0, -0.5))),
     # 0..1
-    valence=L.Named('css') | S.ElementAt(0) | S.Lin(0.5, 0.5),
+    valence=N.css | S.ElementAt(0) | S.From(-1, 1),
     # 0..1
-    arousal=L.Named('css') | S.ElementAt(1) | S.Lin(0.5, 0.5),
+    arousal=N.css | S.ElementAt(1) | S.From(-1, 1),
 )
 
 state_signals = dict(
@@ -315,6 +315,7 @@ monitor_def = dict(
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
         numbers=numbers_features.keys(),
+        state=['state'],
     ),
     hidden=[
         # utility
