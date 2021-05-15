@@ -28,7 +28,6 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Transients(sigels.transients, {network, defs})
 
   Cmd('#cmd', {network, defs})
-  Actions('#mode', { name: 'mode', values: defs.modes, network })
   Animations('#animation', { defs, network })
   Rec('#recording', {network})
   Actions('#sound', { name: 'scene', values: defs.scenes, network })
