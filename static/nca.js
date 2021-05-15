@@ -1,4 +1,5 @@
 import { h, u, ui } from './smanmi/util.js'
+import { Header } from './widgets.js'
 
 export const NCA = (output, {network, defs}) => {
   const ncanames = {}
@@ -22,25 +23,22 @@ export const NCA = (output, {network, defs}) => {
     })
   }
 
-  const els = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('NCA'),
+  const els = Header('nca', h.div().of(
     h.div().of(
-      h.div().of(
-        ui.toggle('nca_clip', {network, text: 'clip'}), ' ',
-        ui.toggle('nca_wrap', {network, text: 'wrap'}), ' ',
-        h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
-        h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
-      ),
-      ui.range('nca_speed', {
-        network, min: 0.01, max: 10,
-        // trafo: [x =>x**5, x=>x**(1/5)],
-        // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
-      }),
-      h.div('buttons', {style: 'flex-wrap:wrap'}).of(
-        h.button('next').of('ᐅ'),
-      ),
+      ui.toggle('nca_clip', {network, text: 'clip'}), ' ',
+      ui.toggle('nca_wrap', {network, text: 'wrap'}), ' ',
+      h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
+      h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
     ),
-  ).into(output).els
+    ui.range('nca_speed', {
+      network, min: 0.01, max: 10,
+      // trafo: [x =>x**5, x=>x**(1/5)],
+      // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
+    }),
+    h.div('buttons', {style: 'flex-wrap:wrap'}).of(
+      h.button('next').of('ᐅ'),
+    ),
+  )).into(output).els
 
   Object.keys(defs.nca.presets).forEach(addbutton)
 
