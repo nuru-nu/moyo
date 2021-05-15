@@ -19,6 +19,8 @@ export const Sonar = (output, {network}) => {
     h.div({class: 'header'}).of('sonar'),
     h.button('override').of('override'),
     h.input('sonar', {type: 'range', min: 0, max: 100, value: 100}),
+    h.button('pir').of('pir'),
+    h.button('pir_on .h').of('ON'),
   ).into(output).els
 
   let override = false
@@ -28,6 +30,14 @@ export const Sonar = (output, {network}) => {
     update()
   })
   disp.sonar.addEventListener('input', update)
+
+  let pir_override
+  disp.pir.addEventListener('click', () => {
+    network.sender({pir_override: pir_override === null ? 0 : null})
+  })
+  disp.pir_on.addEventListener('click', () => {
+    network.sender({pir_override: 1 * !pir_override})
+  })
 
   function update() {
     if (!override) {
@@ -43,6 +53,12 @@ export const Sonar = (output, {network}) => {
       disp.sonar.style.display = override ? 'block' : 'none'
     }
     disp.sonar.value = 100 * data.sonar
+    if (pir_override !== data.pir_override) {
+      pir_override = data.pir_override
+      disp.pir.classList[pir_override === null ? 'remove' : 'add']('on')
+      disp.pir_on.classList[pir_override !== null ? 'remove' : 'add']('h')
+      disp.pir_on.classList[pir_override ? 'add' : 'remove']('on')
+    }
   })
 }
 
