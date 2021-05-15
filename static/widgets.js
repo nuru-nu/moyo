@@ -407,29 +407,6 @@ export const Actions = (output, {name, values, network}) => {
   ).into(output)
 }
 
-export const Animations = (output, {defs, network}) => {
-  Header('anim', h.div().of(
-    ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
-    ui.h(
-      ui.range('anim_both', { network, name: 'both', text: 'both' }),
-      ui.range('anim_head', { network, name: 'head', text: 'head' }),
-      ui.range('anim_arms', { network, name: 'arms', text: 'arms' }),
-    ),
-    ui.h(
-      ui.range('anim_hue', { network, name: 'arms', text: 'hue' }),
-      ui.range('anim_sat', { network, name: 'arms', text: 'sat', max: 4 }),
-    ),
-    ui.h(
-      ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
-      '...',
-      ui.toggle('anim_heart', { network, text: 'heart' }),
-      ui.toggle('heart_sim', { network, text: 'sim' }),
-      '...',
-      ui.toggle('anim_into', { network, text: 'into' }),
-    ),
-  )).into(output)
-}
-
 export const Transients = (output, {network, defs}) => {
 
   const limit = 100
