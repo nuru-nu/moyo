@@ -17,6 +17,11 @@ from .features import Features, wav2features
 from . import settings
 from .settings import AudioSettings
 
+def create_ident(ts=None):
+    if ts is None:
+        ts = datetime.datetime.now()
+    return ts.strftime('%Y%m%d_%H%S')
+
 
 class Recording:
     """Streams signals with 't' from/to disk.
@@ -36,8 +41,8 @@ class Recording:
 
     @classmethod
     def create(cls) -> 'Recording':
-        now = datetime.datetime.now().strftime('%Y%m%d_%H%S')
-        basepath = f'{settings.recs_dir}/{now}'
+        ident = create_ident()
+        basepath = f'{settings.recs_dir}/{ident}'
         rec = cls(basepath)
         assert not rec.reading, rec.basepath
         return rec
@@ -87,7 +92,7 @@ class Recording:
 
     def saveinfo(self):
         with open(self.jsonpath, 'w', encoding='utf8') as f:
-            json.dump(self.info, f)
+            json.dump(self.info, f, indent=2)
 
     def loadinfo(self):
         with open(self.jsonpath, encoding='utf8') as f:
@@ -188,7 +193,11 @@ class SoundRecording:
         process(feats)
       plt.plot(rec2.logmel.T)
     """
-    def __init__(self, path: str, audio: AudioSettings = settings.audio):
+    def __init__(self,
+                 path: str,
+                 audio: AudioSettings = settings.audio,
+                 *,
+                 create_ok: bool = True):
         """Creates a new recording.
 
         If the path exists, then the recording is read (failing if it is not
@@ -205,7 +214,22 @@ class SoundRecording:
         if os.path.exists(self.path):
             self._load()
         else:
+            if not create_ok:
+                raise FileNotFoundError(f'Does not exist: "{path}"')
             self._open()
+
+    @classmethod
+    def create(cls, audio: AudioSettings = settings.audio) -> 'SoundRecording':
+        ident = create_ident()
+        path = f'{settings.recs_dir}/{ident}.wav'
+        return cls(path, audio, create_ok=True)
+
+    @classmethod
+    def load(cls,
+             ident: str,
+             audio: AudioSettings = settings.audio) -> 'SoundRecording':
+        path = f'{settings.recs_dir}/{ident}.wav'
+        return cls(path, audio, create_ok=False)
 
     @property
     def data_path(self) -> str:
@@ -265,8 +289,11 @@ class SoundRecording:
 
     def seek(self, t: float):
         assert not self.writing
+        print('seek', self.i)
         self.i = max(0,
                      min(len(self.logmel) - 1, int(t / self.audio.hop_secs)))
+        self.wav.setpos(self.i * self.audio.hop_size)
+        print('->', self.i)
 
     def read(self, loop: bool = False) -> Optional[Features]:
         if self.i >= len(self.logmel):
@@ -304,14 +331,6 @@ class SoundRecording:
     def __repr__(self):
         return (f'{self.__class__.__name__}(hops={len(self.logmel)}, '
                 f'secs={len(self.logmel)*self.audio.hop_secs:.1f})')
-
-    @classmethod
-    def from_name(cls, name, audio: AudioSettings = settings.audio):
-        """Helper to construct name with timestamp in recorder dir."""
-        if not re.match(r'^\d{8}_\d{6}', name):
-            name = f'{util.now()}_{name}'
-        return SoundRecording(
-            os.path.join(settings.recorder_dir, f'{name}.wav'), audio)
 
 
 def get_recordings(directory: str = settings.recorder_dir):

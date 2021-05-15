@@ -105,7 +105,6 @@ def get_signals(features):
 
 
 sock = network.create_udp_socket(settings.recorder_cmd_port, '127.0.0.1')
-loop = False
 record = playback = None
 subsample = 1
 lfeats = None
@@ -121,12 +120,8 @@ while running:
 
     feats = None
     if playback:
-        feats = playback.read(loop=loop)
-        if feats:
-            ai0.play(feats.wav)
-        else:
-            playback = None
-            input_streamer.freeze(False)
+        feats = playback.read(loop=True)
+        ai0.play(feats.wav)
     if not feats:
         data = input_streamer.get()
         if feats or i % subsample == 0:
@@ -137,8 +132,6 @@ while running:
             record.append(feats)
 
     signals = get_signals(feats)
-    if playback:
-        signals['playback_t'] = playback.t
     del signals['features']
     signals['logmel'] = list(feats.logmel)
     signals['mfccs'] = list(feats.mfccs)
@@ -153,37 +146,43 @@ while running:
     data = network.get_json(sock, None)
     if data is None:
         continue
-    data = data.get('recorder', None)
-    if not data:
-        continue
-    logger.info('RECEIVED %s', data)
-    subsample = data.get('subsample', subsample)
-    loop = data.get('loop', loop)
-    if 'playback' in data:
-        if data['playback']:
-            if record:
-                record.close()
-                record = None
-            input_streamer.freeze(True)
-            playback = recording.SoundRecording.from_name(data['playback'])
-            logger.info('loaded %r path=%s', playback, playback.path)
-        else:
-            input_streamer.freeze(False)
-    if 'record' in data:
-        if data['record']:
-            record = recording.SoundRecording.from_name(data['record'])
-            logger.info('recording %r path=%s', record, record.path)
-            playback = None
-            input_streamer.freeze(False)
-        else:
-            if record:
-                record.close()
-                logger.info('finished recording')
-            record = None
-    if playback and 't' in data:
-        playback.seek(data['t'])
-    continue
+    action = data.get('action', '')
+    if action.startswith('subsample='):
+        subsample = int(action[len('subsample='):])
+        logger.info('subsample=%d', subsample)
+    rec_action = data.get('rec_action', '')
+    if rec_action:
+        logger.info('rec_action=%s', rec_action)
 
+    if rec_action == 'start':
+        if record:
+            record.close()
+            logger.info('finished recording because starting another')
+        record = recording.SoundRecording.create()
+        logger.info('recording %r path=%s', record, record.path)
+        playback = None
+        input_streamer.freeze(False)
+
+    if rec_action == 'stop':
+        if record:
+            record.close()
+            logger.info('finished recording')
+        record = playback = None
+        input_streamer.freeze(False)
+
+    if rec_action.startswith('play='):
+        ident = rec_action[len('play='):]
+        try:
+            playback = recording.SoundRecording.load(ident)
+        except FileNotFoundError as e:
+            logger.warning('Cannot playback: %s', e)
+            continue
+        logger.info('loaded %r path=%s', playback, playback.path)
+        input_streamer.freeze(True)
+
+    if rec_action.startswith('t=') and playback is not None:
+        t = float(rec_action[len('t='):])
+        playback.seek(t)
 
 del input_streamer
 del ai0
