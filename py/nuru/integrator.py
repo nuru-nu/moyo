@@ -214,8 +214,8 @@ class Integrator:
                 self.rec_enabled.add(m.group(1))
         m = re.match(r'^t=(.*)', rec_action)
         if self.rec_play and m:
-            t = self.rec_t = float(m.group(1))
-            self.rec_play.seek(t)
+            self.rec_t = float(m.group(1)) + self.rec_play.info['start']
+            self.rec_play.seek(self.rec_t)
             self.rec_schedule(self.rec_play.next())
         current = self.rec_ongoing or self.rec_play
         if current:
