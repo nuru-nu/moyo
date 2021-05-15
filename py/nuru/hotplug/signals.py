@@ -273,6 +273,7 @@ defaults = dict(
     heart_sim=0,
     anim_into=0,
     anim_dark=1,
+    anim_dbg=0,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -378,5 +379,6 @@ monitor_def = dict(
         'anim_heart',
         'anim_into',
         'anim_dark',
+        'anim_dbg',
     ],
 )

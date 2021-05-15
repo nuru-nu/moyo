@@ -44,6 +44,7 @@ export const Animations = (output, {network, defs}) => {
       ui.range('v2', { network, text: null }),
     ),
     ui.h(
+      ui.toggle('anim_dbg', { network, text: 'dbg' }),
       ui.toggle('anim_dark', { network, text: 'dark' }),
       '...',
       ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
