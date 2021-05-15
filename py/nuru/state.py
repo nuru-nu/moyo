@@ -84,7 +84,7 @@ class One(L.Signal):
         "blue_sleep",
     ]
     AWAKE_ANIMS = [
-        "holz",
+        "holz_calm",
         "flow_calm",
         "spiral_underwater",
     ]
