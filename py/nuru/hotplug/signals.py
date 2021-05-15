@@ -83,7 +83,7 @@ ooo_signals = dict(
 
 sensor_signals = dict(
     sonar=S.Overridable(S.Sonar(N.sonar_0), N.sonar_override),
-    pir=N.pir_0,
+    pir=S.Overridable(N.pir_0, N.pir_override),
     # touch=N.touch_raw | S.From(0, 400) | S.MovingAverage(n=1),
     # touch=N.touch_raw | S.From(0, 500) | S.MovingAverage(n=3),
     # touch=N.touch_raw | S.From(0, 1000),
@@ -179,9 +179,12 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-    people_2=L.Named('people_sensor_2') | S.KinectFix(
-        phantoms=(),
-        dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+    people_2=S.Overridable(
+        L.Named('people_sensor_2') | S.KinectFix(
+            phantoms=(),
+            dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+        ),
+        L.Named('people_override'),
     ),
 
     closest=(
@@ -234,6 +237,7 @@ defaults = dict(
     sonar_0=1,
     pir_0=0,
     sonar_override=None,
+    pir_override=None,
     # state=state.State(),
     state_one=state.One.INITIAL_STATE,
     state=state.STATE_SLEEP,
