@@ -44,3 +44,19 @@ def update(i, d):
         anims.append(d)
     del presets['ncas']
     json.dump(presets, open(PRESETS_PATH, 'w'), indent=2)
+
+
+if __name__ == '__main__':
+    presets = load()
+    defaults = {
+        'animation': 'nca',
+        'anim_both': 1, 'anim_head': 1, 'anim_arms': 1,
+        'anim_hue': 0, 'anim_sat': 1,
+        'nca_speed': 1, 'nca_wrapx': 1, 'nca_clip': 1,
+    }
+    del presets['ncas']
+    presets['animations'] = [
+        {**d, 'signals': {**defaults, **d['signals']}}
+        for d in presets['animations']
+    ]
+    json.dump(presets, open(PRESETS_PATH, 'w'), indent=2)
