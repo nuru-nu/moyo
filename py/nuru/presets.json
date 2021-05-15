@@ -6,6 +6,15 @@
       "mtime": "20210515_1515",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "frilly_0093"
       }
     },
@@ -15,6 +24,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "chequered_0210"
       }
     },
@@ -24,6 +42,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "swirly_0063"
       }
     },
@@ -33,6 +60,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "perforated_0161"
       }
     },
@@ -42,6 +78,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "crystalline_0146"
       }
     },
@@ -51,6 +96,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "dotted_0130"
       }
     },
@@ -60,6 +114,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "sprinkled_0005"
       }
     },
@@ -72,10 +135,16 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
-        "nca": "striped_0094",
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
         "nca_speed": 3,
+        "nca_wrapx": 0,
         "nca_clip": 0,
-        "nca_wrapx": 0
+        "nca": "striped_0094"
       }
     },
     {
@@ -84,6 +153,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "smeared_0041"
       }
     },
@@ -93,6 +171,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "blotchy_0084"
       }
     },
@@ -102,8 +189,16 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
-        "nca": "spiralled_0136",
-        "nca_clip": 0
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 0,
+        "nca": "spiralled_0136"
       }
     },
     {
@@ -112,6 +207,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "striped_0085"
       }
     },
@@ -121,6 +225,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "bubbly_0166"
       }
     },
@@ -130,6 +243,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "smeared_0085"
       }
     },
@@ -139,6 +261,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "lacelike_0085"
       }
     },
@@ -148,6 +279,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "stratified_0115"
       }
     },
@@ -157,6 +297,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "fibrous_0132"
       }
     },
@@ -166,6 +315,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "bumpy_0185"
       }
     },
@@ -175,6 +333,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "waffled_0185"
       }
     },
@@ -184,6 +351,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "grooved_0074"
       }
     },
@@ -193,6 +369,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "bubbly_0136"
       }
     },
@@ -202,6 +387,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "frilly_0006"
       }
     },
@@ -211,6 +405,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "sprinkled_0049"
       }
     },
@@ -220,6 +423,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "smeared_0146"
       }
     },
@@ -229,6 +441,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "braided_0149"
       }
     },
@@ -238,6 +459,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "gauzy_0146"
       }
     },
@@ -247,6 +477,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "smeared_0114"
       }
     },
@@ -256,6 +495,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "smeared_0100"
       }
     },
@@ -265,6 +513,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "pitted_0117"
       }
     },
@@ -274,6 +531,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "honeycombed_0083"
       }
     },
@@ -283,6 +549,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "stratified_0129"
       }
     },
@@ -292,6 +567,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "waffled_0108"
       }
     },
@@ -301,6 +585,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "stained_0044"
       }
     },
@@ -310,6 +603,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "frilly_0019"
       }
     },
@@ -319,6 +621,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "scaly_0193"
       }
     },
@@ -334,9 +645,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 0.5,
-        "nca": "porous_0122",
         "nca_speed": 1,
-        "nca_clip": 0
+        "nca_wrapx": 1,
+        "nca_clip": 0,
+        "nca": "porous_0122"
       }
     },
     {
@@ -345,6 +657,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "spiralled_0062"
       }
     },
@@ -354,6 +675,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "studded_0192"
       }
     },
@@ -363,6 +693,15 @@
       "mtime": "20210515_1354",
       "author": "Andreas",
       "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": 1,
         "nca": "grid_0065"
       }
     },
@@ -376,9 +715,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 0.5,
-        "nca": "woven_0094",
         "nca_speed": 1,
-        "nca_clip": true
+        "nca_wrapx": 1,
+        "nca_clip": true,
+        "nca": "woven_0094"
       },
       "mtime": "20210515_1530",
       "ctime": "20210515_1516"
