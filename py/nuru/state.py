@@ -112,7 +112,8 @@ class One(L.Signal):
         overwrites.update({k: v for k, v in preset['signals'].items()})
         print(f'One next {which} preset={preset}')
 
-    def call(self, mode, action, dt, closest, pir, people, likes):
+    def call(self, mode, action, dt, closest, pir, people, likes, target_css,
+             css_alpha):
 
         if not self.state:
             self.state = self.INITIAL_STATE
@@ -141,6 +142,10 @@ class One(L.Signal):
             if pir or closest:
                 state = STATE_WAKEUP
                 print('One pir/closest -> wakeup')
+
+            if arousal > 0:
+                state = STATE_AWAKE
+                timer = self.awake_next
 
         elif state == STATE_WAKEUP:
             arousal += dt / self.wakeup_duration
@@ -204,6 +209,10 @@ class One(L.Signal):
         for target, alpha in valence_attractors:
             dvdt += (target - valence) * alpha
         valence += dt * dvdt
+
+        if target_css:
+            valence += (target_css[0] - valence) / css_alpha
+            arousal += (target_css[1] - arousal) / css_alpha
 
         overwrites['css'] = [
             max(-1, min(1, valence)),
