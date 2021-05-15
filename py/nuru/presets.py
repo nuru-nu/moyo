@@ -2,13 +2,12 @@
 
 import json
 import glob
+import logging
 import os
 
 from smanmi import util
 
-logger = util.createLogger('presets')
-
-NCA_PATH = os.path.join(os.path.dirname(__file__), 'nca.json')
+PRESETS_PATH = os.path.join(os.path.dirname(__file__), 'presets.json')
 NCA_GLOB = os.path.join(
     os.path.dirname(__file__),
     os.path.pardir,
@@ -17,38 +16,23 @@ NCA_GLOB = os.path.join(
     f'*.npy',
 )
 
-_nca_defaults = dict(
-    nca_speed=1,
-    nca_clip=1,
-    nca_wrapx=1,
-)
 
-
-
-def _upgrade_presets(presets):
-    ret = {}
-    for k, v in presets.items():
-        if isinstance(v, str):
-            v = dict(nca=v)
-        for kk, vv in _nca_defaults.items():
-            if kk not in v:
-                v[kk] = vv
-        ret[k] = v
+def load():
+    ret = json.load(open(PRESETS_PATH))
+    ret['ncas'] = [path.split('/')[-1][:-4] for path in glob.glob(NCA_GLOB)]
     return ret
 
 
-def get_nca():
-    ret = json.load(open(NCA_PATH))
-    ret['presets'] = _upgrade_presets(ret['presets'])
-    ret['all_names'] = [path.split('/')[-1][:-4] for path in glob.glob(NCA_GLOB)]
-    return ret
-
-
-def set_nca(name, d):
-    nca = get_nca()
-    if name in nca['presets']:
-        logger.info('Updating NCA "%s"', name)
+def update(i, d):
+    presets = load()
+    if i < len(presets):
+        logging.info('Updating preset #%d: %s -> %s', i, presets[i], d)
+        presets[i] = d
     else:
-        logger.info('Adding NCA "%s"', name)
-    nca['presets'][name] = d
-    json.dump(nca, open(NCA_PATH, 'w'))
+        for j in range(len(presets), i):
+            dd = dict(name=f'#{j:03d}')
+            logging.info('Creating empty preset #%d: %s', j, dd)
+            presets.append(dd)
+        logging.info('Adding preset #%d: %s', i, d)
+        presets.append(d)
+    json.dump(presets, open(PRESETS_PATH, 'w'), indent=2)

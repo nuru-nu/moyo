@@ -1,0 +1,362 @@
+{
+  "animations": [
+    {
+      "name": "pink_alien_surprise",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "frilly_0093"
+      }
+    },
+    {
+      "name": "red_signal",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "chequered_0210"
+      }
+    },
+    {
+      "name": "bunt_happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "swirly_0063"
+      }
+    },
+    {
+      "name": "flow_calm",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "perforated_0161"
+      }
+    },
+    {
+      "name": "cristal_neutral",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "crystalline_0146"
+      }
+    },
+    {
+      "name": "pink_love",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "dotted_0130"
+      }
+    },
+    {
+      "name": "jittery_sad",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "sprinkled_0005"
+      }
+    },
+    {
+      "emotion": "excited",
+      "who": "andreas",
+      "comments": "non-clipping makes for electric sparkles",
+      "name": "orange_bluespots",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "striped_0094",
+        "nca_speed": 3,
+        "nca_clip": 0,
+        "nca_wrapx": 0
+      }
+    },
+    {
+      "name": "lachsblau_angry",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "smeared_0041"
+      }
+    },
+    {
+      "name": "green_redflash",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "blotchy_0084"
+      }
+    },
+    {
+      "name": "konfetti_sleep",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "spiralled_0136",
+        "nca_clip": 0
+      }
+    },
+    {
+      "name": "happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "striped_0085"
+      }
+    },
+    {
+      "name": "beer_sad",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "bubbly_0166"
+      }
+    },
+    {
+      "name": "konfetti",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "smeared_0085"
+      }
+    },
+    {
+      "name": "glitter_excited",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "lacelike_0085"
+      }
+    },
+    {
+      "name": "holz",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "stratified_0115"
+      }
+    },
+    {
+      "name": "fibrous_0132",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "fibrous_0132"
+      }
+    },
+    {
+      "name": "bumpy_0185",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "bumpy_0185"
+      }
+    },
+    {
+      "name": "waffled_0185",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "waffled_0185"
+      }
+    },
+    {
+      "name": "grooved_0074",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "grooved_0074"
+      }
+    },
+    {
+      "name": "bubbly_0136",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "bubbly_0136"
+      }
+    },
+    {
+      "name": "green_envy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "frilly_0006"
+      }
+    },
+    {
+      "name": "sparkling_happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "sprinkled_0049"
+      }
+    },
+    {
+      "name": "cloud_happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "smeared_0146"
+      }
+    },
+    {
+      "name": "blue_sleep",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "braided_0149"
+      }
+    },
+    {
+      "name": "redwhite_angry",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "gauzy_0146"
+      }
+    },
+    {
+      "name": "smeared_0114",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "smeared_0114"
+      }
+    },
+    {
+      "name": "smeared_0100",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "smeared_0100"
+      }
+    },
+    {
+      "name": "stripes_angry",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "pitted_0117"
+      }
+    },
+    {
+      "name": "honeycombed_0083",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "honeycombed_0083"
+      }
+    },
+    {
+      "name": "stratified_0129",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "stratified_0129"
+      }
+    },
+    {
+      "name": "waffled_0108",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "waffled_0108"
+      }
+    },
+    {
+      "name": "excited_happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "stained_0044"
+      }
+    },
+    {
+      "name": "sweet_happy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "frilly_0019"
+      }
+    },
+    {
+      "name": "blue_calm",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "scaly_0193"
+      }
+    },
+    {
+      "name": "another_angy",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "porous_0122"
+      }
+    },
+    {
+      "name": "spiral_underwater",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "spiralled_0062"
+      }
+    },
+    {
+      "name": "spotted_inward",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "studded_0192"
+      }
+    },
+    {
+      "name": "white_radial",
+      "ctime": "20210515_1354",
+      "mtime": "20210515_1354",
+      "author": "Andreas",
+      "signals": {
+        "nca": "grid_0065"
+      }
+    }
+  ]
+}

@@ -106,6 +106,10 @@ select {
   height: 5rem;
 }
 
+.active {
+  color: red;
+}
+
 .blink {
   animation: blinker 1s step-start infinite;  
 }
