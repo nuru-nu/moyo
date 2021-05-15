@@ -246,6 +246,7 @@ export const Css = (output, {network}) => {
         h.input('alpha', {type: 'range', min: 5, max: 100, value: 10}),
       ),
       h.canvas('xy .css', {width, height}),
+      h.div('state', {style: 'text-align:center'}),
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
@@ -344,6 +345,11 @@ export const Css = (output, {network}) => {
       ctx.fill()
     }
     if (css_alpha) disp.alpha.value = css_alpha
+
+    if (data.mode == 'one' && data.state_one) {
+      const s = data.state_one
+      disp.state.textContent = `one: ${s.state} (t=${Math.floor(s.timer)})`
+    }
   })
 }
 
