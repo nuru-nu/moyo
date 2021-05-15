@@ -2,26 +2,20 @@ import { h, u, ui } from './smanmi/util.js'
 import { ActionsButtons, Header } from './widgets.js'
 
 export const Animations = (output, {network, defs}) => {
-  const ncanames = {}
-  const ncabuttons = {}
-  const presets = defs.nca.presets
+  const presets = defs.presets
 
-  function addbutton(name) {
-    let nca = presets[name]
-    if ('object' !== typeof nca) nca = {nca}
-    ncabuttons[name] = h.button().of(name).into(els.buttons).el
-    if (ncanames.hasOwnProperty(nca.nca)) {
-      console.warn('Using', nca.nca, 'multiple times:', ncanames[nca.nca], name)
-    }
-    ncanames[nca.nca] = name
-    ncabuttons[name].addEventListener('click', () => {
-      network.sender({nca: nca.nca})
-      for (const [key, value] of Object.entries(nca)) {
-        if (key === 'info') continue
-        network.sender({[key]: value})
-      }
+  function make_button(preset, idx) {
+    const button = h.button().of(preset.name).el
+    button.addEventListener('click', () => {
+      network.sender(preset.signals)
+      preset_active = idx
+      preset_buttons.forEach((b, i) =>
+        b.classList[i === idx ? 'add' : 'remove']('on'))
     })
+    return button
   }
+  let preset_active = null
+  const preset_buttons = presets.animations.map(make_button)
 
   const els = Header('anim', h.div().of(
     ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
@@ -54,11 +48,8 @@ export const Animations = (output, {network, defs}) => {
         // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
       }),
     ),
-    h.div('buttons', {style: 'flex-wrap:wrap'}).of(
-    ),
+    h.div('buttons', {style: 'flex-wrap:wrap'}).of(preset_buttons),
   )).into(output).els
-
-  Object.keys(defs.nca.presets).forEach(addbutton)
 
   els.next.addEventListener('click', () => {
     network.sender({ action: 'nca=next' })
@@ -67,22 +58,16 @@ export const Animations = (output, {network, defs}) => {
   let last_nca = null
   network.listenJson('signals', data => {
     if (data.nca && data.nca != last_nca) {
-      let name
-      if (last_nca) {
-        name = ncanames[last_nca]
-        if (name) {
-          ncabuttons[name].classList.remove('on')
-        }
-      }
-      last_nca = data.nca
-      name = ncanames[last_nca]
-      if (name) {
-        ncabuttons[name].classList.add('on')
-      }
+      preset_buttons.forEach((button, idx) => {
+        const preset = presets.animations[idx]
+        button.classList[
+          preset.signals.nca === data.nca ? 'add' : 'remove']('active')
+      })
       els.nca.textContent = data.nca
       els.nca.href = `/nca?name=${data.nca}`
       const [group, num] = data.nca.split('_')
       els.img.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
+      last_nca = data.nca
     }
   })
 };

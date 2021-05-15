@@ -29,7 +29,7 @@ STATE_ANGRY = 'angry'
 STATE_OK = 'ok'
 STATE_HAPPY = 'happy'
 
-_nca_presets = presets.get_nca()['presets']
+_presets = presets.load()
 
 
 class One(L.Signal):
@@ -83,15 +83,19 @@ class One(L.Signal):
             "flow_calm",
             "spiral_underwater",
         ]
+        self.presets = {
+            preset['name']: preset
+            for preset in _presets['animations']
+        }
         for name in self.sleep_ncas + self.awake_ncas:
-            assert name in _nca_presets, name
+            assert name in self.presets, name
 
     def next_nca(self, which, overwrites):
         overwrites['action'].append('animation=nca')
         ncas = getattr(self, f'{which}_ncas')
-        nca = _nca_presets[np.random.choice(ncas)]
-        overwrites.update({k: v for k, v in nca.items() if k != 'info'})
-        print(f'One next {which} nca={nca}')
+        preset = self.presets[np.random.choice(ncas)]
+        overwrites.update({k: v for k, v in preset['signals'].items()})
+        print(f'One next {which} preset={preset}')
 
     def call(self, mode, action, dt, closest, pir, people, likes):
         if mode != 'one':
@@ -265,9 +269,9 @@ class Css(L.Signal):
 
         # stay angry
         if self.lt:
-          if t - self.lt < 20:
-            return [self.valence, self.arousal]
-          self.lt = None
+            if t - self.lt < 20:
+                return [self.valence, self.arousal]
+            self.lt = None
 
         # Reversal to the mean.
         self.valence -= (self.valence - self.valence0) / self.beta
@@ -278,13 +282,13 @@ class Css(L.Signal):
 
         # Getting angry...
         if mvmt > 0.8:
-          self.valence += (-1 - self.valence) * .9 ** 20
-          if self.valence < -0.8:
-            self.lt = t
+            self.valence += (-1 - self.valence) * .9 ** 20
+            if self.valence < -0.8:
+                self.lt = t
 
         # Getting interested.
         if mvmt < 0.1 and closest > 0.6:
-          self.valence = min(1, self.valence + 1 / 20 / 10)
+            self.valence = min(1, self.valence + 1 / 20 / 10)
 
         if target_css:
             valence, arousal = target_css
@@ -334,7 +338,7 @@ class RNCA(L.Signal):
         self.json = json.load(open(os.path.join(
             os.path.dirname(__file__), 'nca.json'
         )))
-        self.names = _nca_presets['all_names']
+        self.ncas = _presets['ncas']
         self.t = time.time()
 
     def call(self, mode, t, action):
@@ -345,8 +349,8 @@ class RNCA(L.Signal):
         if action == 'nca=next':
             self.t = 0
         if t - self.t > self.timeouts_secs:
-            name = self.names[random.randint(0, len(self.names))]
-            overwrites['nca'] = name
+            nca = self.ncas[random.randint(0, len(self.ncas))]
+            overwrites['nca'] = nca
             self.t = t
         return dict(
             overwrites=overwrites,
