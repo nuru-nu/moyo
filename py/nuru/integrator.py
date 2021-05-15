@@ -32,12 +32,13 @@ parser.add_argument(
     '--init', action='store_true',
     help='Prevents reading of --signals_json on startup.'
 )
+parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 parser.add_argument(
     '--fps', type=float, default=25,
     help='Integrator target frames per second')
 args = parser.parse_args()
 
-logger = util.createLogger('integrator')
+logger = util.createLogger('integrator', debug=args.debug)
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 
@@ -70,6 +71,7 @@ class Integrator:
                 settings.recorder_cmd_port,
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
+                settings.kinect_cmd_port,
             ),
         )
         self.server.onsignal(self.onsignal)
