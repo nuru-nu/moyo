@@ -88,7 +88,7 @@ export const Subsample = (output, {network}) => {
 
 export const Cmd = (output, {network, defs}) => {
   const actions = [
-    'fc=0', 'fc=1', 'fc=2', 'fc=3',
+    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'one=next'
   ]
   const els = Header('cmd', h.div().of(
     ActionsButtons({name: 'mode', values: defs.modes, network}),
