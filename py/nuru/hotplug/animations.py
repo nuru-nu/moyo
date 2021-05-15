@@ -530,4 +530,5 @@ pixels = (
         L.Named('anim_sig', meta=True) | S.To(.2, 1) | S.Exponential(.1)
     )
     | A.TailSig(ok=C.RGB(0, 1, 0), not_ok=C.RGB(1, 0, 0))
+    | S.To(0, N.anim_dark | S.To(1, 0.66))
 )
