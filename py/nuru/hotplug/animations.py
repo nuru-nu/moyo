@@ -384,7 +384,7 @@ def nca():
         clip=N.nca_clip,
         wrapx=N.nca_wrap,
         # width=256, height=256,
-        dydt=N.anim_into | S.To(0, 50),
+        dydt=N.anim_into | S.To(0, 20),
     )
 
 
@@ -445,19 +445,17 @@ def wakeup():
       | A.Overwrite(heart() * S.Const(.7), 20))
 
 
-@anim
-def awake():
-    # ctrl = N.closest
-    # ctrl = N.v0  # for testing
-    ctrl = S.Const(1)
-    return ((A.NCA2D(
-        data='striped_0085',
-        clip=True,
-        speed=ctrl | S.To(1, 3),
-        wrapx=True,
-    ) | S.To(0, ctrl | S.To(.3, 1)) | A.HsvMod(0.38)) 
-        | A.Overwrite(heart() * S.Const(1.7), 10)
-    )
+# @anim
+# def awake():
+#     ctrl = N.v0  # for testing
+#     return ((A.NCA2D(
+#         data='striped_0085',
+#         clip=True,
+#         speed=ctrl | S.To(1, 3),
+#         wrapx=True,
+#      ) | S.To(0, ctrl | S.To(.3, 1)) | A.HsvMod(0.38)) 
+#     #     | A.Overwrite(heart() * S.Const(1.7), 10)
+#     )
 
 
 # @anim
