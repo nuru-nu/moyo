@@ -148,7 +148,7 @@ class One(L.Signal):
         timer = self.state['timer']
         valence = self.state['valence']
         arousal = self.state['arousal']
-        timer = max(0, timer - dt)
+        timer -= dt
 
         if state == STATE_SLEEP:
             if timer <= 0 or action == 'one=next':
@@ -157,17 +157,16 @@ class One(L.Signal):
 
             if pir or closest:
                 state = STATE_WAKEUP
-                print('One pir/closest -> wakeup')
 
             if arousal > 0:
                 state = STATE_AWAKE
-                timer = self.awake_next
+                timer = 0
 
         elif state == STATE_WAKEUP:
             arousal += dt / self.wakeup_duration
             if arousal >= .1:
                 state = STATE_AWAKE
-                timer = self.awake_next
+                timer = 0
 
         elif state == STATE_AWAKE:
             if timer <= 0 or action == 'one=next':
@@ -198,7 +197,7 @@ class One(L.Signal):
 
             if arousal < -0.9:
                 state = STATE_SLEEP
-                timer = self.sleep_next
+                timer = 0
 
         elif state == STATE_ANGRY:
             if valence > -0.25:
