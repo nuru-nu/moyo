@@ -525,6 +525,7 @@ pixels = (
     | A.Mult(N.anim_both)
     | A.Mult(N.anim_head, 'head')
     | A.Mult(N.anim_arms, 'arms')
+    | A.HsvMod(hue_shift=N.anim_hue, sat_mult=N.anim_sat)
     | A.Mult(
         L.Named('anim_sig', meta=True) | S.To(.2, 1) | S.Exponential(.1)
     )
