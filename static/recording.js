@@ -1,6 +1,7 @@
 
-import { h, u, ui, debounce } from './smanmi/util.js'
-import { DiscreteInterpolant } from './threejs/three.module.js'
+import { h, u, debounce } from './smanmi/util.js'
+// import { DiscreteInterpolant } from './threejs/three.module.js'
+import { Header } from './widgets.js'
 
 const secs_to_timestr = secs => new Date(1000 * secs).toTimeString().substr(0, 8)
 
@@ -52,51 +53,47 @@ const Progressbar = () => {
 
 export const Rec = (output, { network }) => {
   const pbar = Progressbar()
-  const disp = h.div({ class: 'flex widget rec' }).of(
-    h.div({ class: 'header' }).of('rec'),
-    h.div().of(
-
-      h.div('idle').of(
-        h.button('record', { style: 'color:red' }).of('● rec'),
-        h.button('play').of('▶ play'),
-        ),
-        
-        h.div('choice').of(
-          h.select('recs'), ' ',
-          h.button('play2').of('▶ play'), ' ',
-          h.button('cancel').of('cancel'),
+  const disp = Header('rec', h.div('.widget').of(
+    h.div('idle').of(
+      h.button('record', { style: 'color:red' }).of('● rec'),
+      h.button('play').of('▶ play'),
       ),
+      
+      h.div('choice').of(
+        h.select('recs'), ' ',
+        h.button('play2').of('▶ play'), ' ',
+        h.button('cancel').of('cancel'),
+    ),
 
-      h.div('recording').of(
-        h.div().of(
-          h.span({ style: 'color:red;', class: 'blink' }).of('● rec'), ' ',
-          h.span('rec_start').of('00:00:00'), '..',
-          h.span('rec_at').of('00:00:00'), ' ',
-          h.button('stop1').of('■ stop'),
-        ),
+    h.div('recording').of(
+      h.div().of(
+        h.span({ style: 'color:red;', class: 'blink' }).of('● rec'), ' ',
+        h.span('rec_start').of('00:00:00'), '..',
+        h.span('rec_at').of('00:00:00'), ' ',
+        h.button('stop1').of('■ stop'),
       ),
+    ),
 
-      h.div('playing').of(
-        h.div().of(
-          h.span({ class: 'blink' }).of('▶ play'), ' ',
-          h.span('play_at').of('00:00:00'), ' ',
-          h.button('stop2').of('■ stop'),
-        ),
-        pbar.el,
-        h.div('signals').of(),
+    h.div('playing').of(
+      h.div().of(
+        h.span({ class: 'blink' }).of('▶ play'), ' ',
+        h.span('play_at').of('00:00:00'), ' ',
+        h.button('stop2').of('■ stop'),
       ),
+      pbar.el,
+      h.div('signals').of(),
+    ),
 
-      h.div('common').of(
-        h.div().of(
-          'id=', h.span('id'),
-          ' name: ', h.input('name', { type: 'text' }),
-        ),
-        h.div().of('comments:'),
-        h.textarea('comments', { class: 'comments' }),
+    h.div('common').of(
+      h.div().of(
+        'id=', h.span('id'),
+        ' name: ', h.input('name', { type: 'text' }),
       ),
+      h.div().of('comments:'),
+      h.textarea('comments', { class: 'comments' }),
+    ),
 
-    )
-  ).into(output).els
+  )).into(output).els
 
   function show() {
     const which = new Set(arguments);
