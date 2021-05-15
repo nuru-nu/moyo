@@ -154,7 +154,10 @@ class TailSig(L.Signal):
     def init(self, ok, not_ok):
         ...
 
-    def call(self, value, likes, people):
+    def call(self, value, likes, people, anim_dbg):
+        if not anim_dbg:
+            return value
+
         R_Z2 = 2 # TODO
 
         not_ok = ok = False
