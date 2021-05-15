@@ -5,6 +5,19 @@ import { Header } from './widgets.js'
 
 const secs_to_timestr = secs => new Date(1000 * secs).toTimeString().substr(0, 8)
 
+const secs_to_hms = secs => {
+  const hours = Math.floor(secs / 3600)
+  secs -= 3600 * hours
+  const mins = Math.floor(secs / 60)
+  secs -= 60 * mins
+  secs = Math.floor(secs)
+  return (
+    (hours < 10 ? '0' + hours : hours) + ':' + 
+    (mins < 10 ? '0' + mins : mins) + ':' + 
+    (secs < 10 ? '0' + secs : secs)
+  )
+}
+
 const secs_to_human = secs => {
   let s = ''
   if (secs > 3600) {
@@ -77,7 +90,8 @@ export const Rec = (output, { network }) => {
     h.div('playing').of(
       h.div().of(
         h.span({ class: 'blink' }).of('▶ play'), ' ',
-        h.span('play_at').of('00:00:00'), ' ',
+        h.span('play_at').of('00:00:00'), '/',
+        h.span('play_len').of('00:00:00'), ' ',
         h.button('stop2').of('■ stop'),
       ),
       pbar.el,
@@ -185,6 +199,7 @@ export const Rec = (output, { network }) => {
       if (!play || play.id !== data.rec_state.play) {
         // start playing
         play = recs.filter(rec => rec.id === data.rec_state.play)[0]
+        disp.play_len.textContent = secs_to_hms(play.stop - play.start)
         pbar.set(play)
         disp.id.textContent = data.rec_state.play
         disp.name.value = play.name
@@ -203,7 +218,7 @@ export const Rec = (output, { network }) => {
         signal => signals[signal].classList[
           enabled.has(signal) ? 'add' : 'remove']('on'))
       pbar.sett(data.rec_state.t)
-      disp.play_at.textContent = secs_to_timestr(data.rec_state.t)
+      disp.play_at.textContent = secs_to_hms(data.rec_state.t - play.start)
     }
     if (data.rec_state && data.rec_state.start) {
       // recording
