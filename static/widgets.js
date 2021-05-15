@@ -1,8 +1,8 @@
 import { h, u, ui, observe } from './smanmi/util.js'
 
 export const Header = (name, el) => {
-  const ret = h.div({class: 'flex widget', style: 'cursor:pointer'}).of(
-    h.div('header', {class: 'header'}).of(name),
+  const ret = h.div({class: 'flex widget'}).of(
+    h.div('header', {class: 'header', style: 'cursor:pointer'}).of(name),
     h.div('cont').of(el),
     h.div('placeholder', {class: 'h'}).of('...'),
   )
