@@ -370,7 +370,7 @@ export const Vars = (output, {network, defs}) => {
     ui.v(
       dropdown('palette', defs.palettes),
       dropdown('image', defs.images),
-      'v0 v1 v2 kinect_dphi'.split(' ').map(name => ui.range(name, {network})),
+      'v0 v1 v2'.split(' ').map(name => ui.range(name, {network})),
     ),
   ).into(output)
 }
