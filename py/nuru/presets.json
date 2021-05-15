@@ -323,12 +323,20 @@
       }
     },
     {
-      "name": "another_angy",
+      "name": "another_angry",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_1740",
       "author": "Andreas",
       "signals": {
-        "nca": "porous_0122"
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_hue": 0,
+        "anim_sat": 0.5,
+        "nca": "porous_0122",
+        "nca_speed": 1,
+        "nca_clip": 0
       }
     },
     {
