@@ -19,12 +19,12 @@
       }
     },
     {
-      "name": "(empty)",
+      "name": "wakeup",
       "ctime": "20210515_1354",
-      "mtime": "20210515_2057",
+      "mtime": "20210515_2234",
       "author": "Andreas",
       "signals": {
-        "animation": "nca",
+        "animation": "wakeup2",
         "anim_both": 1,
         "anim_head": 1,
         "anim_arms": 1,
@@ -390,11 +390,11 @@
     {
       "name": "stout_sleep",
       "ctime": "20210515_1354",
-      "mtime": "20210515_2134",
+      "mtime": "20210515_2210",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.93,
         "anim_head": 1,
         "anim_arms": 1,
         "anim_hue": 0,

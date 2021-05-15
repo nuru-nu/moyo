@@ -104,6 +104,9 @@ class One(L.Signal):
         'orange_striped',
         'blue_calm',
     ]
+    WAKEUP_ANIMS = [
+        'wakeup',
+    ]
 
     def init(self,
             r_z2,
@@ -157,6 +160,8 @@ class One(L.Signal):
 
             if pir or closest:
                 state = STATE_WAKEUP
+                self.next_nca('wakeup', overwrites)
+                overwrites['action'].append(f'scene={STATE_WAKEUP}')
 
             if arousal > 0:
                 state = STATE_AWAKE
@@ -164,6 +169,7 @@ class One(L.Signal):
 
         elif state == STATE_WAKEUP:
             arousal += dt / self.wakeup_duration
+            overwrites['wakeup'] = np.clip(arousal + 1, 0, 1)
             if arousal >= .1:
                 state = STATE_AWAKE
                 timer = 0
