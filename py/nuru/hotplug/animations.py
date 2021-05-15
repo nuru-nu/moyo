@@ -385,7 +385,7 @@ def nca():
         wrapx=N.nca_wrap,
         # width=256, height=256,
         dydt=N.anim_into | S.To(0, 50),
-    ) | A.HsvMod(N.v0, N.v1 | S.To(0, 2))
+    )
 
 
 @anim
