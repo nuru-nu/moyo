@@ -52,7 +52,8 @@ export const Animations = (output, {network, defs}) => {
   )).into(output).els
 
   els.next.addEventListener('click', () => {
-    network.sender({ action: 'nca=next' })
+    const idx = Math.floor(presets.ncas.length * Math.random())
+    network.sender({ nca: presets.ncas[idx] })
   })
 
   let last_nca = null
