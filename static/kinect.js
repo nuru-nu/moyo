@@ -93,6 +93,9 @@ export const Kinect = (output, {network}) => {
         h.button('add', {class: 'h'}).of('add'),
         h.button('del', {class: 'h'}).of('del'),
       ),
+      h.div().of(
+        ui.range('kinect_dphi', {network, text: null}),
+      ),
       h.canvas('xy', {width, height}),
     ),
   ).into(output).els
