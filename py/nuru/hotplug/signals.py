@@ -286,7 +286,7 @@ monitor_def = dict(
         audio=audio_signals.keys(),
         ooo=ooo_signals.keys(),
         sensor=['sonar', 'pir', 'presence'] + [f'touch_{i}' for i in range(touch_n)],
-        state=['wakeup', 'active'],
+        state=['wakeup', 'active', 'charge'],
         kinect=kinect_signals.keys(),
         generated=generated_signals.keys(),
         animation=animation_signals.keys(),
@@ -308,8 +308,13 @@ monitor_def = dict(
         other=['nca'],
     ),
     hidden=[
+        # utility
         'one',
+        'dt',
+        'heart_sim',
         # state
+        'state_one',
+        'rec_state',
         'scene',
         'animation',
         'mode',
@@ -320,6 +325,7 @@ monitor_def = dict(
         # kinect
         'people',
         'people_sensor',
+        'people_sensor_2',
         'people_override',
         # sonar
         'sonar_override',
@@ -345,10 +351,14 @@ monitor_def = dict(
         'nca_clip',
         'nca_wrap',
         # anim
+        'hue',
+        'nca',
+        'nca_wrapx',
         'anim_both',
         'anim_head',
         'anim_arms',
         'anim_sig',
         'anim_heart',
+        'anim_into',
     ],
 )
