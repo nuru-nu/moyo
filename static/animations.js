@@ -58,7 +58,9 @@ export const Animations = (output, {network, defs}) => {
       ui.toggle('nca_clip', {network, text: 'clip'}), h.span('.s1'),
       ui.toggle('nca_wrap', {network, text: 'wrap'}), h.span('.s1'),
       h.a('nca', {href: '#', target: '_blank'}).of('?'), h.span('.s1'),
-      h.a('img', {href: '#', target: '_blank'}).of('img'), h.span('.s1'),
+      h.a('img_a', {href: '#', target: '_blank'}).of(
+        h.img('img', {style: 'max-width:50px;height:auto'}),
+      ), h.span('.s1'),
       ui.range('nca_speed', {
         network, min: 0.01, max: 10, text: 'speed',
         // trafo: [x =>x**5, x=>x**(1/5)],
@@ -127,7 +129,8 @@ export const Animations = (output, {network, defs}) => {
       els.nca.textContent = data.nca
       els.nca.href = `/nca?name=${data.nca}`
       const [group, num] = data.nca.split('_')
-      els.img.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
+      els.img_a.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
+      els.img.src = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
       last_nca = data.nca
     }
 
