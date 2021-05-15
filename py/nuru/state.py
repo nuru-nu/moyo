@@ -341,13 +341,11 @@ class RNCA(L.Signal):
         self.ncas = _presets['ncas']
         self.t = time.time()
 
-    def call(self, mode, t, action):
+    def call(self, mode, t):
         if mode != 'rnca':
             return None
 
         overwrites = {}
-        if action == 'nca=next':
-            self.t = 0
         if t - self.t > self.timeouts_secs:
             nca = self.ncas[random.randint(0, len(self.ncas))]
             overwrites['nca'] = nca
