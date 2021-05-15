@@ -414,7 +414,7 @@ export const Actions = (output, {name, values, network}) => {
 }
 
 export const Animations = (output, {defs, network}) => {
-  const els = Header('anim', h.div().of(
+  Header('anim', h.div().of(
     ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
     ui.range('anim_both', { network, name: 'both', value: 1 }),
     ui.range('anim_head', { network, name: 'head', value: 1 }),
@@ -427,7 +427,7 @@ export const Animations = (output, {defs, network}) => {
       '...',
       ui.toggle('anim_into', { network, text: 'into' }),
     ),
-  )).into(output).els
+  )).into(output)
 }
 
 export const Transients = (output, {network, defs}) => {
