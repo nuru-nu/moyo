@@ -1,7 +1,7 @@
 import { h, u, ui } from './smanmi/util.js'
-import { Header } from './widgets.js'
+import { ActionsButtons, Header } from './widgets.js'
 
-export const NCA = (output, {network, defs}) => {
+export const Animations = (output, {network, defs}) => {
   const ncanames = {}
   const ncabuttons = {}
   const presets = defs.nca.presets
@@ -23,18 +23,36 @@ export const NCA = (output, {network, defs}) => {
     })
   }
 
-  const els = Header('nca', h.div().of(
+  const els = Header('anim', h.div().of(
+    ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+    ui.h(
+      ui.range('anim_both', { network, name: 'both', text: 'both' }),
+      ui.range('anim_head', { network, name: 'head', text: 'head' }),
+      ui.range('anim_arms', { network, name: 'arms', text: 'arms' }),
+    ),
+    ui.h(
+      ui.range('anim_hue', { network, name: 'arms', text: 'hue' }),
+      ui.range('anim_sat', { network, name: 'arms', text: 'sat', max: 4 }),
+    ),
+    ui.h(
+      ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
+      '...',
+      ui.toggle('anim_heart', { network, text: 'heart' }),
+      ui.toggle('heart_sim', { network, text: 'sim' }),
+      '...',
+      ui.toggle('anim_into', { network, text: 'into' }),
+    ),
     h.div().of(
       ui.toggle('nca_clip', {network, text: 'clip'}), ' ',
       ui.toggle('nca_wrap', {network, text: 'wrap'}), ' ',
       h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
       h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
+      ui.range('nca_speed', {
+        network, min: 0.01, max: 10,
+        // trafo: [x =>x**5, x=>x**(1/5)],
+        // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
+      }),
     ),
-    ui.range('nca_speed', {
-      network, min: 0.01, max: 10,
-      // trafo: [x =>x**5, x=>x**(1/5)],
-      // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
-    }),
     h.div('buttons', {style: 'flex-wrap:wrap'}).of(
       h.button('next').of('ᐅ'),
     ),
