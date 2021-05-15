@@ -49,34 +49,46 @@ SignalSender::SignalSender(
   std::cout << "Will receive UDP from " << ip << ':' << cmd_port_ << std::endl;
 }
 
-int SignalSender::send(const std::map<std::string, float>& values) {
-
+int SignalSender::receive(std::map<std::string, std::string>& rec_msg) {
   char msgbuf[2048];
   struct sockaddr_in addr;
   int addrlen;
   const int recv_bytes = recvfrom(
       cmd_sock_, msgbuf, sizeof(msgbuf) - 1, 0,
       (struct sockaddr*) &addr, (socklen_t*) &addrlen);
+  
+  std::string delimiter = "=";
   if (recv_bytes > 0) {
     msgbuf[recv_bytes] = 0;
     jute::jValue json = jute::parser::parse(msgbuf);
     for (const auto& name : json.keys()) {
-      if (json[name].get_type() == jute::JNUMBER) {
-        overrides_[name] = static_cast<float>(json[name].as_double());
-      } else if (json[name].get_type() == jute::JNULL) {
-        overrides_.erase(name);
+      if (name != "rec_action"){
+        continue;
       }
+
+      std::string msg;
+      if (json[name].get_type() == jute::JSTRING) {
+        msg = static_cast<std::string>(json[name].as_string());
+      } else {
+        msg = "None";
+      }
+
+      size_t pos = msg.find(delimiter);
+      std::string key = msg.substr(0, pos);
+      msg.erase(0, pos + delimiter.length());
+      rec_msg[key] = msg;
     }
   }
 
+  return recv_bytes;
+}
+
+int SignalSender::send(const Values& values) {
   std::stringstream buf;
   jute::jValue json(jute::JOBJECT);
   for(const auto& pair : values) {
     jute::jValue value(jute::JNUMBER);
     value.set_string(std::to_string(pair.second));
-    if (overrides_.count(pair.first) > 0) {
-      value.set_string(std::to_string(overrides_.at(pair.first)));
-    }
     json.add_property(pair.first, value);
   }
   const std::string msg = json.to_string();
@@ -94,10 +106,6 @@ int SignalSender::send_tracking_data(
   for(const auto& pair : values) {
     jute::jValue value(jute::JNUMBER);
     value.set_string(std::to_string(pair.second));
-
-    if (overrides_.count(pair.first) > 0) {
-      value.set_string(std::to_string(overrides_.at(pair.first)));
-    }
     json.add_property(pair.first, value);
   }
 

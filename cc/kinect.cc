@@ -13,10 +13,11 @@
 #include "viewer.h"
 #include "hardware.h"
 
+#include <boost/filesystem.hpp>
+
 const int kSignalinPort = 6100;
 const int kCmdPort = 6111;
 bool running = true;
-
 
 void sigint_handler(int s) {
   std::cerr << "Caught CTRL-C : Shutting down..." << std::endl;
@@ -79,6 +80,23 @@ int main(const int argc, const char** const argv) {
     }
 
     features.process(depth);
+
+    std::map<std::string, std::string> rec_msg;
+    const int bytes_rec = sender.receive(rec_msg);
+    if (bytes_rec > 0) {
+      for(const auto& msg : rec_msg){
+        if(msg.first == "start"){
+          viewer.store_path = "/home/nuru/git/nuru/recordings/recs/" + msg.second;
+          std::cout << "Storing rec to:" << viewer.store_path << std::endl;
+          if(! boost::filesystem::exists(viewer.store_path))
+            boost::filesystem::create_directory(viewer.store_path);
+        } else if(msg.first == "stop"){
+          std::cout << "Stopping recording." << std::endl;
+          viewer.store_path = "";
+        }
+      }
+    }
+
     const int bytes_sent = sender.send({
         {"presence", features.presence()},
     });
@@ -100,8 +118,6 @@ int main(const int argc, const char** const argv) {
       hardware.record_pcl("../../data/pcls", 60);
     }
     delete depth.data;
-    // delete user_pixels.data;
-    // delete depth_segments.data;
   }
 
   hardware.close();
