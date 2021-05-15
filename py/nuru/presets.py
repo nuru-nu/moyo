@@ -42,4 +42,5 @@ def update(i, d):
             anims.append(dd)
         logging.info('Adding preset #%d: %s', i, d)
         anims.append(d)
+    del presets['ncas']
     json.dump(presets, open(PRESETS_PATH, 'w'), indent=2)
