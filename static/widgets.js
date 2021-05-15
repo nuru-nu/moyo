@@ -439,12 +439,14 @@ export const Transients = (output, {network, defs}) => {
     ui.h(
       'transients - filter:',
       h.input('include', {type: 'text'}), '\\',
-      h.input('exclude', {type: 'text'}),
+      h.input('exclude', {type: 'text', value: 'heart'}),
       h.button('reset').of('reset'),
       h.button('clear').of('clear')
     ),
     h.div('.scrollable').of(h.div('output')),
   ).into(output).els
+
+  update()
 
   const matches = s => (
     !include.length || include.some(token => s.search(token) >= 0)
@@ -452,17 +454,13 @@ export const Transients = (output, {network, defs}) => {
     !exclude.length || exclude.every(token => s.search(token) == -1)
   )
   function update() {
+    include = disp.include.value.split(/\s+/g).filter(x => x !== '')
+    exclude = disp.exclude.value.split(/\s+/g).filter(x => x !== '')
     Array.from(disp.output.children).forEach(el => 
       el.classList[matches(el.textContent) ? 'remove' : 'add']('h'))
   }
-  disp.include.addEventListener('change', e => {
-    include = e.target.value.split(/\s+/g).filter(x => x !== '')
-    update()
-  })
-  disp.exclude.addEventListener('change', e => {
-    exclude = e.target.value.split(/\s+/g).filter(x => x !== '')
-    update()
-  })
+  disp.include.addEventListener('change', update)
+  disp.exclude.addEventListener('change', update)
   disp.reset.addEventListener('click', () => {
     disp.include.value = disp.exclude.value = ''
     include = exclude = []
