@@ -360,6 +360,8 @@ monitor_def = dict(
         'anim_both',
         'anim_head',
         'anim_arms',
+        'anim_hue',
+        'anim_sat',
         'anim_sig',
         'anim_heart',
         'anim_into',
