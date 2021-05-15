@@ -45,6 +45,16 @@
             "env": {
                 "PYTHONPATH": "py"
             }
+        },
+        {
+            "name": "nuru.recorder",
+            "type": "python",
+            "request": "launch",
+            "module": "nuru.recorder",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "py"
+            }
         }
     ]
 }
