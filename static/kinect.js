@@ -13,10 +13,10 @@ const Simulating = (pr) => {
     n++
   }
   function del() {
-    n--
+    if (n > 0) n--
   }
   function click(cx, cy) {
-    if (!last_people) return
+    if (!(last_people && last_people.length)) return
     const dists = last_people.map(p => {
       const [x, y] = p.cm
       const dist = ((cx - x)**2 + (cy - y)**2)**.5
@@ -192,8 +192,9 @@ export const Kinect = (output, {network}) => {
       simulate = true
       disp.add.classList.remove('h')
       disp.del.classList.remove('h')
+      const should_update = simulating.should_update()
       const people_override = simulating.tick(data.people_override)
-      if (simulating.should_update()) {
+      if (should_update) {
         network.sender({ people_override }, 'silent')
       }
       disp.simulate.classList.add('on')
