@@ -22,21 +22,6 @@ export const Animations = (output, {network, defs}) => {
   let preset_active = null
   const preset_buttons = presets.animations.map(make_button)
 
-  function dropdown(name, values) {
-    const dropdown = ui.dropdown(name, {values})
-    dropdown.change(value => {
-      network.sender({[name]: value})
-    })
-    let initialized = false
-    network.listenJson('signals', data => {
-      if (!initialized && data.hasOwnProperty(name)) {
-        dropdown.value = data[name]
-        initialized = true
-      }
-    })
-    return dropdown
-  }
-
   const els = Header('anim', h.div().of(
     h.div().of('~~FUNCS~~'),
     ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
@@ -52,8 +37,8 @@ export const Animations = (output, {network, defs}) => {
       h.button('reset').of('reset')
     ),
     ui.h(
-      dropdown('palette', defs.palettes),
-      dropdown('image', defs.images),
+      ui.dropdown('palette', {network, values: defs.palettes}),
+      ui.dropdown('image', {network, values: defs.images}),
       ui.range('v0', { network, text: null }),
       ui.range('v1', { network, text: null }),
       ui.range('v2', { network, text: null }),
