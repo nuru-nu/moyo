@@ -6,6 +6,8 @@ There are currently two ways of implementing a state machine:
    generator like `Rizhom` to update it.
 2. Split state into normal independent signals and then use looped transient
    actions to update these state signals, like `CssAction`.
+3. State class with logic that can reinitialize itself from `self.sig` and
+   outputs `overwrites` to influence other signals. See e.g. `One`.
 """
 
 import json

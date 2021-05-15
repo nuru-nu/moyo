@@ -315,7 +315,6 @@ monitor_def = dict(
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
         numbers=numbers_features.keys(),
-        other=['nca'],
     ),
     hidden=[
         # utility
