@@ -23,7 +23,9 @@ export const Animations = (output, {network, defs}) => {
   const preset_buttons = presets.animations.map(make_button)
 
   const els = Header('anim', h.div().of(
+    h.div().of('~~FUNCS~~'),
     ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+    h.div({style: 'margin-top:1rem'}).of('~~SETTINGS~~'),
     ui.h(
       ui.range('anim_both', { network, name: 'both', text: 'both' }),
       ui.range('anim_head', { network, name: 'head', text: 'head' }),
@@ -53,6 +55,7 @@ export const Animations = (output, {network, defs}) => {
         // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
       }),
     ),
+    h.div({style: 'margin-top: 1rem'}).of('~~PRESETS~~'),
     ui.h(
       'author:',
       h.input('author', {type: 'text'}), h.span('s1'),
