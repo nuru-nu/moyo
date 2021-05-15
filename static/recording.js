@@ -58,7 +58,7 @@ export const Rec = (output, { network }) => {
       h.button('record', { style: 'color:red' }).of('● rec'),
       h.button('play').of('▶ play'),
       ),
-      
+
       h.div('choice').of(
         h.select('recs'), ' ',
         h.button('play2').of('▶ play'), ' ',
@@ -159,7 +159,7 @@ export const Rec = (output, { network }) => {
     network.sender({rec_action: 'stop'})
   })
   pbar.change(t => {
-    network.sender({rec_action: `t=${t}`})
+    network.sender({rec_action: `t=${t - play.start}`})
   })
 
   let play = null  // (obj) currently playing
