@@ -368,11 +368,11 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 0.5,
-        "nca": "grid_0065",
+        "nca": "woven_0094",
         "nca_speed": 1,
         "nca_clip": true
       },
-      "mtime": "20210515_1528",
+      "mtime": "20210515_1530",
       "ctime": "20210515_1516"
     }
   ]
