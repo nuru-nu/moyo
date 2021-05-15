@@ -42,19 +42,19 @@ export const Animations = (output, {network, defs}) => {
       '...',
       ui.toggle('anim_into', { network, text: 'into' }),
     ),
-    h.div().of(
-      ui.toggle('nca_clip', {network, text: 'clip'}), ' ',
-      ui.toggle('nca_wrap', {network, text: 'wrap'}), ' ',
-      h.a('nca', {href: '#', target: '_blank'}).of('?'), ' ',
-      h.a('img', {href: '#', target: '_blank'}).of('img'), ' ',
+    ui.h(
+      h.button('next').of('ᐅ'), h.span('.s1'),
+      ui.toggle('nca_clip', {network, text: 'clip'}), h.span('.s1'),
+      ui.toggle('nca_wrap', {network, text: 'wrap'}), h.span('.s1'),
+      h.a('nca', {href: '#', target: '_blank'}).of('?'), h.span('.s1'),
+      h.a('img', {href: '#', target: '_blank'}).of('img'), h.span('.s1'),
       ui.range('nca_speed', {
-        network, min: 0.01, max: 10,
+        network, min: 0.01, max: 10, text: 'speed',
         // trafo: [x =>x**5, x=>x**(1/5)],
         // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
       }),
     ),
     h.div('buttons', {style: 'flex-wrap:wrap'}).of(
-      h.button('next').of('ᐅ'),
     ),
   )).into(output).els
 
