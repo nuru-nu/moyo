@@ -11,9 +11,9 @@ export const Animations = (output, {network, defs}) => {
       network.sender(preset.signals)
       const animation = preset.signals.animation || 'nca'
       network.sender({action: `animation=${animation}`})
-      preset_active = idx
+      preset_active = preset_active === idx ? null : idx
       preset_buttons.forEach((b, i) =>
-        b.classList[i === idx ? 'add' : 'remove']('on'))
+        b.classList[i === preset_active ? 'add' : 'remove']('on'))
       els.name.value = preset.name
       els.author.value = preset.author
     })
