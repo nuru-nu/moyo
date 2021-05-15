@@ -56,13 +56,14 @@ class One(L.Signal):
     - happy->awake
 
     Attributes:
-    - valency: -1..+1
+    - valence: -1..+1
     - arousal: -1..+1
     - state: string (from module's STATE_*)
-    - valency_attractors
+    - valence_attractors
     - overwrites: changed signals incl. actions
     """
 
+    r_z2: float
     sleep_next: float
     awake_next: float
     wakeup_duration: float
@@ -73,7 +74,7 @@ class One(L.Signal):
 
     INITIAL_STATE = dict(
         state=STATE_SLEEP,
-        valency=0,
+        valence=0,
         arousal=-1,
         timer=0,
     )
@@ -124,11 +125,11 @@ class One(L.Signal):
 
         if mode != 'one':
             return None
-        valency_attractors, overwrites = [], {'action': []}
+        valence_attractors, overwrites = [], {'action': []}
 
         state = self.state['state']
         timer = self.state['timer']
-        valency = self.state['valency']
+        valence = self.state['valence']
         arousal = self.state['arousal']
         timer = max(0, timer - dt)
 
@@ -150,12 +151,12 @@ class One(L.Signal):
         elif state == STATE_AWAKE:
             if timer <= 0 or action == 'one=next':
                 self.next_nca('awake', overwrites)
-                timer = self.sleep_next
+                timer = self.awake_next
 
             if pir or closest:
                 arousal = closest
             else:
-                arousal = -dt / self.asleep_duration
+                arousal -= dt / self.asleep_duration
 
             if people:
                 closest = sorted(
@@ -165,13 +166,13 @@ class One(L.Signal):
                 like = likes.get(str(closest['id']), 0)
                 overwrites['anim_into'] = 1 * (like > 1)
 
-            if valency < -0.25:
+            if valence < -0.25:
                 state = STATE_ANGRY
-                print('One getting angry')
+                logging.info('One getting angry')
                 overwrites['action'].append('animation=angry')
-            elif valency > 0.25:
+            elif valence > 0.25:
                 state = STATE_HAPPY
-                print('One getting happy')
+                logging.info('One getting happy')
                 overwrites['action'].append('animation=happy')
 
             if arousal < -0.9:
@@ -179,12 +180,12 @@ class One(L.Signal):
                 timer = self.sleep_next
 
         elif state == STATE_ANGRY:
-            if valency > -0.25:
+            if valence > -0.25:
                 state = STATE_AWAKE
                 timer = 0
 
         elif state == STATE_HAPPY:
-            if valency < 0.25:
+            if valence < 0.25:
                 state = STATE_AWAKE
                 timer = 0
 
@@ -193,29 +194,34 @@ class One(L.Signal):
             if dist < self.r_z2:
                 like = likes.get(str(person['id']), 0)
                 if like > 1:
-                    valency_attractors.append([1.5, .4])
+                    valence_attractors.append([1.5, .4])
                 else:
-                    valency_attractors.append([-0.4, 1])
+                    valence_attractors.append([-0.4, 1])
                     arousal = max(0, arousal)
 
         dvdt = 0
-        valency_attractors.append([0, .2])
-        for target, alpha in valency_attractors:
-            dvdt += (target - valency) * alpha
-        valency += dt * dvdt
+        valence_attractors.append([0, .2])
+        for target, alpha in valence_attractors:
+            dvdt += (target - valence) * alpha
+        valence += dt * dvdt
 
         overwrites['css'] = [
-            max(-1, min(1, valency)),
+            max(-1, min(1, valence)),
             max(-1, min(1, arousal)),
         ]
+        if state != self.state['state']:
+            overwrites['action'] += [
+                f'state={state}',
+                f'scene={state}',
+            ]
         self.state.update(
             state=state,
             timer=timer,
-            valency=valency,
+            valence=valence,
             arousal=arousal,
         )
         return dict(
-            valency_attractors=valency_attractors,
+            valence_attractors=valence_attractors,
             overwrites=overwrites,
             **self.state,
         )
