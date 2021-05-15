@@ -198,8 +198,11 @@ class Integrator:
     def handle_rec_action(self, rec_action):
         if rec_action.startswith('start='):
             ident = rec_action[len('start='):]
-            self.rec_ongoing = recording.Recording.create(ident)
-            logger.info('Started recording: %s', self.rec_ongoing)
+            try:
+                self.rec_ongoing = recording.Recording.create(ident)
+                logger.info('Started recording: %s', self.rec_ongoing)
+            except Exception as e:
+                logger.warning('Could not start recording: %s', e)
         if rec_action == 'stop':
             if self.rec_ongoing:
                 logger.info('Stopping recording: %s', self.rec_ongoing)
