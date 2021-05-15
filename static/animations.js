@@ -49,6 +49,7 @@ export const Animations = (output, {network, defs}) => {
     ui.h(
       ui.range('anim_hue', { network, text: 'hue' }),
       ui.range('anim_sat', { network, text: 'sat', max: 4 }),
+      h.button('reset').of('reset')
     ),
     ui.h(
       dropdown('palette', defs.palettes),
@@ -90,6 +91,10 @@ export const Animations = (output, {network, defs}) => {
       h.button('new').of('+'),
     ),
   )).into(output).els
+
+  els.reset.addEventListener('click', () => network.sender({
+    anim_hue: 0, anim_sat: 1, v0: .5, v1: .5, v2: .5,
+  }))
 
   els.next.addEventListener('click', () => {
     const idx = Math.floor(presets.ncas.length * Math.random())
