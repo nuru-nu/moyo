@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Animations, Vars, Transients, Image } from './widgets.js'
+import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Animations, Vars, Transients, Image, Header } from './widgets.js'
 import { NCA } from './nca.js'
 import { Recorder } from './recorder.js'
 import { Rec } from './recording.js'
@@ -11,16 +11,22 @@ import { Kinect } from './kinect.js'
 import { Leds } from './leds.js'
 
 fetch('/defs').then(resp => resp.json()).then(defs => {
-
-  window.console = Console('#console')
-
+  
   let monitor = Monitor('#monitor', defs)
   let leds = Leds('#leds', defs)
-
+  
   const record_timestamps = true
   let network = Network('#connection_state', { record_timestamps })
+  
+  const sigels = Header('sig', h.div().of(
+    h.div('console'),
+    h.div('dump', {style: 'margin-top: 1rem;'}),
+    h.div('transients'),
+  )).into('#sig').els
+  window.console = Console(sigels.console)
+  Dump(sigels.dump, {network})
+  Transients(sigels.transients, {network, defs})
 
-  Dump('#dump', {network})
   Cmd('#cmd', {network, defs})
   Actions('#mode', { name: 'mode', values: defs.modes, network })
   Animations('#animation', { defs, network })
@@ -34,7 +40,6 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Css('#css', {network})
   // Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
-  Transients('#transients', {network, defs})
   Image('#kinect_image')
 
   network
