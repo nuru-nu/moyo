@@ -126,7 +126,9 @@ export const Rec = (output, { network }) => {
 
   // record
   disp.record.addEventListener('click', e => {
-    network.sender({rec_action: 'start'})
+    const now = new Date().toISOString()
+    const ident = now.replace(/[:-]/g, '').replace('T', '_').slice(0, 13)
+    network.sender({rec_action: `start=${ident}`})
   })
   disp.stop1.addEventListener('click', e => {
     update_name()
