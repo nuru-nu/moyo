@@ -80,13 +80,29 @@ class One(L.Signal):
     )
 
     SLEEP_ANIMS = [
-        "konfetti_sleep",
-        "blue_sleep",
+        'konfetti_sleep',
+        'blue_sleep',
+        'stout_sleep',
+        'dots_sleep',
     ]
     AWAKE_ANIMS = [
-        "holz_calm",
-        "flow_calm",
-        "spiral_underwater",
+        'cristal_neutral',
+        'holz_calm',
+        'flow_calm',
+        'spiral_underwater',
+        'green_awake',
+        'orange_excited',
+        'beer_sad',
+        'konfetti_happy',
+        'white_awake',
+        'orange_awake',
+        'orange_curious',
+        'green_envy',
+        'blue_awake',
+        'cloud_happy',
+        'blue_mvmt',
+        'orange_striped',
+        'blue_calm',
     ]
 
     def init(self,

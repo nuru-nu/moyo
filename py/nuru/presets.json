@@ -1,9 +1,9 @@
 {
   "animations": [
     {
-      "name": "pinkalien_surprise",
+      "name": "rosy_awake",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1515",
+      "mtime": "20210515_2106",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -12,19 +12,16 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "frilly_0093",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "frilly_0093"
+        "nca_clip": 1
       }
     },
     {
-      "name": "red_signal",
+      "name": "(empty)",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2057",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -33,13 +30,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "chequered_0210",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "chequered_0210"
+        "nca_clip": 1
       }
     },
     {
@@ -174,7 +168,7 @@
     {
       "name": "lachsblau_angry",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2118",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -183,19 +177,16 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "smeared_0041",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "smeared_0041"
+        "nca_clip": 0
       }
     },
     {
-      "name": "green_redflash",
+      "name": "green_awake",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2119",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -204,40 +195,34 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "blotchy_0084",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "blotchy_0084"
+        "nca_clip": 1
       }
     },
     {
       "name": "konfetti_sleep",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2120",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.42,
         "anim_head": 1,
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "spiralled_0136",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 0,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "spiralled_0136"
+        "nca_clip": 0
       }
     },
     {
-      "name": "happy",
+      "name": "orange_excited",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2121",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -246,13 +231,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
-        "nca_speed": 1,
+        "nca": "striped_0085",
+        "nca_speed": 1.9081000000000001,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "striped_0085"
+        "nca_clip": 1
       }
     },
     {
@@ -277,9 +259,9 @@
       }
     },
     {
-      "name": "konfetti",
+      "name": "konfetti_happy",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2122",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -288,34 +270,28 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
-        "nca_speed": 1,
+        "nca": "smeared_0085",
+        "nca_speed": 0.8092,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "smeared_0085"
+        "nca_clip": 0
       }
     },
     {
-      "name": "glitter_excited",
+      "name": "white_awake",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2123",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.78,
         "anim_head": 1,
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "lacelike_0085",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "lacelike_0085"
+        "nca_clip": 1
       }
     },
     {
@@ -340,9 +316,9 @@
       }
     },
     {
-      "name": "fibrous_0132",
+      "name": "orange_awake",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2124",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -351,40 +327,34 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "fibrous_0132",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "fibrous_0132"
+        "nca_clip": 1
       }
     },
     {
-      "name": "bumpy_0185",
+      "name": "rot_angry",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2128",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
         "anim_both": 1,
         "anim_head": 1,
         "anim_arms": 1,
-        "anim_hue": 0,
-        "anim_sat": 1,
-        "nca_speed": 1,
+        "anim_hue": 0.95,
+        "anim_sat": 4,
+        "nca": "bumpy_0185",
+        "nca_speed": 10,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "bumpy_0185"
+        "nca_clip": 1
       }
     },
     {
-      "name": "waffled_0185",
+      "name": "orange_curious",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2132",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -393,19 +363,16 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "waffled_0185",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "waffled_0185"
+        "nca_clip": 1
       }
     },
     {
-      "name": "grooved_0074",
+      "name": "bright_outward",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2133",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -414,19 +381,16 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
-        "nca_speed": 1,
+        "nca": "grooved_0074",
+        "nca_speed": 5.3047,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "grooved_0074"
+        "nca_clip": 0
       }
     },
     {
-      "name": "bubbly_0136",
+      "name": "stout_sleep",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2134",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -435,13 +399,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "bubbly_0136",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "bubbly_0136"
+        "nca_clip": 1
       }
     },
     {
@@ -466,24 +427,21 @@
       }
     },
     {
-      "name": "sparkling_happy",
+      "name": "blue_awake",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2135",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.62,
         "anim_head": 1,
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
-        "nca_speed": 1,
+        "nca": "sprinkled_0049",
+        "nca_speed": 0.9091,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "sprinkled_0049"
+        "nca_clip": 1
       }
     },
     {
@@ -529,9 +487,9 @@
       }
     },
     {
-      "name": "redwhite_angry",
+      "name": "rose_striped",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2136",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -540,19 +498,16 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "gauzy_0146",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "gauzy_0146"
+        "nca_clip": 1
       }
     },
     {
-      "name": "smeared_0114",
+      "name": "blue_mvmt",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2136",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -561,13 +516,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "smeared_0114",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "smeared_0114"
+        "nca_clip": 1
       }
     },
     {
@@ -655,9 +607,9 @@
       }
     },
     {
-      "name": "waffled_0108",
+      "name": "orange_striped",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2137",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -666,13 +618,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "waffled_0108",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "waffled_0108"
+        "nca_clip": 1
       }
     },
     {
@@ -739,9 +688,9 @@
       }
     },
     {
-      "name": "another_angry",
+      "name": "(empty)",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1740",
+      "mtime": "20210515_2138",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
@@ -750,13 +699,10 @@
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 0.5,
+        "nca": "porous_0122",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 0,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "porous_0122"
+        "nca_clip": 0
       }
     },
     {
@@ -781,24 +727,21 @@
       }
     },
     {
-      "name": "spotted_inward",
+      "name": "dots_sleep",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210515_2139",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.75,
         "anim_head": 1,
         "anim_arms": 1,
         "anim_hue": 0,
         "anim_sat": 1,
+        "nca": "studded_0192",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "studded_0192"
+        "nca_clip": 1
       }
     },
     {

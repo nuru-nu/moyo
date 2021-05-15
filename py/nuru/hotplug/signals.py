@@ -147,7 +147,7 @@ state_signals = dict(
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
-    state_one=state.One(r_z2=R_Z2, awake_next=10, sig=N.state_one),
+    state_one=state.One(r_z2=R_Z2, sig=N.state_one),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
 
@@ -268,6 +268,7 @@ defaults = dict(
     anim_heart=0,
     heart_sim=0,
     anim_into=0,
+    anim_dark=1,
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
@@ -372,5 +373,6 @@ monitor_def = dict(
         'anim_sig',
         'anim_heart',
         'anim_into',
+        'anim_dark',
     ],
 )
