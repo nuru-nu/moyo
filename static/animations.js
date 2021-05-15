@@ -24,7 +24,7 @@ export const Animations = (output, {network, defs}) => {
 
   const els = Header('anim', h.div().of(
     h.div().of('~~FUNCS~~'),
-    ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
+    ActionsButtons({ name: 'animation', values: defs.animations, network }),
     h.div({style: 'margin-top:1rem'}).of('~~SETTINGS~~'),
     ui.h(
       ui.range('anim_both', { network, text: 'both' }),

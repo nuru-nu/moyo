@@ -86,44 +86,26 @@ export const Subsample = (output, {network}) => {
   disp.animator.addEventListener('change', update)
 }
 
-export const Cmd = (output, {network}) => {
+export const Cmd = (output, {network, defs}) => {
   const actions = [
-    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'rnca=next', 'state=sleep',
+    'fc=0', 'fc=1', 'fc=2', 'fc=3',
   ]
-  let els = h.div('cont', {class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('cmd'),
+  const els = Header('cmd', h.div().of(
+    ActionsButtons({name: 'mode', values: defs.modes, network}),
     h.div().of(
       actions.map(a => h.button(a).of(a)),
     ),
-    h.div().of(
-      'action',
-      h.input('action', {type: 'text'}),
-    ),
-    h.div().of(
-      'raw',
-      h.input('raw', {type: 'text'}),
-    ),
-  ).into(output).els
+    'raw: ', h.input('raw', {type: 'text'}),
+  )).into(output).els
 
   actions.forEach(action => els[action].addEventListener('click', () => {
     network.sender({ action })
   }))
 
-  // els.sel.addEventListener('change', e => {
-  //   network.sender({action: e.target.value})
-  //   els.sel.value = ''
-  // })
-
-  els.action.addEventListener('keyup', e => {
-    if (e.keyCode === 13) {
-      network.sender({ action: e.target.value })
-      e.target.value = ''
-    }
-  })
   els.raw.addEventListener('keyup', e => {
     if (e.keyCode === 13) {
-      const [name, value] = e.target.value.split('=')
-      network.sender({[name]: value})
+      const [name, ...value] = e.target.value.split('=')
+      network.sender({[name]: value.join('=')})
       e.target.value = ''
     }
   })
@@ -353,13 +335,13 @@ export const Css = (output, {network}) => {
   })
 }
 
-export const ActionsButtons = (output, {name, values, network}) => {
+export const ActionsButtons = ({name, values, network}) => {
   let value = null
   const els = h.div('cont').of(
     ui.hw(
       values.map(s => h.button(s).of(s))
     )
-  ).into(output).els
+  ).els
   values.forEach(s => {
     els[s].addEventListener('click', () => {
       network.sender({action: `${name}=${s}`})
@@ -381,7 +363,7 @@ export const ActionsButtons = (output, {name, values, network}) => {
 export const Actions = (output, {name, values, network}) => {
   h.div({class: 'flex widget'}).of(
     h.div({class: 'header'}).of(name),
-    ActionsButtons(output, {name, values, network})
+    ActionsButtons({name, values, network})
   ).into(output)
 }
 
