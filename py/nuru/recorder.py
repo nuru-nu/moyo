@@ -154,11 +154,12 @@ while running:
     if rec_action:
         logger.info('rec_action=%s', rec_action)
 
-    if rec_action == 'start':
+    if rec_action.startswith('start='):
         if record:
             record.close()
             logger.info('finished recording because starting another')
-        record = recording.SoundRecording.create()
+        ident = rec_action[len('start='):]
+        record = recording.SoundRecording.create(ident)
         logger.info('recording %r path=%s', record, record.path)
         playback = None
         input_streamer.freeze(False)

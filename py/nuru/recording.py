@@ -17,11 +17,6 @@ from .features import Features, wav2features
 from . import settings
 from .settings import AudioSettings
 
-def create_ident(ts=None):
-    if ts is None:
-        ts = datetime.datetime.now()
-    return ts.strftime('%Y%m%d_%H%S')
-
 
 class Recording:
     """Streams signals with 't' from/to disk.
@@ -40,8 +35,7 @@ class Recording:
         return None
 
     @classmethod
-    def create(cls) -> 'Recording':
-        ident = create_ident()
+    def create(cls, ident) -> 'Recording':
         basepath = f'{settings.recs_dir}/{ident}'
         rec = cls(basepath)
         assert not rec.reading, rec.basepath
@@ -219,8 +213,9 @@ class SoundRecording:
             self._open()
 
     @classmethod
-    def create(cls, audio: AudioSettings = settings.audio) -> 'SoundRecording':
-        ident = create_ident()
+    def create(cls,
+               ident: str,
+               audio: AudioSettings = settings.audio) -> 'SoundRecording':
         path = f'{settings.recs_dir}/{ident}.wav'
         return cls(path, audio, create_ok=True)
 

@@ -181,8 +181,9 @@ class Integrator:
         self.server.send(signals)
 
     def handle_rec_action(self, rec_action):
-        if rec_action == 'start':
-            self.rec_ongoing = recording.Recording.create()
+        if rec_action.startswith('start='):
+            ident = rec_action[len('start='):]
+            self.rec_ongoing = recording.Recording.create(ident)
             logger.info('Started recording: %s', self.rec_ongoing)
         if rec_action == 'stop':
             if self.rec_ongoing:
