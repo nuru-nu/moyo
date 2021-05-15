@@ -270,6 +270,7 @@ defaults = dict(
     },
 )
 
+# TODO? cleanup/unify
 transients = ('action', 'midi', 'signal', 'event')
 # TODO? implement these as "overwrites"
 transient_loops = dict(
