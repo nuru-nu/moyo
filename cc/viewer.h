@@ -28,6 +28,7 @@ class Viewer {
     bool should_store() const { return should_store_; }
     bool should_record() const { return should_record_; }
     bool should_reset() const { return should_reset_; }
+    std::string store_path = "";
 
   private:
     void draw_process_key();

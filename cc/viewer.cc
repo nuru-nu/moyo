@@ -232,8 +232,14 @@ void Viewer::update(const cv::Mat& img,
     if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
       last_img_store_t_ = t;
       cv::imwrite("../../tmp/kinect_frame.jpg", img_brg);
-      // cv::imwrite("../../tmp/depth_imgs/kinect_frame_" + std::to_string(frame_idx) + ".jpg", img_brg);
-      // frame_idx++;
+      if(store_path.length() > 0){
+        std::ostringstream ss;
+        ss << std::setw( 5 ) << std::setfill( '0' ) << frame_idx;
+        cv::imwrite(store_path + "/kinect_frame_" + ss.str() + ".jpg", img_brg);
+        frame_idx++;
+      } else {
+        frame_idx = 0;
+      }
     }
   }
   if (!gui_) {
