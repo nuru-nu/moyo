@@ -79,14 +79,8 @@ export const Subsample = (output, {network}) => {
     update()
   })
   function update() {
-    network.sender({
-      'recorder': {
-        subsample: full ? 1 : parseInt(disp.recorder.value),
-      },
-      'animator': {
-        subsample: full ? 1 : parseInt(disp.animator.value),
-      },
-    })
+    const subsample = full ? 1 : parseInt(disp.recorder.value)
+    network.sender({ action: `subsample=${subsample}` })
   }
   disp.recorder.addEventListener('change', update)
   disp.animator.addEventListener('change', update)
