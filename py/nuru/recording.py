@@ -325,7 +325,8 @@ class SoundRecording:
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(hops={len(self.logmel)}, '
-                f'secs={len(self.logmel)*self.audio.hop_secs:.1f})')
+                f'secs={len(self.logmel)*self.audio.hop_secs:.1f}, '
+                f'writing={self.writing})')
 
 
 def get_recordings(directory: str = settings.recorder_dir):
