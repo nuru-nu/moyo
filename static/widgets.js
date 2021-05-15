@@ -347,34 +347,6 @@ export const Css = (output, {network}) => {
   })
 }
 
-export const Vars = (output, {network, defs}) => {
-
-  function dropdown(name, values) {
-    const dropdown = ui.dropdown(name, {values})
-    dropdown.change(value => {
-      network.sender({[name]: value})
-    })
-    let initialized = false
-    network.listenJson('signals', data => {
-      if (!initialized && data.hasOwnProperty(name)) {
-        dropdown.value = data[name]
-        initialized = true
-      }
-    })
-    return dropdown
-  }
-
-  h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('vars'),
-    // ui.hw(
-    ui.v(
-      dropdown('palette', defs.palettes),
-      dropdown('image', defs.images),
-      'v0 v1 v2'.split(' ').map(name => ui.range(name, {network})),
-    ),
-  ).into(output)
-}
-
 export const ActionsButtons = (output, {name, values, network}) => {
   let value = null
   const els = h.div('cont').of(

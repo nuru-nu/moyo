@@ -22,18 +22,40 @@ export const Animations = (output, {network, defs}) => {
   let preset_active = null
   const preset_buttons = presets.animations.map(make_button)
 
+  function dropdown(name, values) {
+    const dropdown = ui.dropdown(name, {values})
+    dropdown.change(value => {
+      network.sender({[name]: value})
+    })
+    let initialized = false
+    network.listenJson('signals', data => {
+      if (!initialized && data.hasOwnProperty(name)) {
+        dropdown.value = data[name]
+        initialized = true
+      }
+    })
+    return dropdown
+  }
+
   const els = Header('anim', h.div().of(
     h.div().of('~~FUNCS~~'),
     ActionsButtons(output, { name: 'animation', values: defs.animations, network }),
     h.div({style: 'margin-top:1rem'}).of('~~SETTINGS~~'),
     ui.h(
-      ui.range('anim_both', { network, name: 'both', text: 'both' }),
-      ui.range('anim_head', { network, name: 'head', text: 'head' }),
-      ui.range('anim_arms', { network, name: 'arms', text: 'arms' }),
+      ui.range('anim_both', { network, text: 'both' }),
+      ui.range('anim_head', { network, text: 'head' }),
+      ui.range('anim_arms', { network, text: 'arms' }),
     ),
     ui.h(
-      ui.range('anim_hue', { network, name: 'arms', text: 'hue' }),
-      ui.range('anim_sat', { network, name: 'arms', text: 'sat', max: 4 }),
+      ui.range('anim_hue', { network, text: 'hue' }),
+      ui.range('anim_sat', { network, text: 'sat', max: 4 }),
+    ),
+    ui.h(
+      dropdown('palette', defs.palettes),
+      dropdown('image', defs.images),
+      ui.range('v0', { network, text: null }),
+      ui.range('v1', { network, text: null }),
+      ui.range('v2', { network, text: null }),
     ),
     ui.h(
       ui.choice('anim_sig', { network, values: ['one', 'closest', 'rnd1', 'arousal'] }),
