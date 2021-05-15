@@ -129,7 +129,7 @@ class One(L.Signal):
         print(f'One next {which} preset={preset}')
 
     def call(self, mode, action, dt, closest, pir, people, likes, target_css,
-             css_alpha):
+             css_alpha, anim_into):
 
         if not self.state:
             self.state = self.INITIAL_STATE
@@ -185,6 +185,8 @@ class One(L.Signal):
                 )[0]
                 like = likes.get(str(closest['id']), 0)
                 overwrites['anim_into'] = 1 * (like > 1)
+            elif anim_into:
+                overwrites['anim_into'] = 0
 
             if valence < -0.25:
                 state = STATE_ANGRY
