@@ -112,7 +112,7 @@ export const Animations = (output, {network, defs}) => {
     const preset = presets.animations[preset_active]
     preset.name = els.name.value
     preset.author = els.author.value
-    preset.signals = last_signals
+    preset.signals = Object.assign({}, last_signals)
     network.sender({ preset })
     preset_buttons[preset_active].textContent = preset.name
   })
