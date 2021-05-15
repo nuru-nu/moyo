@@ -1,6 +1,10 @@
 """Records audio & extracts FFT."""
 
-import logging, os, signal as pysig, time
+import argparse
+import logging
+import os
+import signal as pysig
+import time
 
 # Avoid BLAS/PACK using all cores for realtime matmul (wav2features).
 os.environ['OMP_NUM_THREADS'] = '1'
@@ -10,11 +14,15 @@ import numpy as np  # noqa=E402 type: ignore
 from smanmi import audio, hotplug, network, perf, util  # noqa=E402
 from . import features, recording, settings  # noqa=E402
 
+parser = argparse.ArgumentParser(
+    description='Records audio & computes features for NURU.')
+parser.add_argument('--debug', action='store_true', help='Show debug logs.')
+args = parser.parse_args()
 
 assert os.path.isdir(settings.recorder_dir), (
     'recorder_dir="%s" not found' % settings.recorder_dir)
 
-logger = util.createLogger('recorder')
+logger = util.createLogger('recorder', debug=args.debug)
 if settings.timetracing:
     tt = util.Timetracer('recorder', settings.timetraces_dir)
 if settings.log_debug:

@@ -33,13 +33,14 @@ parser.add_argument('--server_address', type=str, default='127.0.0.1',
                     help='Network address for HTTP server - can be 0.0.0.0.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
                     help='Address of machine running `smanmi.integrator`.')
+parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 args = parser.parse_args()
 
 if not args.secondary:
     # Avoid loading expensive frameworks if not needed.
     from . import animations
 
-logger = util.createLogger('server')
+logger = util.createLogger('server', debug=args.debug)
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 
 
