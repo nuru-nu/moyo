@@ -433,7 +433,7 @@ export const Animations = (output, {defs, network}) => {
 export const Transients = (output, {network, defs}) => {
 
   const limit = 100
-  let include = [], exclude = []
+  let include = [], exclude = [], paused = false
   const transients = defs.monitor_def.transients
   const disp = h.div().of(
     ui.h(
@@ -441,7 +441,8 @@ export const Transients = (output, {network, defs}) => {
       h.input('include', {type: 'text'}), '\\',
       h.input('exclude', {type: 'text', value: 'heart'}),
       h.button('reset').of('reset'),
-      h.button('clear').of('clear')
+      h.button('clear').of('clear'),
+      ui.toggle('pause').change(value => paused = value),
     ),
     h.div('.scrollable').of(h.div('output')),
   ).into(output).els
@@ -472,6 +473,7 @@ export const Transients = (output, {network, defs}) => {
 
   const value_length = 30
   function listener(data) {
+    if (paused) return
     let now = new Date().toTimeString().substr(0, 9)
     transients.forEach(transient => {
       if (data[transient] && data[transient].length !== 0) {
