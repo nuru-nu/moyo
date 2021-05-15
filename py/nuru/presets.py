@@ -1,9 +1,11 @@
 """Manages configurable presets."""
 
+import copy
 import json
 import glob
 import logging
 import os
+import time
 
 from smanmi import util
 
@@ -25,14 +27,19 @@ def load():
 
 def update(i, d):
     presets = load()
-    if i < len(presets):
-        logging.info('Updating preset #%d: %s -> %s', i, presets[i], d)
-        presets[i] = d
+    anims = presets['animations']
+    now = time.strftime('%Y%m%d_%H%M')
+    d = copy.deepcopy(d)
+    d['mtime'] = now
+    if i < len(anims):
+        logging.info('Updating preset #%d: %s -> %s', i, anims[i], d)
+        anims[i] = d
     else:
-        for j in range(len(presets), i):
-            dd = dict(name=f'#{j:03d}')
+        d['ctime'] = now
+        for j in range(len(anims), i):
+            dd = dict(name=f'#{j:03d}', ctime=now, mtime=now)
             logging.info('Creating empty preset #%d: %s', j, dd)
-            presets.append(dd)
+            anims.append(dd)
         logging.info('Adding preset #%d: %s', i, d)
-        presets.append(d)
+        anims.append(d)
     json.dump(presets, open(PRESETS_PATH, 'w'), indent=2)

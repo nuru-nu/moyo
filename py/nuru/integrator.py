@@ -10,6 +10,7 @@ import traceback
 from smanmi import hotplug
 from smanmi import integrator
 from smanmi import util
+from . import presets
 from . import recording
 from . import settings
 from . import state
@@ -137,14 +138,26 @@ class Integrator:
         #     self.integrate()
 
     def oncmd(self, cmd):
-        if cmd.get('action') == 'trace':
-            functiontrace.trace()
-            return
-        rec_action = cmd.get('rec_action')
-        if rec_action:
-            self.handle_rec_action(rec_action)
-            return
-        self.onsignal(cmd)  # loop back commands into signals
+        try:
+            if cmd.get('action') == 'trace':
+                functiontrace.trace()
+                return
+            rec_action = cmd.get('rec_action')
+            if rec_action:
+                self.handle_rec_action(rec_action)
+                return
+            preset = cmd.get('preset')
+            if preset:
+                preset['signals'] = {
+                    k: v for k, v in preset['signals'].items()
+                    if k in hp_signals.monitor_def['preset_signals']
+                }
+                index = preset.pop('index')
+                presets.update(index, preset)
+            self.onsignal(cmd)  # loop back commands into signals
+        except Exception as e:
+            logger.error('Could not process comand "%s": %s', cmd, e)
+            logger.warning(traceback.format_exc())
 
     def integrate(self):
         self.schedule()

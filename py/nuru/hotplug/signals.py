@@ -304,6 +304,11 @@ monitor_def = dict(
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
         'empty': [],
     },
+    preset_signals=[
+      'anim_both', 'anim_head', 'anim_arms',
+      'anim_hue', 'anim_sat',
+      'nca', 'nca_speed', 'nca_wrapx', 'nca_clip',
+    ],
     # selected=['heart', 'sonar', 'charge', 'rnd1'] + [f'touch_{i}' for i in range(touch_n)],
     # selected=['heart'] + ['touch_9'],  #[f'touch_{i}' for i in range(touch_n)],
     features=dict(
