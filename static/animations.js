@@ -5,12 +5,15 @@ export const Animations = (output, {network, defs}) => {
   const presets = defs.presets
 
   function make_button(preset, idx) {
+    preset.index = idx
     const button = h.button().of(preset.name).el
     button.addEventListener('click', () => {
       network.sender(preset.signals)
       preset_active = idx
       preset_buttons.forEach((b, i) =>
         b.classList[i === idx ? 'add' : 'remove']('on'))
+      els.name.value = preset.name
+      els.author.value = preset.author
     })
     return button
   }
@@ -48,7 +51,17 @@ export const Animations = (output, {network, defs}) => {
         // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
       }),
     ),
-    h.div('buttons', {style: 'flex-wrap:wrap'}).of(preset_buttons),
+    ui.h(
+      'author:',
+      h.input('author', {type: 'text'}), h.span('s1'),
+      'name:',
+      h.input('name', {type: 'text'}), h.span('s1'),
+      h.button('update').of('update'),
+    ),
+    h.div('buttons .flex', {style: 'flex-wrap:wrap'}).of(
+      preset_buttons,
+      h.button('new').of('+'),
+    ),
   )).into(output).els
 
   els.next.addEventListener('click', () => {
@@ -56,7 +69,35 @@ export const Animations = (output, {network, defs}) => {
     network.sender({ nca: presets.ncas[idx] })
   })
 
+  els.author.addEventListener('keyup', e => e.keyCode == 13 && els.update.click())
+  els.name.addEventListener('keyup', e => e.keyCode == 13 && els.update.click())
+
+  els.new.addEventListener('click', () => {
+    const idx = presets.animations.length
+    const preset = {
+      name: `preset_#${idx}`,
+      author: els.author.value,
+      signals: { nca: last_nca },
+    }
+    presets.animations.push(preset)
+    const button = make_button(preset, idx)
+    preset_buttons.push(button)
+    els.buttons.insertBefore(button, els.new)
+    button.click()
+  })
+
+  els.update.addEventListener('click', () => {
+    if (preset_active === null) return
+    const preset = presets.animations[preset_active]
+    preset.name = els.name.value
+    preset.author = els.author.value
+    presets.signals = last_signals
+    network.sender({ preset })
+    preset_buttons[preset_active].textContent = preset.name
+  })
+
   let last_nca = null
+  let last_signals = {}
   network.listenJson('signals', data => {
     if (data.nca && data.nca != last_nca) {
       preset_buttons.forEach((button, idx) => {
@@ -70,5 +111,11 @@ export const Animations = (output, {network, defs}) => {
       els.img.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
       last_nca = data.nca
     }
+
+    defs.monitor_def.preset_signals.forEach(name => {
+      if (data.hasOwnProperty(name)) {
+        last_signals[name] = data[name]
+      }
+    })
   })
 };
