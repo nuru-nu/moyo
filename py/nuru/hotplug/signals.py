@@ -147,7 +147,7 @@ state_signals = dict(
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
-    state_one=state.One(r_z2=R_Z2, awake_next=10),
+    state_one=state.One(r_z2=R_Z2, awake_next=10, sig=N.state_one),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
 
@@ -235,6 +235,7 @@ defaults = dict(
     pir_0=0,
     sonar_override=None,
     # state=state.State(),
+    state_one=state.One.INITIAL_STATE,
     state=state.STATE_SLEEP,
     mode='manual',
     animation='nca',

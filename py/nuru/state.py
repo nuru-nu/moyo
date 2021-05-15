@@ -7,11 +7,14 @@ There are currently two ways of implementing a state machine:
 2. Split state into normal independent signals and then use looped transient
    actions to update these state signals, like `CssAction`.
 """
+
 import json
 import glob
+import logging
 import os
 import random
 import time
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -62,6 +65,26 @@ class One(L.Signal):
     awake_next: float
     wakeup_duration: float
     asleep_duration: float
+    sig: Mapping[str, Any]
+
+    state: Mapping[str, Any]
+
+    INITIAL_STATE = dict(
+        state=STATE_SLEEP,
+        valency=0,
+        arousal=-1,
+        timer=0,
+    )
+
+    SLEEP_ANIMS = [
+        "konfetti_sleep",
+        "blue_sleep",
+    ]
+    AWAKE_ANIMS = [
+        "holz",
+        "flow_calm",
+        "spiral_underwater",
+    ]
 
     def init(self,
             r_z2,
@@ -69,65 +92,68 @@ class One(L.Signal):
             sleep_next=180, awake_next=180,
             # Transition times.
             wakeup_duration=5, asleep_duration=300,
+            sig=None,
         ):
-        self.valency = 0
-        self.arousal = -1
-        self.state = STATE_SLEEP
-        self.timer = sleep_next
-        self.sleep_ncas = [
-            "konfetti_sleep",
-            "blue_sleep",
-        ]
-        self.awake_ncas = [
-            "holz",
-            "flow_calm",
-            "spiral_underwater",
-        ]
+        self.state = {}
         self.presets = {
             preset['name']: preset
             for preset in _presets['animations']
         }
-        for name in self.sleep_ncas + self.awake_ncas:
+        for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
             assert name in self.presets, name
 
     def next_nca(self, which, overwrites):
         overwrites['action'].append('animation=nca')
-        ncas = getattr(self, f'{which}_ncas')
+        ncas = getattr(self, f'{which.upper()}_ANIMS')
         preset = self.presets[np.random.choice(ncas)]
         overwrites.update({k: v for k, v in preset['signals'].items()})
         print(f'One next {which} preset={preset}')
 
     def call(self, mode, action, dt, closest, pir, people, likes):
+
+        if not self.state:
+            self.state = self.INITIAL_STATE
+            if self.sig:
+                self.state.update({
+                    k: v for k, v in self.sig.items()
+                    if k in self.INITIAL_STATE
+                })
+                logging.info('One reinit: %s', self.state)
+
         if mode != 'one':
             return None
         valency_attractors, overwrites = [], {'action': []}
 
-        self.timer = max(0, self.timer - dt)
+        state = self.state['state']
+        timer = self.state['timer']
+        valency = self.state['valency']
+        arousal = self.state['arousal']
+        timer = max(0, timer - dt)
 
-        if self.state == STATE_SLEEP:
-            if self.timer <= 0 or action == 'one=next':
+        if state == STATE_SLEEP:
+            if timer <= 0 or action == 'one=next':
                 self.next_nca('sleep', overwrites)
-                self.timer = self.sleep_next
+                timer = self.sleep_next
 
             if pir or closest:
-                self.state = STATE_WAKEUP
+                state = STATE_WAKEUP
                 print('One pir/closest -> wakeup')
 
-        elif self.state == STATE_WAKEUP:
-            self.arousal += dt / self.wakeup_duration
-            if self.arousal >= .1:
-                self.state = STATE_AWAKE
-                self.timer = self.awake_next
+        elif state == STATE_WAKEUP:
+            arousal += dt / self.wakeup_duration
+            if arousal >= .1:
+                state = STATE_AWAKE
+                timer = self.awake_next
 
-        elif self.state == STATE_AWAKE:
-            if self.timer <= 0 or action == 'one=next':
+        elif state == STATE_AWAKE:
+            if timer <= 0 or action == 'one=next':
                 self.next_nca('awake', overwrites)
-                self.timer = self.sleep_next
+                timer = self.sleep_next
 
             if pir or closest:
-                self.arousal = closest
+                arousal = closest
             else:
-                self.arousal = -dt / self.asleep_duration
+                arousal = -dt / self.asleep_duration
 
             if people:
                 closest = sorted(
@@ -137,28 +163,28 @@ class One(L.Signal):
                 like = likes.get(str(closest['id']), 0)
                 overwrites['anim_into'] = 1 * (like > 1)
 
-            if self.valency < -0.25:
-                self.state = STATE_ANGRY
+            if valency < -0.25:
+                state = STATE_ANGRY
                 print('One getting angry')
                 overwrites['action'].append('animation=angry')
-            elif self.valency > 0.25:
-                self.state = STATE_HAPPY
+            elif valency > 0.25:
+                state = STATE_HAPPY
                 print('One getting happy')
                 overwrites['action'].append('animation=happy')
 
-            if self.arousal < -0.9:
-                self.state = STATE_SLEEP
-                self.timer = self.sleep_next
+            if arousal < -0.9:
+                state = STATE_SLEEP
+                timer = self.sleep_next
 
-        elif self.state == STATE_ANGRY:
-            if self.valency > -0.25:
-                self.state = STATE_AWAKE
-                self.timer = 0
+        elif state == STATE_ANGRY:
+            if valency > -0.25:
+                state = STATE_AWAKE
+                timer = 0
 
-        elif self.state == STATE_HAPPY:
-            if self.valency < 0.25:
-                self.state = STATE_AWAKE
-                self.timer = 0
+        elif state == STATE_HAPPY:
+            if valency < 0.25:
+                state = STATE_AWAKE
+                timer = 0
 
         for person in people:
             dist = np.linalg.norm(person['cm'][:2])
@@ -168,25 +194,28 @@ class One(L.Signal):
                     valency_attractors.append([1.5, .4])
                 else:
                     valency_attractors.append([-0.4, 1])
-                    self.arousal = max(0, self.arousal)
+                    arousal = max(0, arousal)
 
         dvdt = 0
         valency_attractors.append([0, .2])
         for target, alpha in valency_attractors:
-            dvdt += (target - self.valency) * alpha
-        self.valency += dt * dvdt
+            dvdt += (target - valency) * alpha
+        valency += dt * dvdt
 
         overwrites['css'] = [
-            max(-1, min(1, self.valency)),
-            max(-1, min(1, self.arousal)),
+            max(-1, min(1, valency)),
+            max(-1, min(1, arousal)),
         ]
+        self.state.update(
+            state=state,
+            timer=timer,
+            valency=valency,
+            arousal=arousal,
+        )
         return dict(
-            state=self.state,
-            timer=self.timer,
-            valency=self.valency,
-            arousal=self.arousal,
             valency_attractors=valency_attractors,
             overwrites=overwrites,
+            **self.state,
         )
 
 
