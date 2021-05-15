@@ -180,6 +180,9 @@ while running:
         input_streamer.freeze(False)
 
     if rec_action.startswith('play='):
+        if record:
+            record.close()
+            logger.info('finished recording because starting playback')
         ident = rec_action[len('play='):]
         try:
             playback = recording.SoundRecording.load(ident)
