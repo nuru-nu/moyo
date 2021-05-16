@@ -79,6 +79,7 @@ class One(L.Signal):
         arousal=-1,
         timer=0,
         last_anim=None,
+        charge=False,
     )
 
     SLEEP_ANIMS = [
@@ -143,7 +144,7 @@ class One(L.Signal):
         self.state['last_anim'] = next_anim
 
     def call(self, mode, action, dt, closest, pir, people, likes, target_css,
-             css_alpha, anim_into):
+             css_alpha, anim_into, sonar):
 
         if not self.state:
             self.state = self.INITIAL_STATE
@@ -163,6 +164,14 @@ class One(L.Signal):
         valence = self.state['valence']
         arousal = self.state['arousal']
         timer -= dt
+
+        people_closest, closest_dist = None, None
+        if people:
+            people_closest = sorted(
+                people,
+                key=lambda person: np.linalg.norm(person['cm'][:2]),
+            )[0]
+            closest_dist = np.linalg.norm(people_closest['cm'][:2])
 
         if state == STATE_SLEEP:
             if timer <= 0 or action == 'one=next':
@@ -197,11 +206,7 @@ class One(L.Signal):
                 arousal -= dt / self.asleep_duration
 
             if people:
-                closest = sorted(
-                    people,
-                    key=lambda person: np.linalg.norm(person['cm'][:2]),
-                )[0]
-                like = likes.get(str(closest['id']), 0)
+                like = likes.get(str(people_closest['id']), 0)
                 overwrites['anim_into'] = 1 * (like > 1)
             elif anim_into:
                 overwrites['anim_into'] = 0
@@ -226,6 +231,12 @@ class One(L.Signal):
                 timer = 0
 
         elif state == STATE_HAPPY:
+            if not self.state['charge'] and (sonar > 0.4
+                                             and closest_dist < self.r_z2):
+                overwrites['action'].append('charge=on')
+                overwrites['action'].append('animation=charge')
+                self.state['charge'] = True
+                # print('XXX charge on')
             if valence < 0.25:
                 state = STATE_AWAKE
                 timer = 0
@@ -240,6 +251,13 @@ class One(L.Signal):
                     valence = -0.25
                     valence_attractors.append([-0.4, 1])
                     arousal = max(0, arousal)
+
+        if self.state['charge'] and (sonar < 0.4 or closest_dist > self.r_z2) :
+            overwrites['action'].append('charge=off')
+            last_anim = self.state['last_anim']
+            overwrites['action'].append(f'animation={last_anim}')
+            self.state['charge'] = False
+            # print('XXX charge off')
 
         dvdt = 0
         valence_attractors.append([0, .2])
@@ -258,8 +276,9 @@ class One(L.Signal):
         if state != self.state['state']:
             overwrites['action'] += [
                 f'state={state}',
-                f'scene={state}',
             ]
+            if state not in ('angry', 'happy'):
+                overwrites['action'].append(f'scene={state}')
         self.state.update(
             state=state,
             timer=timer,
@@ -447,7 +466,9 @@ class SonarAction(L.Signal):
         self.on = False
         self.lastanim = None
 
-    def call(self, sonar, state, animation):
+    def call(self, sonar, state, animation, mode):
+        if mode not in ('manual', 'css'):
+            return []
         if sonar is not None:
             if sonar > self.threshold and not self.on:
                 self.on = True
