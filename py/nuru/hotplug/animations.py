@@ -320,7 +320,7 @@ def charge():
     # 2. turning faster
     # 3. inside out aditional layers (keep brightest superpos)
     ctrl = N.charge
-    ctrl = N.v0
+    # ctrl = N.v0
     rot1 = ctrl | S.To(0, 100) | S.Int(mod=360)
     rot2 = ctrl | S.To(0, 120) | S.Int(mod=360)
     anim1 = A.Proj(images['supernova1'], scale=9.0, rotate=rot1)
