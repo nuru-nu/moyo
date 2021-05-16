@@ -284,11 +284,11 @@ class SoundRecording:
 
     def seek(self, t: float):
         assert not self.writing
-        print('seek', self.i)
+        # print('seek', self.i)
         self.i = max(0,
                      min(len(self.logmel) - 1, int(t / self.audio.hop_secs)))
         self.wav.setpos(self.i * self.audio.hop_size)
-        print('->', self.i)
+        # print('->', self.i)
 
     def read(self, loop: bool = False) -> Optional[Features]:
         if self.i >= len(self.logmel):
