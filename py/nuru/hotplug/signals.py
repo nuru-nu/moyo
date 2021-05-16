@@ -142,7 +142,7 @@ state_signals = dict(
             + S.Const(-1/180)
         ),
     ),
-    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
+    charge=S.ActionOnOff('charge=on', 'charge=off')  | S.Ramps(0.17, 0.75),
     animation=S.ActionLatch('animation=(.*)', N.animation),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
@@ -274,7 +274,7 @@ defaults = dict(
     anim_sat=0.5,
     one=1,
     anim_sig='one',
-    anim_heart=0,
+    anim_heart=1,
     heart_sim=0,
     anim_into=0,
     anim_dark=1,
