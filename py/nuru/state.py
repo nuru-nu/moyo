@@ -210,6 +210,7 @@ class One(L.Signal):
                 state = STATE_ANGRY
                 logging.info('One getting angry')
                 overwrites['action'].append('animation=angry')
+                overwrites['action'].append('growl=angry')
             elif valence > 0.25:
                 state = STATE_HAPPY
                 logging.info('One getting happy')
@@ -236,6 +237,7 @@ class One(L.Signal):
                 if like > 1:
                     valence_attractors.append([1.5, .4])
                 else:
+                    valence = -0.25
                     valence_attractors.append([-0.4, 1])
                     arousal = max(0, arousal)
 
