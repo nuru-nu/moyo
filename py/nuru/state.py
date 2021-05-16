@@ -10,6 +10,7 @@ There are currently two ways of implementing a state machine:
    outputs `overwrites` to influence other signals. See e.g. `One`.
 """
 
+import copy
 import json
 import glob
 import logging
@@ -77,6 +78,7 @@ class One(L.Signal):
         valence=0,
         arousal=-1,
         timer=0,
+        last_anim=None,
     )
 
     SLEEP_ANIMS = [
@@ -104,9 +106,9 @@ class One(L.Signal):
         'orange_striped',
         'blue_calm',
     ]
-    WAKEUP_ANIMS = [
-        'wakeup',
-    ]
+    # WAKEUP_ANIMS = [
+    #     'wakeup',
+    # ]
 
     def init(self,
             r_z2,
@@ -124,12 +126,21 @@ class One(L.Signal):
         for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
             assert name in self.presets, name
 
-    def next_nca(self, which, overwrites):
-        overwrites['action'].append('animation=nca')
-        ncas = getattr(self, f'{which.upper()}_ANIMS')
-        preset = self.presets[np.random.choice(ncas)]
-        overwrites.update({k: v for k, v in preset['signals'].items()})
-        print(f'One next {which} preset={preset}')
+    def next_anim(self, which, overwrites):
+        anims = getattr(self, f'{which.upper()}_ANIMS')
+        anim = self.presets[np.random.choice(anims)]
+        signals = copy.copy(anim['signals'])
+        next_anim = signals.pop('animation')
+        if next_anim == 'nca' and self.state['last_anim']== 'nca':
+            # Special logic to seamlessly switch between NCAs
+            signals = {(f'{k}2' if k.startswith('nca') else k): v
+                       for k, v in signals.items()}
+            next_anim = 'nca2'
+        overwrites['action'].append(f'animation={next_anim}')
+        overwrites.update({k: v for k, v in signals.items()})
+        logging.info(f'One next {which} anim={anim}')
+        logging.info('last_anim %s -> %s', self.state['last_anim'], next_anim)
+        self.state['last_anim'] = next_anim
 
     def call(self, mode, action, dt, closest, pir, people, likes, target_css,
              css_alpha, anim_into):
@@ -155,12 +166,12 @@ class One(L.Signal):
 
         if state == STATE_SLEEP:
             if timer <= 0 or action == 'one=next':
-                self.next_nca('sleep', overwrites)
+                self.next_anim('sleep', overwrites)
                 timer = self.sleep_next
 
             if pir or closest:
                 state = STATE_WAKEUP
-                self.next_nca('wakeup', overwrites)
+                self.next_anim('awake', overwrites)
                 overwrites['action'].append(f'scene={STATE_WAKEUP}')
 
             if arousal > 0:
@@ -170,13 +181,14 @@ class One(L.Signal):
         elif state == STATE_WAKEUP:
             arousal += dt / self.wakeup_duration
             overwrites['wakeup'] = np.clip(arousal + 1, 0, 1)
+            overwrites['anim_mix'] = np.clip(arousal + 1, 0, 1)
             if arousal >= .1:
                 state = STATE_AWAKE
-                timer = 0
+                timer = self.awake_next
 
         elif state == STATE_AWAKE:
             if timer <= 0 or action == 'one=next':
-                self.next_nca('awake', overwrites)
+                self.next_anim('awake', overwrites)
                 timer = self.awake_next
 
             if pir or closest:

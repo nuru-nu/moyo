@@ -37,6 +37,9 @@ export const Animations = (output, {network, defs}) => {
       h.button('reset').of('reset')
     ),
     ui.h(
+      ui.range('anim_mix', { network, text: 'mix' }),
+    ),
+    ui.h(
       ui.dropdown('palette', {network, values: defs.palettes}),
       ui.dropdown('image', {network, values: defs.images}),
       ui.range('v0', { network, text: null }),
@@ -56,17 +59,34 @@ export const Animations = (output, {network, defs}) => {
     ),
     ui.h(
       h.button('next').of('ᐅ'), h.span('.s1'),
-      ui.toggle('nca_clip', {network, text: 'clip'}), h.span('.s1'),
-      ui.toggle('nca_wrap', {network, text: 'wrap'}), h.span('.s1'),
-      h.a('nca', {href: '#', target: '_blank'}).of('?'), h.span('.s1'),
+      h.div().of(
+        ui.toggle('nca_clip', {network, text: 'clip'}), h.span('.s1'), h.br(),
+        ui.toggle('nca_clip2', { network, text: 'clip' }), h.span('.s1'),
+      ),
+      h.div().of(
+        ui.toggle('nca_wrap', {network, text: 'wrap'}), h.span('.s1'), h.br(),
+        ui.toggle('nca_wrap2', { network, text: 'wrap' }), h.span('.s1'),
+      ),
+      h.div().of(
+        h.a('nca', {href: '#', target: '_blank'}).of('?'), h.span('.s1'), h.br(),
+        h.a('nca2', {href: '#', target: '_blank'}).of('?'), h.span('.s1'),
+      ),
       h.a('img_a', {href: '#', target: '_blank'}).of(
         h.img('img', {style: 'max-width:50px;height:auto'}),
       ), h.span('.s1'),
-      ui.range('nca_speed', {
+      h.a('img_a2', {href: '#', target: '_blank'}).of(
+        h.img('img2', {style: 'max-width:50px;height:auto'}),
+      ), h.span('.s1'),
+      h.div().of(
+        ui.range('nca_speed', {
+          network, min: 0.01, max: 10, text: 'speed',
+          // trafo: [x =>x**5, x=>x**(1/5)],
+          // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
+        }), h.br(),
+      ui.range('nca_speed2', {
         network, min: 0.01, max: 10, text: 'speed',
-        // trafo: [x =>x**5, x=>x**(1/5)],
-        // trafo: [x => Math.exp(x) - 1e-6, x => Math.log(x + 1e-6)],
       }),
+      ),
     ),
     h.div({style: 'margin-top: 1rem'}).of('~~PRESETS~~'),
     ui.h(
@@ -118,7 +138,7 @@ export const Animations = (output, {network, defs}) => {
     preset_buttons[preset_active].textContent = preset.name
   })
 
-  let last_nca = null
+  let last_nca = null, last_nca2 = null
   let last_signals = {}
   network.listenJson('signals', data => {
     if (data.nca && data.nca != last_nca) {
@@ -133,6 +153,20 @@ export const Animations = (output, {network, defs}) => {
       els.img_a.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
       els.img.src = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
       last_nca = data.nca
+    }
+
+    if (data.nca2 && data.nca2 != last_nca2) {
+      preset_buttons.forEach((button, idx) => {
+        const preset = presets.animations[idx]
+        button.classList[
+          preset.signals.nca === data.nca2 ? 'add' : 'remove']('active2')
+      })
+      els.nca2.textContent = data.nca2
+      els.nca2.href = `/nca?name=${data.nca2}`
+      const [group, num] = data.nca2.split('_')
+      els.img_a2.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca2}.jpg`
+      els.img2.src = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca2}.jpg`
+      last_nca2 = data.nca2
     }
 
     defs.monitor_def.preset_signals.forEach(name => {

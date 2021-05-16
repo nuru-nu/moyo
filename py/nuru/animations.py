@@ -13,7 +13,9 @@ import tensorflow as tf
 from smanmi import logic as L, util
 from smanmi.midi import Command
 from . import mapping, pixel_functions as pf, settings
+from . import presets
 
+_presets = presets.load()
 
 # Members are set inside L.Signal.__init__() ...
 # pylint: disable=no-member
@@ -65,20 +67,29 @@ class HsvMod(L.Signal):
 ###############################################################################
 
 class Mixer(L.Signal):
-    """Mixes signals by state.state with some interpolation."""
+    """Mixes signal by `animation` with some interpolation.
+    
+    When anim_mixer=1 then the signals are interpolated with a fixed
+    dt_by_state, otherwise they're mixed by anim_mixer.
+    """
 
     def init(self, animations, default_dt=1, dt_by_state={}):
         self.t0 = 0
         self.current = self.last = 'off'
 
-    def call(self, animation, t, **signals):
+    def call(self, animation, t, anim_mix, **signals):
         if animation != self.current:
             self.last = self.current
             self.current = animation
-            self.t0 = t
+            if anim_mix == 1:
+                self.t0 = t
         pixels = self.animations[animation](t=t, **signals)
         dt = self.dt_by_state.get(animation, self.default_dt)
-        if t - self.t0 < dt:
+        if anim_mix < 1:
+            v = anim_mix
+            last_pixels = self.animations[self.last](t=t, **signals)
+            pixels = v * pixels + (1 - v) * last_pixels
+        elif t - self.t0 < dt:
             v = (t - self.t0) / dt
             last_pixels = self.animations[self.last](t=t, **signals)
             pixels = v * pixels + (1 - v) * last_pixels
