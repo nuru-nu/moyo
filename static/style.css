@@ -109,6 +109,9 @@ select {
 .active {
   color: red;
 }
+.active2 {
+  color: orange;
+}
 
 .blink {
   animation: blinker 1s step-start infinite;  

@@ -387,6 +387,17 @@ def nca():
         dydt=N.anim_into | S.To(0, 20),
     )
 
+@anim
+def nca2():
+    return A.NCA2D(
+        data=N.nca2,
+        speed=N.nca_speed2,
+        clip=N.nca_clip2,
+        wrapx=N.nca_wrap2,
+        # width=256, height=256,
+        dydt=N.anim_into | S.To(0, 20),
+    )
+
 
 @anim
 def sleep2():
@@ -412,7 +423,7 @@ def sleep():
 @anim
 def wakeup2():
     ctrl = N.wakeup
-    # ctrl = N.v0  # for testing
+    ctrl = N.v0  # for testing
     return A.NCA2D(
         # data='fibrous_0132',
         data='frilly_0006',  # For illustration purposes something funky.
@@ -427,7 +438,7 @@ def wakeup2():
 @anim
 def wakeup():
     ctrl = N.wakeup
-    # ctrl = N.v0
+    ctrl = N.v0
     return ((
         A.R() | S.Lin(
             ctrl | S.To(-.7, -1) | S.Int(mod=1)
@@ -493,11 +504,15 @@ def test():
 def mix():
     return (
         # v0=0
-        (A.NCA2D('porous_0122', speed=6) * (S.Const(1) - N.v0)) | S.To(0, .5) | A.HsvMod(0, 4)
-    ) + (
+        (S.Const(1) - N.v0) *
+        (A.NCA2D('braided_0149', speed=1)
+    ) + ((
         # v0=1
-        (A.NCA2D('stained_0044', speed=4) * N.v0) | A.HsvMod(0, 2)
+        N.v0 *
+        A.NCA2D('lacelike_0085', speed=4)
+        ) | S.To(0, 0.78))
     )
+
 
 @anim
 def happy():
