@@ -46,6 +46,8 @@ def signal2midi(data) -> Sequence[midi.Command]:
         commands += on('C3', channel=2)
     elif action == 'charge=off':
         commands += off('C3', channel=2)
+    elif action == 'growl=angry':
+        commands += onoff('D4')
     closest = data.get('closest')
     if closest is not None:
         value = int(closest * 127)
