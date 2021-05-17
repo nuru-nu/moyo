@@ -148,6 +148,7 @@ state_signals = dict(
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
     state_one=state.One(r_z2=R_Z2, sig=N.state_one, wakeup_duration=10),
+    state_rnca=state.RNCA(secs=60),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
 

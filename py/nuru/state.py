@@ -436,23 +436,22 @@ class CssAction(L.Signal):
 class RNCA(L.Signal):
     """Random NCA state."""
 
-    def init(self, timeouts_secs=3*60):
-        self.json = json.load(open(os.path.join(
-            os.path.dirname(__file__), 'nca.json'
-        )))
+    def init(self, secs=3*60):
         self.ncas = _presets['ncas']
-        self.t = time.time()
+        self.timeout = 0
 
-    def call(self, mode, t):
+    def call(self, mode, dt):
         if mode != 'rnca':
             return None
 
         overwrites = {}
-        if t - self.t > self.timeouts_secs:
+        self.timeout -= dt
+        if self.timeout <= 0:
             nca = self.ncas[random.randint(0, len(self.ncas))]
             overwrites['nca'] = nca
-            self.t = t
+            self.timeout = self.secs
         return dict(
+            timeout=self.timeout,
             overwrites=overwrites,
         )
 
