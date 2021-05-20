@@ -507,19 +507,24 @@
     {
       "name": "blue_mvmt",
       "ctime": "20210515_1354",
-      "mtime": "20210515_2136",
+      "mtime": "20210520_2222",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
         "anim_both": 1,
         "anim_head": 1,
         "anim_arms": 1,
+        "anim_mix": 1,
         "anim_hue": 0,
-        "anim_sat": 1,
+        "anim_sat": 3.6,
         "nca": "smeared_0114",
         "nca_speed": 1,
         "nca_wrapx": 1,
-        "nca_clip": 1
+        "nca_clip": 1,
+        "nca2": "smeared_0114",
+        "nca_speed2": 1,
+        "nca_wrapx2": 1,
+        "nca_clip2": 1
       }
     },
     {
@@ -669,22 +674,24 @@
     {
       "name": "blue_calm",
       "ctime": "20210515_1354",
-      "mtime": "20210515_1354",
+      "mtime": "20210520_2223",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
         "anim_both": 1,
         "anim_head": 1,
         "anim_arms": 1,
+        "anim_mix": 1,
         "anim_hue": 0,
-        "anim_sat": 1,
+        "anim_sat": 2.8,
+        "nca": "scaly_0193",
         "nca_speed": 1,
         "nca_wrapx": 1,
         "nca_clip": 1,
-        "v0": 0.5,
-        "v1": 0.5,
-        "v2": 0.5,
-        "nca": "scaly_0193"
+        "nca2": "smeared_0114",
+        "nca_speed2": 1,
+        "nca_wrapx2": 1,
+        "nca_clip2": 1
       }
     },
     {
