@@ -90,7 +90,7 @@ class One(L.Signal):
     ]
     AWAKE_ANIMS = [
         'cristal_neutral',
-        'holz_calm',
+        # 'holz_calm',
         'flow_calm',
         'spiral_underwater',
         'green_awake',
@@ -213,9 +213,11 @@ class One(L.Signal):
 
             if valence < -0.25:
                 state = STATE_ANGRY
+                timer = 0
                 logging.info('One getting angry')
                 overwrites['action'].append('animation=angry')
                 overwrites['action'].append('growl=angry')
+                overwrites['action'].append('sub=on')
             elif valence > 0.25:
                 state = STATE_HAPPY
                 logging.info('One getting happy')
@@ -229,6 +231,10 @@ class One(L.Signal):
             if valence > -0.25:
                 state = STATE_AWAKE
                 timer = 0
+                overwrites['action'].append('sub=off')
+            if sonar > 0.4 and timer < 0:
+                overwrites['action'].append('growl=hole')
+                timer = 2
 
         elif state == STATE_HAPPY:
             if not self.state['charge'] and (sonar > 0.4
