@@ -676,3 +676,13 @@ class CalibrationPattern(L.Signal):
     def call(self):
         """Shows color cycle on NURU."""
         return self.pixels
+
+
+class SetPixel(L.Signal):
+
+    def init(self, n, color):
+        ...
+
+    def call(self, value):
+        value[self.n, :] = self.color
+        return value
