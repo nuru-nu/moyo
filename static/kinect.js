@@ -26,7 +26,7 @@ const Simulating = (pr) => {
     if (dists[0][0] < pr) {
       if (selid === dists[0][1]) selid = null
       else selid = dists[0][1]
-    } else if (selid) {
+    } else if (selid !== null) {
       targets.set(selid, [cx, cy])
     }
   }
@@ -37,8 +37,8 @@ const Simulating = (pr) => {
         const [tx, ty] = targets.get(p.id)
         let dx = tx - x, dy = ty - y
         const d = Math.sqrt(dx * dx + dy * dy)
-        dx /= d * 30
-        dy /= d * 30
+        dx /= d * 5
+        dy /= d * 5
         if (Math.abs(dx) < Math.abs(tx - x)) {
           x += dx
           y += dy
