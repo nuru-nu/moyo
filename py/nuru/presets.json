@@ -372,19 +372,23 @@
     {
       "name": "bright_outward",
       "ctime": "20210515_1354",
-      "mtime": "20210515_2133",
+      "mtime": "20210522_2358",
       "author": "Andreas",
       "signals": {
         "animation": "nca",
-        "anim_both": 1,
+        "anim_both": 0.6795456379339343,
         "anim_head": 1,
         "anim_arms": 1,
+        "anim_mix": 1,
         "anim_hue": 0,
         "anim_sat": 1,
         "nca": "grooved_0074",
-        "nca_speed": 5.3047,
+        "nca_speed": 0.6907666808028042,
         "nca_wrapx": 1,
-        "nca_clip": 0
+        "nca_clip": 0,
+        "nca2": "smeared_0041",
+        "nca_speed2": 1,
+        "nca_clip2": true
       }
     },
     {
@@ -846,6 +850,49 @@
         "anim_hue": 0,
         "anim_sat": 1,
         "nca": "spiralled_0044",
+        "nca_speed": 7.2028,
+        "nca_clip": true,
+        "nca2": "smeared_0041",
+        "nca_speed2": 1,
+        "nca_clip2": true
+      },
+      "mtime": "20210522_2135",
+      "ctime": "20210522_2135"
+    },
+    {
+      "name": "rainbow_flow",
+      "author": "Gabriel",
+      "signals": {
+        "animation": "nca",
+        "anim_both": 0.7531131084988381,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_mix": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca": "striped_0111",
+        "nca_speed": 1.8428363140787958,
+        "nca_wrapx": 1,
+        "nca_clip": true,
+        "nca2": "smeared_0041",
+        "nca_speed2": 1,
+        "nca_clip2": true
+      },
+      "mtime": "20210523_0003",
+      "ctime": "20210522_2135"
+    },
+    {
+      "name": "iceberg",
+      "author": "Gabriel",
+      "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_mix": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca": "braided_0149",
         "nca_speed": 7.2028,
         "nca_clip": true,
         "nca2": "smeared_0041",
