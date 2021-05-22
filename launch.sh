@@ -15,7 +15,7 @@ tmux new-session -d -s nuru
 tmux splitw -h
 tmux selectp -L
 # row 1
-tmux send-keys '(cd cc/build; ./kinect)' $CM
+tmux send-keys '(cd cc/build; DISPLAY=:1 ./kinect --no-gui)' $CM
 # row 2
 tmux splitw -p 75
 tmux send-keys './run nuru.recorder' $CM
