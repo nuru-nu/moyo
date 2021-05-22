@@ -36,6 +36,107 @@ STATE_OK = 'ok'
 STATE_HAPPY = 'happy'
 
 _presets = presets.load()
+_presets_by_name = {
+    preset['name']: preset
+    for preset in _presets['animations']
+}
+
+
+class Kosmos(L.Signal):
+    """KOSMOS interactive dream state.
+
+    During night time, in absence of any signal: nice sleep animation.
+
+    At any time when somebody appears in PIR/kinect: a random new NCA is loaded.
+    Animation parameters are then controlled by position of a single person.
+    This interaction is recorded and animations/parameters that were sustained
+    for a long time will later be selected.
+    """
+
+    INITIAL_STATE = dict(
+        state='off', # off, dream, interact
+        timer=0,
+        sonar_timer=0,
+    )
+    sig: Mapping[str, Any]
+    state: Mapping[str, Any]
+
+    def init(self, sig):
+        self.state = None
+
+    def call(self, t, dt, pir, people, sonar, mode, action):
+        if not self.state:
+            self.state = self.INITIAL_STATE
+            if self.sig:
+                self.state.update({
+                    k: v for k, v in self.sig.items()
+                    if k in self.INITIAL_STATE
+                })
+                logging.info('Kosmos reinit: %s', self.state)
+
+        if mode != 'kosmos':
+            return None
+
+        state = self.state['state']
+        timer = self.state['timer']
+        sonar_timer = self.state['sonar_timer']
+        h = time.localtime(t).tm_hour
+        working_hours = h > 19 or h < 2
+        timer = max(0, timer - dt)
+        sonar_timer -= dt
+        overwrites = {'action': []}
+
+        if state == 'off':
+            if pir or people:
+                state = 'interact'
+            elif working_hours:
+                state = 'dream'
+
+        elif state == 'interact':
+            ps = [p for p in people if p['id'] >= 0]
+            if ps:
+                x, y, _ = ps[0]['cm']
+                x1, x2 =  1, -1.5
+                y1, y2 = -5, -2.5
+                x = max(0, min(1, (x - x1) / (x2 - x1)))
+                y = max(0, min(1, (y - y1) / (y2 - y1)))
+                overwrites['css'] = [x * 2 - 1, y * 2 - 1]
+                overwrites['anim_both'] = 0.2 + x * 0.8
+                f = lambda a, x, b: a + x * (b - a)
+                # f = lambda a, x, b: np.exp(np.log(a) + x * (np.log(b) - np.log(a)))
+                overwrites['nca_speed'] = f(0.2, y, 10)
+                timer = 60
+            if timer <= 0:
+                state = 'dream'
+
+        elif state == 'dream':
+            if not working_hours:
+                state = 'off'
+            if pir or people:
+                state = 'interact'
+
+        if state != 'off' and sonar > 0.4 and sonar_timer <= 0:
+            overwrites['nca'] = np.random.choice(_presets['ncas'])
+            sonar_timer = 3
+
+        if action == 'dream':
+            state = 'dream'
+        if state != self.state['state']:
+            # goto new state
+            self.state['state'] = state
+            if state == 'dream':
+                overwrites['action'].append('animation=nca')
+                overwrites.update(_presets_by_name['spiral_sleep'])
+            elif state == 'interact':
+                overwrites['action'].append('animation=nca')
+                overwrites['nca'] = np.random.choice(_presets['ncas'])
+                timer = 60
+            elif state == 'off':
+                overwrites['action'].append('animation=off')
+
+        self.state['timer'] = timer
+        self.state['sonar_timer'] = sonar_timer
+        return {**self.state, 'overwrites': overwrites}
 
 
 class One(L.Signal):
@@ -120,16 +221,12 @@ class One(L.Signal):
             sig=None,
         ):
         self.state = {}
-        self.presets = {
-            preset['name']: preset
-            for preset in _presets['animations']
-        }
         for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
-            assert name in self.presets, name
+            assert name in _presets_by_name, name
 
     def next_anim(self, which, overwrites):
         anims = getattr(self, f'{which.upper()}_ANIMS')
-        anim = self.presets[np.random.choice(anims)]
+        anim = _presets_by_name[np.random.choice(anims)]
         signals = copy.copy(anim['signals'])
         next_anim = signals.pop('animation')
         if next_anim == 'nca' and self.state['last_anim']== 'nca':
@@ -472,7 +569,8 @@ class SonarAction(L.Signal):
         self.lastanim = None
 
     def call(self, sonar, state, animation, mode):
-        if mode not in ('manual', 'css'):
+        # if mode not in ('manual', 'css'):
+        if mode != 'css':
             return []
         if sonar is not None:
             if sonar > self.threshold and not self.on:
