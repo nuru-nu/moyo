@@ -245,7 +245,11 @@ export const Kinect = (output, {network}) => {
     if (data.hasOwnProperty('people')) {
       data.people.forEach(p => {
         if (!cmap.has(p.id)) {
-          cmap.set(p.id, color(p.id))
+          if (p.id < 0) {
+            cmap.set(p.id, color(10 - p.id))
+          } else {
+            cmap.set(p.id, color(p.id))
+          }
         }
         let [x, y] = p.cm
 
