@@ -97,6 +97,7 @@ export const Kinect = (output, {network}) => {
         ui.range('kinect_dphi', {network, text: null}),
       ),
       h.canvas('xy', {width, height}),
+      ui.choice('kinect_alg', {network, values:['algo', 'nite', 'merged']})
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
