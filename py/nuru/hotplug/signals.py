@@ -142,12 +142,14 @@ state_signals = dict(
             + S.Const(-1/180)
         ),
     ),
-    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.06, 0.8),
+    charge=S.ActionOnOff('charge=on', 'charge=off')  | S.Ramps(0.17, 0.75),
     animation=S.ActionLatch('animation=(.*)', N.animation),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
-    state_one=state.One(r_z2=R_Z2, sig=N.state_one, wakeup_duration=20),
+    state_one=state.One(r_z2=R_Z2, sig=N.state_one, wakeup_duration=10),
+    state_kosmos=state.Kosmos(sig=N.state_kosmos),
+    state_rnca=state.RNCA(secs=60),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
 
@@ -175,7 +177,7 @@ kinect_signals = dict(
         L.Named('people_sensor') | S.KinectFix(
             phantoms=([0.884383, -4.013486, 0.935697],),
             dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
-            augment=N.people_2,
+            people_aug=L.Named('people_sensor_2'),
         ),
         L.Named('people_override'),
     ),
@@ -252,6 +254,7 @@ defaults = dict(
     people_override=None,
     mvmt=0,
     kinect_dphi=0.39,
+    kinect_alg='algo',
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
@@ -274,7 +277,7 @@ defaults = dict(
     anim_sat=0.5,
     one=1,
     anim_sig='one',
-    anim_heart=0,
+    anim_heart=1,
     heart_sim=0,
     anim_into=0,
     anim_dark=1,
@@ -295,7 +298,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['rnca', 'manual', 'css', 'simple', 'one']
+modes = ['rnca', 'manual', 'css', 'simple', 'one', 'kosmos']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
@@ -336,6 +339,7 @@ monitor_def = dict(
         'heart_sim',
         # state
         'state_one',
+        'state_kosmos',
         'rec_state',
         'scene',
         'animation',
@@ -349,6 +353,7 @@ monitor_def = dict(
         'people_sensor',
         'people_sensor_2',
         'people_override',
+        'kinect_alg',
         # sonar
         'sonar_override',
         'sonar_0',
