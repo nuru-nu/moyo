@@ -42,7 +42,7 @@ if not args.secondary:
 
 logger = util.createLogger('server', debug=args.debug)
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
-
+_nca_names = presets.load()['ncas']
 
 class Animator:
 
@@ -162,11 +162,7 @@ async def send_nca(request):
     )
     name = request.query.get('name')
     if not name:
-        names = [
-            path.split('/')[-1][:-4]
-            for path in glob.glob(f'{nca_path}/*.npy')
-        ]
-        name = names[random.randint(0, len(names))]
+        name = _nca_names[random.randint(0, len(_nca_names))]
     models = nca.export_models_to_js({
         name: np.load(f'{nca_path}/{name}.npy', allow_pickle=True),
     })
