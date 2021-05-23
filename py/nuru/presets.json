@@ -901,6 +901,27 @@
       },
       "mtime": "20210522_2135",
       "ctime": "20210522_2135"
+    },
+    {
+      "name": "red_love",
+      "author": "Andreas",
+      "signals": {
+        "animation": "nca",
+        "anim_both": 0.8477643346402559,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_mix": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca": "stained_0065",
+        "nca_speed": 4.152235451485365,
+        "nca_clip": true,
+        "nca2": "smeared_0041",
+        "nca_speed2": 1,
+        "nca_clip2": true
+      },
+      "mtime": "20210523_2205",
+      "ctime": "20210523_2205"
     }
   ]
 }
