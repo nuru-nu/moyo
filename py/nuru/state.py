@@ -60,8 +60,9 @@ class Kosmos(L.Signal):
     )
     sig: Mapping[str, Any]
     state: Mapping[str, Any]
+    sleep_secs: float
 
-    def init(self, sig):
+    def init(self, sig, sleep_secs=60):
         self.state = None
 
     def call(self, t, dt, pir, people, sonar, mode, action):
@@ -105,7 +106,7 @@ class Kosmos(L.Signal):
                 f = lambda a, x, b: a + x * (b - a)
                 # f = lambda a, x, b: np.exp(np.log(a) + x * (np.log(b) - np.log(a)))
                 overwrites['nca_speed'] = f(0.2, y, 10)
-                timer = 60
+                timer = self.sleep_secs
             if timer <= 0:
                 state = 'dream'
 
@@ -125,12 +126,15 @@ class Kosmos(L.Signal):
             # goto new state
             self.state['state'] = state
             if state == 'dream':
-                overwrites['action'].append('animation=nca')
-                overwrites.update(_presets_by_name['spiral_sleep'])
+                sigs = copy.copy(_presets_by_name['spiral_sleep']['signals'])
+                animation = sigs.pop('animation')
+                overwrites['action'].append(f'animation={animation}')
+                overwrites.update(sigs)
+                print(overwrites)
             elif state == 'interact':
                 overwrites['action'].append('animation=nca')
                 overwrites['nca'] = np.random.choice(_presets['ncas'])
-                timer = 60
+                timer = self.sleep_secs
             elif state == 'off':
                 overwrites['action'].append('animation=off')
 
