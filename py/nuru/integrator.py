@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import collections
+import copy
 import json
 import os
 import re
@@ -202,14 +203,14 @@ class Integrator:
 
     def send(self, signals):
         if time.time() - self.last_full > args.full_secs:
-            self.signals = signals
+            self.signals = copy.deepcopy(signals)
             self.server.send({**signals, '_full': True})
             self.last_full = time.time()
         else:
             diff = {}
             for k, v in signals.items():
                 if k in self.transients or v != self.signals.get(k):
-                    diff[k] = self.signals[k] = v
+                    diff[k] = self.signals[k] = copy.deepcopy(v)
             self.server.send(diff)
 
     def handle_rec_action(self, rec_action):
