@@ -242,6 +242,7 @@ defaults = dict(
     pir_override=None,
     # state=state.State(),
     state_one=state.One.INITIAL_STATE,
+    state_kosmos=state.Kosmos.INITIAL_STATE,
     state=state.STATE_SLEEP,
     mode='manual',
     animation='nca',
