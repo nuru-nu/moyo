@@ -61,7 +61,12 @@ class Animator:
         self.faulty_animation = None
 
     def received_from_udp(self, data):
-        self.signals = util.deserialize(data)
+        signals = util.deserialize(data)
+        if self.signals is None:
+            if not signals.get('_full'):
+                return logger.info('Waiting for _full signals...')
+            self.signals = {}
+        self.signals.update(signals)
 
     def received_from_ws(self, data):
         signals = json.loads(data)

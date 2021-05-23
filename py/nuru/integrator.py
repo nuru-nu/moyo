@@ -36,6 +36,9 @@ parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 parser.add_argument(
     '--fps', type=float, default=25,
     help='Integrator target frames per second')
+parser.add_argument(
+    '--full_secs', type=float, default=1,
+    help='Every how often to send full signals (for non-transient).')
 args = parser.parse_args()
 
 logger = util.createLogger('integrator', debug=args.debug)
@@ -49,6 +52,7 @@ def get(signals, key):
             return
         signals = signals[part]
     return signals
+
 
 class Integrator:
 
@@ -85,6 +89,8 @@ class Integrator:
         self.rec_play = self.rec_ongoing = self.rec_t = None
         self.rec_enabled = set()
         self.t0 = time.time()
+        self.last_full = 0
+        self.last_signals = {}
         if not args.init and os.path.isfile(args.signals_json):
             with open(args.signals_json, 'rb') as f:
                 self.signals.update(util.deserialize(f.read()))
@@ -164,8 +170,8 @@ class Integrator:
     def integrate(self):
         self.schedule()
         dt = time.time() - self.signals['t']
-        self.signals['t'] += dt
         signals = dict(**self.signals)
+        signals['t'] += dt
         for name, queue in self.transients.items():
             signals[name] = queue.popleft() if queue else None
         signals = hp_signals.integrator_runner(**signals)
@@ -192,8 +198,19 @@ class Integrator:
                 enabled=sorted(list(self.rec_enabled)),
                 t=self.rec_t,
                 )
-        self.signals = signals
-        self.server.send(signals)
+        self.send(signals)
+
+    def send(self, signals):
+        if time.time() - self.last_full > args.full_secs:
+            self.signals = signals
+            self.server.send({**signals, '_full': True})
+            self.last_full = time.time()
+        else:
+            diff = {}
+            for k, v in signals.items():
+                if k in self.transients or v != self.signals.get(k):
+                    diff[k] = self.signals[k] = v
+            self.server.send(diff)
 
     def handle_rec_action(self, rec_action):
         if rec_action.startswith('start='):
