@@ -320,7 +320,7 @@ def charge():
     # 2. turning faster
     # 3. inside out aditional layers (keep brightest superpos)
     ctrl = N.charge
-    ctrl = N.v0
+    # ctrl = N.v0
     rot1 = ctrl | S.To(0, 100) | S.Int(mod=360)
     rot2 = ctrl | S.To(0, 120) | S.Int(mod=360)
     anim1 = A.Proj(images['supernova1'], scale=9.0, rotate=rot1)
@@ -490,14 +490,20 @@ def angry():
         clip=True,
         speed=3.7,
         wrapx=False,
-    ) | A.HsvMod(0.6, 2.0) | S.To(0, N.heart | S.To(.5, 1)))
-        | A.Overwrite(heart() * S.Const(1.7), 10)
+    ) | A.HsvMod(0.6, 2.0) | S.To(0, N.heart | S.To(.4, 1)))
+      | A.Overwrite((heart() * S.Const(1.5)))
+    #   | A.Overwrite((heart() * S.Const(N.v1 | S.To(1, 5))) | A.HsvMod(N.v0), 10)
     )
+    # ) | A.RGauss(N.heart | S.To(2, 5)
+    # ) * (L.Named('std2') | S.Lin(0, 2) | S.Tocos() | A.CompWave(1.8, 2.5)
+    # ) * (A.R() | S.Lin( L.Named('v2') | S.To(0, -3) | S.Int(mod=1)) | S.Mod(1)
+    # ) | A.SetPixel(1555, C.RGB(0, 1, 0))
 
 
 @anim
 def test():
-    return nca() | A.HsvMod(hue_shift=N.v0, sat_mult=N.v1 | S.To(0, 2))
+    return A.FullOn(C.RGB(1, 0, 0))
+    # return nca() | A.HsvMod(hue_shift=N.v0, sat_mult=N.v1 | S.To(0, 2))
 
 
 @anim

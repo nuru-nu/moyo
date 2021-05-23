@@ -193,55 +193,54 @@ void Viewer::update(const cv::Mat& img,
   const std::string fps_string =
     string_format("fps=%.2f display_fps=%.2f", fps, hz_);
 
-  if (gui_ || should_dump_) {
-    double min, max;
-    cv::Point minloc, maxloc;
+  double min, max;
+  cv::Point minloc, maxloc;
 
-    cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
-    cv::Mat img_brg;
-    cv::cvtColor(255 * (img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
+  cv::minMaxLoc(img, &min, &max, &minloc, &maxloc);
+  cv::Mat img_brg;
+  cv::cvtColor(255 * (img - min) / (max - min), img_brg, cv::COLOR_GRAY2RGB);
 
-    img_brg.convertTo(img_brg, CV_8UC3);
+  img_brg.convertTo(img_brg, CV_8UC3);
 
-    cv::addWeighted(img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
+  cv::addWeighted(img_brg, 0.5, user_pixels, 0.5, 0.0, img_brg);
 
-    for(const auto& p : depth_seg_cos){
-      cv::circle(img_brg, p.second, 2.0, cv::Scalar( 255, 255, 255 ), 2);
-    }
+  for(const auto& p : depth_seg_cos){
+    cv::circle(img_brg, p.second, 2.0, cv::Scalar( 255, 255, 255 ), 2);
+  }
 
-    cv::flip(img_brg, img_brg, 0);
-    cv::flip(img_brg, img_brg, 1);
+  cv::flip(img_brg, img_brg, 0);
+  cv::flip(img_brg, img_brg, 1);
 
+  cv::putText(
+      img_brg, fps_string,
+      cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+
+  if (false) {// Feature output. Currently not implemented.
     cv::putText(
-        img_brg, fps_string,
-        cv::Point(10, 40), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+        img_brg, features_string,
+        cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
+    apply_overlay(graphs_, &img_brg);
+  }
+  
+  if (gui_) {
+    cv::imshow("viewer", img_brg);
+  }
 
-    if (false) {// Feature output. Currently not implemented.
-      cv::putText(
-          img_brg, features_string,
-          cv::Point(10, 70), cv::FONT_HERSHEY_SIMPLEX, 0.5, kTextCol);
-      apply_overlay(graphs_, &img_brg);
-    }
-    
-    if (gui_) {
-      cv::imshow("viewer", img_brg);
-    }
-
-    const long long last_img_store_t_microseconds =
-    std::chrono::duration_cast<std::chrono::microseconds>(t - last_img_store_t_).count();
-    if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
-      last_img_store_t_ = t;
-      cv::imwrite("../../tmp/kinect_frame.jpg", img_brg);
-      if(store_path.length() > 0){
-        std::ostringstream ss;
-        ss << std::setw( 5 ) << std::setfill( '0' ) << frame_idx;
-        cv::imwrite(store_path + "/kinect_frame_" + ss.str() + ".jpg", img_brg);
-        frame_idx++;
-      } else {
-        frame_idx = 0;
-      }
+  const long long last_img_store_t_microseconds =
+  std::chrono::duration_cast<std::chrono::microseconds>(t - last_img_store_t_).count();
+  if (should_dump_ || last_img_store_t_microseconds > .5e6) { // Hard coded
+    last_img_store_t_ = t;
+    cv::imwrite("../../tmp/kinect_frame.jpg", img_brg);
+    if(store_path.length() > 0){
+      std::ostringstream ss;
+      ss << std::setw( 5 ) << std::setfill( '0' ) << frame_idx;
+      cv::imwrite(store_path + "/kinect_frame_" + ss.str() + ".jpg", img_brg);
+      frame_idx++;
+    } else {
+      frame_idx = 0;
     }
   }
+  
   if (!gui_) {
     std::cout << features_string << ' ' << fps_string << std::endl;
   }
