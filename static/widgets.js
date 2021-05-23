@@ -105,7 +105,8 @@ export const Subsample = (output, {network}) => {
 export const Cmd = (output, {network, defs}) => {
   const actions = [
     'fc=0', 'fc=1', 'fc=2', 'fc=3', 'one=next',
-    'growl=angry', 'sub=on', 'sub=off', 'growl=hole'
+    'growl=angry', 'sub=on', 'sub=off', 'growl=hole',
+    'dream',
   ]
   const els = Header('cmd', h.div().of(
     ActionsButtons({name: 'mode', values: defs.modes, network}),
