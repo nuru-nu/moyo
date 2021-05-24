@@ -37,8 +37,8 @@ const Simulating = (pr) => {
         const [tx, ty] = targets.get(p.id)
         let dx = tx - x, dy = ty - y
         const d = Math.sqrt(dx * dx + dy * dy)
-        dx /= d * 15
-        dy /= d * 15
+        dx /= d * 5
+        dy /= d * 5
         if (Math.abs(dx) < Math.abs(tx - x)) {
           x += dx
           y += dy
