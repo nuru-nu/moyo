@@ -87,6 +87,7 @@ class Integrator:
             name: collections.deque()
             for name in hp_signals.transients
         }
+        self.received = {}
         self.rec_play = self.rec_ongoing = self.rec_t = None
         self.rec_enabled = set()
         self.t0 = time.time()
@@ -134,8 +135,7 @@ class Integrator:
                     continue
                 self.transients[name].append(value)
             else:
-                self.signals[name] = value
-        self.signals.update(signals)
+                self.received[name] = value
 
         if time.time() - self.t0 > 10:
             with open(args.signals_json, 'wb') as f:
@@ -171,7 +171,8 @@ class Integrator:
     def integrate(self):
         self.schedule()
         dt = time.time() - self.signals['t']
-        signals = dict(**self.signals)
+        signals = {**self.signals, **self.received}
+        self.received = {}
         signals['t'] += dt
         for name, queue in self.transients.items():
             signals[name] = queue.popleft() if queue else None
