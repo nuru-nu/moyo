@@ -22,13 +22,18 @@ from . import settings
 parser = argparse.ArgumentParser(
     description='Generates animation & web UI.')
 parser.add_argument('--fps', type=int, default=60,
-                    help='Frames per second for animation streaming.')
+                    help='Frames per second for animation streaming. Set to '
+                    '0 to disable.')
 parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
 parser.add_argument('--secondary', action='store_true',
-                    help='Secondary server does not generate animations.')
+                    help='Whether to use alternate UDP signal port.')
+parser.add_argument('--index', default='index.html',
+                    help='Main web page to serve.')
+parser.add_argument('--restricted', action='store_true',
+                    help='Allows only restricted interactions through UI.')
 parser.add_argument('--port', type=int, default=8080,
-                    help='Port for HTTP server.')
+                    help='Port for HTTP server. Set to 0 to disable.')
 parser.add_argument('--server_address', type=str, default='127.0.0.1',
                     help='Network address for HTTP server - can be 0.0.0.0.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
@@ -36,23 +41,22 @@ parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
 parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 args = parser.parse_args()
 
-if not args.secondary:
-    # Avoid loading expensive frameworks if not needed.
-    from . import animations
-
 logger = util.createLogger('server', debug=args.debug)
 hp_signals = hotplug.HotPlug('.hotplug.signals', logger)
 _nca_names = presets.load()['ncas']
+
+if not args.restricted:
+    # Avoid loading expensive frameworks if not needed.
+    from . import animations
+    hp_animations = hotplug.HotPlug('.hotplug.animations', logger, autoreload=False)
+    hp_midi = hotplug.HotPlug('.hotplug.midi', logger, autoreload=False)
+
 
 class Animator:
 
     def __init__(self, client, logger):
         self.client = client
         self.logger = logger
-        self.hp_animations = hotplug.HotPlug(
-            '.hotplug.animations', logger, autoreload=False)
-        self.hp_midi = hotplug.HotPlug(
-            '.hotplug.midi', logger, autoreload=False)
         self.signals = None
         self.stats = None
         self.subsample = 1
@@ -82,16 +86,16 @@ class Animator:
         if self.signals is None:
             return
 
-        self.hp_animations.hotplug_reload()
-        if (self.faulty_mtime == self.hp_animations._reload_mtime and
+        hp_animations.hotplug_reload()
+        if (self.faulty_mtime == hp_animations._reload_mtime and
             self.faulty_animation == self.signals.get('animation')):
             # Don't generate an exception every frame - wait for next reload.
             return
         try:
-            data = self.hp_animations.pixels(**self.signals)
+            data = hp_animations.pixels(**self.signals)
             assert data.shape == (1920, 3), f'Invalid shape: {data.shape}'
         except Exception as e:
-            self.faulty_mtime = self.hp_animations._reload_mtime
+            self.faulty_mtime = hp_animations._reload_mtime
             self.faulty_animation = self.signals.get('animation')
             self.logger.error('Animator() ERROR: %r', e)
             self.logger.warning(traceback.format_exc())
@@ -128,11 +132,11 @@ async def send_defs(request):
         ),
         colors=state.Rizhom.COLORS,
         recordings=recordings,
-        animations=list(animator.hp_animations.animations.keys()),
-        images=list(animator.hp_animations.images.keys()),
+        animations=list(hp_animations.animations.keys()),
+        images=list(hp_animations.images.keys()),
         presets=presets.load(),
-        palettes=list(animator.hp_animations.palettes.keys()),
-        scenes=animator.hp_midi.scenes,
+        palettes=list(hp_animations.palettes.keys()),
+        scenes=hp_midi.scenes,
         modes=hp_signals.modes,
         monitor_def=hp_signals.monitor_def,
     )
@@ -191,8 +195,7 @@ if args.fadecandy:
     assert client.can_connect()
     client.set_interpolation(False)
 
-index_html = 'index2.html' if args.secondary else 'index.html'
-server = Server(static_dir='static', logger=logger, index_html=index_html)
+server = Server(static_dir='static', logger=logger, index_html=args.index)
 sig_port = settings.server2_sig_port if args.secondary else settings.server_sig_port
 udp_forwarding = UdpForwarding(
     '/+signals',
@@ -202,18 +205,20 @@ udp_forwarding = UdpForwarding(
 server.forward_udp(udp_forwarding)
 server.routes.append(web.get('/nca', send_nca))
 
-if not args.secondary:
+if not args.restricted:
     server.routes.append(web.get('/defs', send_defs))
+    server.routes.append(web.get('/recs', send_recs))
+    server.routes.append(web.get('/kinect', send_kinect))
+
+if args.fps:
     animator = Animator(client, logger)
     animator.stats = server.stats
-    udp_forwarding.with_callbacks(
+    udp_forwarding.set_callbacks(
         animator.received_from_udp,
         animator.received_from_ws,
     )
     server.run_periodically(
         PeriodicCallback('/+animation', animator, fps=args.fps))
-    server.routes.append(web.get('/recs', send_recs))
-    server.routes.append(web.get('/kinect', send_kinect))
 
 server.run(address=args.server_address, port=args.port)
 print(perf.stats())
