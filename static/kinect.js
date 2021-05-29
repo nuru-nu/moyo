@@ -97,6 +97,7 @@ export const Kinect = (output, {network}) => {
         ui.range('kinect_dphi', {network, text: null}),
       ),
       h.canvas('xy', {width, height}),
+      ui.choice('kinect_alg', {network, values:['algo', 'nite', 'merged']})
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
@@ -235,7 +236,7 @@ export const Kinect = (output, {network}) => {
     if (data.hasOwnProperty('people_2')) {
       data.people_2.forEach(p => {
         let [x, y] = p.cm
-        ctx.strokeStyle = '#c0c0c0'
+        ctx.strokeStyle = '#000'
         ctx.beginPath()
         const r = p.id === simulating.sel() ? pr * 1.2 : pr
         ctx.arc(tox(x), toy(y), r, 0, 2 * Math.PI)

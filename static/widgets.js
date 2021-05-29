@@ -105,7 +105,8 @@ export const Subsample = (output, {network}) => {
 export const Cmd = (output, {network, defs}) => {
   const actions = [
     'fc=0', 'fc=1', 'fc=2', 'fc=3', 'one=next',
-    'growl=angry', 'sub=on', 'sub=off', 'growl=hole'
+    'growl=angry', 'sub=on', 'sub=off', 'growl=hole',
+    'dream',
   ]
   const els = Header('cmd', h.div().of(
     ActionsButtons({name: 'mode', values: defs.modes, network}),
@@ -348,6 +349,17 @@ export const Css = (output, {network}) => {
     if (data.mode == 'one' && data.state_one) {
       const s = data.state_one
       disp.state.textContent = `one: ${s.state} (t=${Math.floor(s.timer)})`
+    }
+
+    if (data.mode == 'kosmos' && data.state_kosmos) {
+      const s = data.state_kosmos
+      const t1 = Math.floor(Math.max(0, data.state_kosmos.timer))
+      const t2 = Math.floor(Math.max(0, data.state_kosmos.sonar_timer))
+      const t3 = Math.floor(Math.max(0, data.state_kosmos.log_timer))
+      let t = `${t1}`
+      if (t2) t += `,s=${t2}`
+      if (t3) t += `,l=${t3}`
+      disp.state.textContent = `kosmos: ${s.state} (${t})`
     }
   })
 }
