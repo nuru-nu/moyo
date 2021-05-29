@@ -148,6 +148,7 @@ state_signals = dict(
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
     state_one=state.One(r_z2=R_Z2, sig=N.state_one, wakeup_duration=10),
+    state_kosmos=state.Kosmos(sig=N.state_kosmos),
     state_rnca=state.RNCA(secs=60),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
@@ -235,12 +236,13 @@ defaults = dict(
     iso=0,
     rawloud=0,
     loud=0,
-    sonar_0=1,
+    sonar_0=40,
     pir_0=0,
     sonar_override=None,
     pir_override=None,
     # state=state.State(),
     state_one=state.One.INITIAL_STATE,
+    state_kosmos=state.Kosmos.INITIAL_STATE,
     state=state.STATE_SLEEP,
     mode='manual',
     animation='nca',
@@ -253,6 +255,7 @@ defaults = dict(
     people_override=None,
     mvmt=0,
     kinect_dphi=0.39,
+    kinect_alg='algo',
     css_alpha=10,
     palette='gabe_red',
     image='mac_pizza',
@@ -296,7 +299,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['rnca', 'manual', 'css', 'simple', 'one']
+modes = ['rnca', 'manual', 'css', 'simple', 'one', 'kosmos']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
@@ -337,6 +340,7 @@ monitor_def = dict(
         'heart_sim',
         # state
         'state_one',
+        'state_kosmos',
         'rec_state',
         'scene',
         'animation',
@@ -350,6 +354,7 @@ monitor_def = dict(
         'people_sensor',
         'people_sensor_2',
         'people_override',
+        'kinect_alg',
         # sonar
         'sonar_override',
         'sonar_0',

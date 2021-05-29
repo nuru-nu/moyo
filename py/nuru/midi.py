@@ -11,6 +11,8 @@ from . import settings
 parser = argparse.ArgumentParser(description='Bridges UDP to MIDI.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
                     help='Machine running `smanmi.integrator` script.')
+parser.add_argument('--ignore', type=str, default='1: X1,3: C3',
+                    help='Do not show events for these notes.')
 args = parser.parse_args()
 logger = util.createLogger('midi')
 
@@ -34,6 +36,7 @@ forwarder = midi.MidiForwarder(
     signal_in=(cmd_address, settings.midi_sig_port),
     signal_out=(args.integrator_address, settings.integrator_sig_port),
     logger=logger,
+    ignore=args.ignore.split(','),
 )
 forwarder.signal2midis.add(signal2midi)
 forwarder.midi2signals.add(midi2signal)

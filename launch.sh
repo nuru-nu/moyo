@@ -1,7 +1,6 @@
 #!/bin/bash
 
 cd "$(dirname "$0")"
-. ./utils.sh
 
 CM=${CM:-C-m}
 SERVER=${SERVER:-0.0.0.0}
@@ -15,7 +14,7 @@ tmux new-session -d -s nuru
 tmux splitw -h
 tmux selectp -L
 # row 1
-tmux send-keys '(cd cc/build; ./kinect)' $CM
+tmux send-keys '(cd cc/build; DISPLAY=:1 ./kinect --no-gui)' $CM
 # row 2
 tmux splitw -p 75
 tmux send-keys './run nuru.recorder' $CM
@@ -24,18 +23,19 @@ tmux splitw -p 66
 tmux send-keys './run smanmi.arduino --signal_port $(./run nuru.settings integrator_sig_port) --dev_glob /dev/ttyUSB* /dev/ttyACM*' $CM
 # row 4
 tmux splitw
-tmux send-keys "./run nuru.integrator --midi_address=$(getip mbp.local)" $CM
+tmux send-keys './run nuru.integrator --midi_address=$(./getip.sh mbp.local)' $CM
 
 ## column 2
 tmux selectp -R
 # row 1
-tmux send-keys 'sleep 3' 'C-m' "./run nuru.server --server_address=${SERVER} --fadecandy" $CM
+tmux send-keys 'sleep 3' 'C-m' './run nuru.server --port=0 --fadecandy' $CM
 # row 2
 tmux splitw -p 75
-tmux send-keys '(cd fadecandy; ./fcserver config.json)' $CM
+tmux send-keys "./run nuru.server --server_address=${SERVER} --fps=0 --secondary" $CM
 # row 3
 tmux splitw -p 66
-tmux send-keys './run nuru.dmx' $CM
+tmux send-keys '(cd fadecandy; ./fcserver config.json)' $CM
+# tmux send-keys './run nuru.dmx' $CM
 # row 4
 # tmux splitw -p 66
 # tmux send-keys './run nuru.midi' $CM
