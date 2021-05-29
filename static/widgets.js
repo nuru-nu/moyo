@@ -355,7 +355,11 @@ export const Css = (output, {network}) => {
       const s = data.state_kosmos
       const t1 = Math.floor(Math.max(0, data.state_kosmos.timer))
       const t2 = Math.floor(Math.max(0, data.state_kosmos.sonar_timer))
-      disp.state.textContent = `kosmos: ${s.state} (t=${t1},st=${t2})`
+      const t3 = Math.floor(Math.max(0, data.state_kosmos.log_timer))
+      let t = `${t1}`
+      if (t2) t += `,s=${t2}`
+      if (t3) t += `,l=${t3}`
+      disp.state.textContent = `kosmos: ${s.state} (${t})`
     }
   })
 }

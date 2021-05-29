@@ -124,7 +124,7 @@ int SignalSender::send_tracking_data(
         person_jobject.add_property(pair.first, value);
       }
 
-      for(const auto& joint : person.points3d) {
+      for(const auto& joint : person.points_3d) {
         jute::jValue point3d(jute::JARRAY);
 
         jute::jValue nvalue(jute::JNUMBER);
