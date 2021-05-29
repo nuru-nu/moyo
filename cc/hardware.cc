@@ -178,11 +178,6 @@ cv::Mat Hardware::get_depth_segments(cv::Mat &depth_img){
   cv::Mat bin_img;
   cv::threshold(diff_img, bin_img, 1000, 65536, cv::THRESH_BINARY);
 
-  // cv::minMaxLoc(bin_img, &min, &max);
-  // std::cout << min << " - " << max << " : ";
-  // cv::minMaxLoc(diff_img, &min, &max);
-  // std::cout << min << " - " << max << std::endl;
-
   bin_img.convertTo(bin_img, CV_8S);
 
   cv::Mat labelled_img;
@@ -249,7 +244,7 @@ std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
 
     person.depth.insert(std::pair<std::string, float>("cm_depth", depth_image.at<ushort>(int(p.second.y), int(p.second.x))));
     
-    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm",
+    person.points_3d.insert(std::pair<std::string, cv::Point3d>("cm",
                                                   cv::Point3d((float) x,
                                                               (float) y,
                                                               (float) z)));
@@ -276,41 +271,34 @@ std::vector<person_t> Hardware::get_tracking_data() {
     }
     person.id = user.getId();
 
-    float x, y, z, xd, yd;
-    convertJointCoordinatesToDepth(user.getCenterOfMass().x,
+    float x, y, z;
+    convertJointCoordinatesToWorld(user.getCenterOfMass().x,
                                    user.getCenterOfMass().y,
                                    user.getCenterOfMass().z,
-                                   &xd, &yd);
-
-    convertDepthCoordinatesToWorld(int(yd), int(xd), user.getCenterOfMass().z , x, y, z);
-
-    cv::Matx41d loc(x, y, z, 1);
-    cv::Mat local_point = trafo_*loc;
-
-    x = local_point.at<double>(0,0);
-    y = local_point.at<double>(0,1);
-    z = local_point.at<double>(0,2);
+                                   x, y, z);
 
     person.depth.insert(std::pair<std::string, float>("cm_depth",
                                                   user.getCenterOfMass().z));
 
-    person.points3d.insert(std::pair<std::string, cv::Point3d>("cm",
+    person.points_3d.insert(std::pair<std::string, cv::Point3d>("cm",
                                                   cv::Point3d((float) x,
                                                               (float) y,
                                                               (float) z)));
-    if(false){ // Skeletal tracking not implemented
-      std::cout << "Point3d - " <<
-                      (float) x << ", " <<
-                      (float) y << ", " <<
-                      (float) z << ". cm_depth = " << user.getCenterOfMass().z << std::endl;
 
-      if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
-      {
-        const nite::SkeletonJoint& head = user.getSkeleton().getJoint(nite::JOINT_HEAD);
-        if (head.getPositionConfidence() > .5)
-          printf("%d. (%5.2f, %5.2f, %5.2f) - Head found with condfidence %5.2f\n", user.getId(), head.getPosition().x, head.getPosition().y, head.getPosition().z, head.getPositionConfidence());
-      } else {
-        printf("%d. (%5.2f, %5.2f, %5.2f)\n", user.getId(), user.getCenterOfMass().x, user.getCenterOfMass().y, user.getCenterOfMass().z);
+    if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
+    {
+      for(const auto limb : limbs){
+        const nite::SkeletonJoint& joint = user.getSkeleton().getJoint(limb.second);
+        if (joint.getPositionConfidence() > .5){
+          convertJointCoordinatesToWorld(joint.getPosition().x,
+                                      joint.getPosition().y,
+                                      joint.getPosition().z,
+                                      x, y, z);
+          person.points_3d.insert(std::pair<std::string, cv::Point3d>(limb.first,
+                                                        cv::Point3d((float) x,
+                                                                    (float) y,
+                                                                    (float) z)));                                      
+        }
       }
     }
 
@@ -411,23 +399,19 @@ void Hardware::convertJointCoordinatesToDepth(float x, float y, float z,
   userTracker_.convertJointCoordinatesToDepth(x, y, z, pOutX, pOutY);
 }
 
-void Hardware::convertJointCoordinatesToWorld(float x, float y, float z,
-                                              float &tx, float &ty, float &tz) const {
+void Hardware::convertJointCoordinatesToWorld(float jx, float jy, float jz,
+                                              float &x, float &y, float &z) const {
 
-  convertDepthCoordinatesToWorld(x, y, z, tx, ty, tz);
+    float xd, yd;
+    convertJointCoordinatesToDepth(jx, jy, jz, &xd, &yd);
+    convertDepthCoordinatesToWorld(int(yd), int(xd), jz , x, y, z);
 
-  cv::Matx41d loc(tx, ty, tz, 1);
-  cv::Mat local_point = trafo_*loc;
+    cv::Matx41d loc(x, y, z, 1);
+    cv::Mat local_point = trafo_*loc;
 
-  tx = local_point.at<double>(0,0);
-  ty = local_point.at<double>(0,1);
-  tz = local_point.at<double>(0,2);
-
-  if(isnan(tx) || isnan(ty) || isnan(tz)){
-    tx = 0;
-    ty = 0;
-    tz = 0;
-  }
+    x = local_point.at<double>(0,0);
+    y = local_point.at<double>(0,1);
+    z = local_point.at<double>(0,2);
 }
 
 void Hardware::convertDepthCoordinatesToJoint(int x, int y, int z,

@@ -8,9 +8,27 @@ struct person_t {
 
     int id;
     std::map<std::string, float> depth;
-    std::map<std::string, cv::Point3d> points3d;
-
+    std::map<std::string, cv::Point3d> points_3d;
 } ;
+
+// https://documentation.help/NiTE-2.0/namespacenite.html
+const std::map<std::string, auto> limbs = { 
+          {"joint_head", nite::JOINT_HEAD}, 
+          {"joint_neck", nite::JOINT_NECK}, 
+          {"joint_left_shoulder", nite::JOINT_LEFT_SHOULDER}, 
+          {"joint_right_shoulder", nite::JOINT_RIGHT_SHOULDER}, 
+          {"joint_left_elbow", nite::JOINT_LEFT_ELBOW}, 
+          {"joint_right_elbow", nite::JOINT_RIGHT_ELBOW}, 
+          {"joint_left_hand", nite::JOINT_LEFT_HAND}, 
+          {"joint_right_hand", nite::JOINT_RIGHT_HAND}, 
+          {"joint_torso", nite::JOINT_TORSO}, 
+          {"joint_left_hip", nite::JOINT_LEFT_HIP}, 
+          {"joint_right_hip", nite::JOINT_RIGHT_HIP}, 
+          {"joint_left_knee", nite::JOINT_LEFT_KNEE}, 
+          {"joint_right_knee", nite::JOINT_RIGHT_KNEE}, 
+          {"joint_left_foot", nite::JOINT_LEFT_FOOT}, 
+          {"joint_right_foot", nite::JOINT_RIGHT_FOOT}
+};
 
 using Values = std::map<std::string, float>;
 
