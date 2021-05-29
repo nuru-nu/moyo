@@ -21,7 +21,7 @@ from . import settings
 
 parser = argparse.ArgumentParser(
     description='Generates animation & web UI.')
-parser.add_argument('--fps', type=int, default=60,
+parser.add_argument('--fps', type=float, default=60,
                     help='Frames per second for animation streaming.')
 parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
@@ -36,7 +36,7 @@ parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
 parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 args = parser.parse_args()
 
-if not args.secondary:
+if True or not args.secondary:
     # Avoid loading expensive frameworks if not needed.
     from . import animations
 
@@ -46,7 +46,7 @@ _nca_names = presets.load()['ncas']
 
 class Animator:
 
-    def __init__(self, client, logger):
+    def __init__(self, client, logger, *, dummy=False):
         self.client = client
         self.logger = logger
         self.hp_animations = hotplug.HotPlug(
@@ -59,6 +59,9 @@ class Animator:
         self.i = 0
         self.faulty_mtime = None
         self.faulty_animation = None
+        self.dummy = dummy
+        if dummy:
+            self.zeros = np.zeros([1920, 3], np.uint8).tobytes()
 
     def received_from_udp(self, data):
         signals = util.deserialize(data)
@@ -76,6 +79,8 @@ class Animator:
 
     @perf.measure('Animator()')
     def __call__(self):
+        if self.dummy:
+            return self.zeros
         self.i += 1
         if self.i % self.subsample != 0:
             return
@@ -191,7 +196,7 @@ if args.fadecandy:
     assert client.can_connect()
     client.set_interpolation(False)
 
-index_html = 'index2.html' if args.secondary else 'index.html'
+index_html = 'index.html' if args.secondary else 'index.html'
 server = Server(static_dir='static', logger=logger, index_html=index_html)
 sig_port = settings.server2_sig_port if args.secondary else settings.server_sig_port
 udp_forwarding = UdpForwarding(
@@ -202,14 +207,19 @@ udp_forwarding = UdpForwarding(
 server.forward_udp(udp_forwarding)
 server.routes.append(web.get('/nca', send_nca))
 
-if not args.secondary:
+if True or not args.secondary:
     server.routes.append(web.get('/defs', send_defs))
-    animator = Animator(client, logger)
+    animator = Animator(client, logger, dummy=args.secondary)
     animator.stats = server.stats
     udp_forwarding.with_callbacks(
         animator.received_from_udp,
         animator.received_from_ws,
     )
+    class Dummy():
+        def __init__(self):
+            self.values = np.zeros([1920, 3])
+        def __call__(self, *_):
+            return self.values
     server.run_periodically(
         PeriodicCallback('/+animation', animator, fps=args.fps))
     server.routes.append(web.get('/recs', send_recs))

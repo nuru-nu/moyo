@@ -190,15 +190,21 @@ export const Kinect = (output, {network}) => {
 
   const cmap = new Map()
   const lcm = new Map()
+  let i = 0
   network.listenJson('signals', function(data) {
 
+    // console.log('override?', i++)
     if (data.people_override) {
       simulate = true
       disp.add.classList.remove('h')
       disp.del.classList.remove('h')
       const should_update = simulating.should_update()
       const people_override = simulating.tick(data.people_override)
+      // console.log(data.people_override)
       if (should_update) {
+        // current problem: data gets sent every frame but somehow
+        // people_override is only updated 1x per second. FIXME!
+        // network.sender({ people_override })
         network.sender({ people_override }, 'silent')
       }
       disp.simulate.classList.add('on')
