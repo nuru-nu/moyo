@@ -188,6 +188,7 @@ class One(L.Signal):
     wakeup_duration: float
     asleep_duration: float
     sig: Mapping[str, Any]
+    sonar_threshold: float
 
     state: Mapping[str, Any]
 
@@ -236,6 +237,7 @@ class One(L.Signal):
             # Transition times.
             wakeup_duration=5, asleep_duration=300,
             sig=None,
+            sonar_threshold=0.4,
         ):
         self.state = {}
         for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
@@ -288,7 +290,7 @@ class One(L.Signal):
             closest_dist = np.linalg.norm(people_closest['cm'][:2])
 
         if state == STATE_SLEEP:
-            if timer <= 0 or action == 'one=next':
+            if timer <= 0 or action == 'next':
                 self.next_anim('sleep', overwrites)
                 timer = self.sleep_next
 
@@ -310,7 +312,7 @@ class One(L.Signal):
                 timer = self.awake_next
 
         elif state == STATE_AWAKE:
-            if timer <= 0 or action == 'one=next':
+            if timer <= 0 or action == 'next':
                 self.next_anim('awake', overwrites)
                 timer = self.awake_next
 
@@ -346,12 +348,12 @@ class One(L.Signal):
                 state = STATE_AWAKE
                 timer = 0
                 overwrites['action'].append('sub=off')
-            if sonar > 0.4 and timer < 0:
+            if sonar > self.sonar_threshold and timer < 0:
                 overwrites['action'].append('growl=hole')
                 timer = 2
 
         elif state == STATE_HAPPY:
-            if not self.state['charge'] and (sonar > 0.4
+            if not self.state['charge'] and (sonar > self.sonar_threshold
                                              and closest_dist < self.r_z2):
                 overwrites['action'].append('charge=on')
                 overwrites['action'].append('animation=charge')
@@ -372,7 +374,8 @@ class One(L.Signal):
                     valence_attractors.append([-0.4, 1])
                     arousal = max(0, arousal)
 
-        if self.state['charge'] and (sonar < 0.4 or closest_dist > self.r_z2) :
+        if self.state['charge'] and (sonar < self.sonar_threshold
+                                     or closest_dist > self.r_z2):
             overwrites['action'].append('charge=off')
             last_anim = self.state['last_anim']
             overwrites['action'].append(f'animation={last_anim}')
