@@ -335,7 +335,7 @@ def charge():
 def hi():
     return (
         A.R() | S.Lin(S.Const(-1) | S.Int(mod=1)) | S.Mod(1)
-        | palette
+        | P.Palette(P.ultra_rainbows)
     )
 
 @anim
