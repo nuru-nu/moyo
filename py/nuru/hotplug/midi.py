@@ -56,6 +56,8 @@ def signal2midi(data) -> Sequence[midi.Command]:
     elif action == 'hi=off':
         commands += off('E3', channel=2)
 
+    elif action == 'growl=happy':
+        commands += onoff('F4', channel=3)
     elif action == 'growl=angry':
         commands += onoff('D4', channel=3)
     elif action == 'growl=hole':
