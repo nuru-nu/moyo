@@ -260,6 +260,18 @@ export const Kinect = (output, {network}) => {
         }
         let [x, y] = p.cm
 
+        if (p.hasOwnProperty('joint_left_hand') && p.hasOwnProperty('joint_right_hand')){
+          ctx.beginPath()
+          ctx.moveTo(tox(p.cm[0]), toy(p.cm[1]))
+          ctx.lineTo(tox(p.joint_left_hand[0]), toy(p.joint_left_hand[1]))
+          ctx.stroke()
+
+          ctx.beginPath()
+          ctx.moveTo(tox(p.cm[0]), toy(p.cm[1]))
+          ctx.lineTo(tox(p.joint_right_hand[0]), toy(p.joint_right_hand[1]))
+          ctx.stroke()
+        }
+
          ctx.fillStyle = ctx.strokeStyle = cmap.get(p.id)
 
         if (x == 0 && y == 0 && lcm.has(p.id)) {
