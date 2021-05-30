@@ -48,7 +48,7 @@ def signal2midi(data) -> Sequence[midi.Command]:
     elif action == 'charge=off':
         commands += off('C3', channel=2)
     elif action == 'growl=off':
-        commands += off('C#3', channel=2)
+        commands += onoff('C#3', channel=2)
     elif action == 'charge=down':
         commands += onoff('D3', channel=2)
     elif action == 'hi=on':
