@@ -158,8 +158,8 @@ export const Midi = (output) => {
   let channel, octave
   disp.channel.change(value => channel = value).init()
   disp.octave.change(value => octave = value).init()
-  function updatex() {
-    const value = Math.round(parseFloat(disp.xrange.value * 127))
+  function updatex(v) {
+    const value = Math.round(parseFloat(v * 127))
     if (disp.xchoice.value !== '-') {
       sender({midi: `${channel}: ${disp.xchoice.value}=${value}`})
     }
