@@ -32,7 +32,7 @@ cmd_address = args.integrator_address
 if cmd_address != '127.0.0.1':
     cmd_address = '0.0.0.0'
 forwarder = midi.MidiForwarder(
-    midi=midi.Midi(logger),
+    midi=midi.Midi(logger, ignore=args.ignore),
     signal_in=(cmd_address, settings.midi_sig_port),
     signal_out=(args.integrator_address, settings.integrator_sig_port),
     logger=logger,
