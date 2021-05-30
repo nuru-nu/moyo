@@ -35,6 +35,7 @@ STATE_AWAKE = 'awake'
 STATE_ANGRY = 'angry'
 STATE_OK = 'ok'
 STATE_HAPPY = 'happy'
+STATE_HI = 'hi'
 
 _presets = presets.load()
 _presets_by_name = {
@@ -198,6 +199,7 @@ class One(L.Signal):
     asleep_duration: float
     sig: Mapping[str, Any]
     sonar_threshold: float
+    charge_duration: float
 
     state: Mapping[str, Any]
 
@@ -208,6 +210,7 @@ class One(L.Signal):
         timer=0,
         last_anim=None,
         charge=False,
+        pending=[],  # (secs: float, overwrites: dict)
     )
 
     SLEEP_ANIMS = [
@@ -247,6 +250,7 @@ class One(L.Signal):
             wakeup_duration=5, asleep_duration=300,
             sig=None,
             sonar_threshold=0.4,
+            charge_duration=32,
         ):
         self.state = {}
         for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
@@ -288,7 +292,19 @@ class One(L.Signal):
         timer = self.state['timer']
         valence = self.state['valence']
         arousal = self.state['arousal']
+
         timer -= dt
+        pending = []
+        for t, overwrites_ in self.state['pending']:
+            t -= dt
+            if t > 0:
+                pending.append((t, overwrites_))
+            else:
+                for k, v in overwrites_.items():
+                    if isinstance(v, list):
+                        overwrites[k].extend(v)
+                    else:
+                        overwrites[k] = v
 
         people_closest, closest_dist = None, None
         if people:
@@ -362,14 +378,22 @@ class One(L.Signal):
                 timer = 2
 
         elif state == STATE_HAPPY:
+            # Note: charge off transitions are handled below.
             if not self.state['charge'] and (sonar > self.sonar_threshold
                                              and closest_dist < self.r_z2):
                 overwrites['action'].append('charge=on')
                 overwrites['action'].append('animation=charge')
                 self.state['charge'] = True
+                timer = self.charge_duration
                 # print('XXX charge on')
             if valence < 0.25:
                 state = STATE_AWAKE
+                timer = 0
+
+        elif state == STATE_HI:
+            if timer <= 0:
+                state = STATE_AWAKE
+                overwrites['action'].append('hi=off')
                 timer = 0
 
         for person in people:
@@ -383,13 +407,23 @@ class One(L.Signal):
                     valence_attractors.append([-0.4, 1])
                     arousal = max(0, arousal)
 
-        if self.state['charge'] and (sonar < self.sonar_threshold
-                                     or closest_dist > self.r_z2):
-            overwrites['action'].append('charge=off')
-            last_anim = self.state['last_anim']
-            overwrites['action'].append(f'animation={last_anim}')
-            self.state['charge'] = False
-            # print('XXX charge off')
+        if self.state['charge']:
+            if sonar < self.sonar_threshold or closest_dist > self.r_z2:
+                overwrites['action'].append('charge=off')
+                last_anim = self.state['last_anim']
+                # overwrites['action'].append(f'animation={last_anim}')
+                state = STATE_AWAKE
+                timer = 0
+                self.state['charge'] = False
+                overwrites['action'].append('growl=off')
+                # print('XXX charge off')
+            elif self.state['charge'] and timer <= 0:
+                state = STATE_HI
+                overwrites['action'].append('charge=off')
+                overwrites['action'].append('charge=down')
+                pending.append((3, dict(action=['hi=on', 'animation=hi'])))
+                self.state['charge'] = False
+                timer = 3 + 10
 
         dvdt = 0
         valence_attractors.append([0, .2])
@@ -416,6 +450,7 @@ class One(L.Signal):
             timer=timer,
             valence=valence,
             arousal=arousal,
+            pending=pending,
         )
         return dict(
             valence_attractors=valence_attractors,
