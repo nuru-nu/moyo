@@ -363,6 +363,7 @@ class One(L.Signal):
                 state = STATE_HAPPY
                 logging.info('One getting happy')
                 overwrites['action'].append('animation=happy')
+                overwrites['action'].append('growl=happy')
 
             if arousal < -0.9:
                 state = STATE_SLEEP
@@ -410,9 +411,10 @@ class One(L.Signal):
         if self.state['charge']:
             if sonar < self.sonar_threshold or closest_dist > self.r_z2:
                 overwrites['action'].append('charge=off')
-                last_anim = self.state['last_anim']
+                # last_anim = self.state['last_anim']
                 # overwrites['action'].append(f'animation={last_anim}')
-                state = STATE_AWAKE
+                overwrites['action'].append('animation=happy')
+                state = STATE_HAPPY
                 timer = 0
                 self.state['charge'] = False
                 overwrites['action'].append('growl=off')
@@ -421,7 +423,8 @@ class One(L.Signal):
                 state = STATE_HI
                 overwrites['action'].append('charge=off')
                 overwrites['action'].append('charge=down')
-                pending.append((3, dict(action=['hi=on', 'animation=hi'])))
+                pending.append((2, dict(action=['hi=on'])))
+                pending.append((3, dict(action=['animation=hi'])))
                 self.state['charge'] = False
                 timer = 3 + 10
 
