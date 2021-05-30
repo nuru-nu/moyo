@@ -56,7 +56,7 @@ class Kosmos(L.Signal):
     """
 
     INITIAL_STATE = dict(
-        state='off', # off, dream, interact
+        state=None, # off, dream, interact
         timer=0,
         sonar_timer=0,
         log_timer=0,
@@ -93,6 +93,12 @@ class Kosmos(L.Signal):
         log_timer = max(0, log_timer - dt)
         overwrites = {'action': []}
 
+        if action == 'next':
+            timer = 0
+
+        if state is None:
+            state = 'dream' if working_hours else 'off'
+
         if state == 'off':
             if pir or people:
                 state = 'interact'
@@ -120,7 +126,7 @@ class Kosmos(L.Signal):
                     self.f.flush()
                     log_timer = 5
             if timer <= 0:
-                state = 'dream'
+                state = 'dream' if working_hours else 'off'
 
         elif state == 'dream':
             if not working_hours:
