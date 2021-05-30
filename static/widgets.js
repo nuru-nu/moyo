@@ -120,11 +120,23 @@ export const Cmd = (output, {network, defs}) => {
     network.sender({ action })
   }))
 
+  const lastraws = []
+  let lastrawi = 0
   els.raw.addEventListener('keyup', e => {
+    if (e.keyCode === 38 && lastrawi > 0) { // keyup
+      e.target.value = lastraws[--lastrawi]
+    }
+    if (e.keyCode === 40 && lastrawi < lastraws.length - 1) { // keydown
+      e.target.value = lastraws[++lastrawi]
+    }
     if (e.keyCode === 13) {
       const [name, ...value] = e.target.value.split('=')
       network.sender({[name]: value.join('=')})
+      if (lastraws.indexOf(e.target.value) === -1) {
+        lastraws.push(e.target.value)
+      }
       e.target.value = ''
+      lastrawi = lastraws.length
     }
   })
 }
