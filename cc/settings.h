@@ -4,15 +4,17 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/viz/types.hpp>
 
+#include "NiTE.h"
+
 struct person_t {
 
     int id;
-    std::map<std::string, float> depth;
+    std::map<std::string, float> scalars;
     std::map<std::string, cv::Point3d> points_3d;
 } ;
 
 // https://documentation.help/NiTE-2.0/namespacenite.html
-const std::map<std::string, auto> limbs = { 
+const std::map<std::string, nite::JointType> limbs = { 
           {"joint_head", nite::JOINT_HEAD}, 
           {"joint_neck", nite::JOINT_NECK}, 
           {"joint_left_shoulder", nite::JOINT_LEFT_SHOULDER}, 
