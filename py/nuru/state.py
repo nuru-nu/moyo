@@ -112,16 +112,17 @@ class Kosmos(L.Signal):
                 x, y, _ = ps[0]['cm']
                 # x1, x2 =  1, -1.5
                 # x = max(0, min(1, (x - x1) / (x2 - x1)))
-                x = max(0, 1 - (x/3) ** 2)
+                # x = max(0, 1 - (x/3) ** 2)
+                x = max(.2, 1 - np.abs(x) / 1.5)
                 y1, y2 = -5, -3
                 y = (y - y1) / (y2 - y1)
-                y = 0.2 + 5 * np.clip(y, 0, 1) ** 2.5
-                y = max(0, min(1, (y - y1) / (y2 - y1)))
+                y = 0.1 + 0.9 * np.clip(y, 0, 1)
+                # y = max(0, min(1, (y - y1) / (y2 - y1)))
                 overwrites['css'] = [x * 2 - 1, y * 2 - 1]
                 overwrites['anim_both'] = 0.2 + x * 0.8
-                f = lambda a, x, b: a + x * (b - a)
+                f = lambda a, x, b: a + x ** 2.5 * (b - a)
                 # f = lambda a, x, b: np.exp(np.log(a) + x * (np.log(b) - np.log(a)))
-                overwrites['nca_speed'] = f(0.2, y, 10)
+                overwrites['nca_speed'] = f(1, y, 10)
                 timer = self.sleep_secs
                 if log_timer <= 0:
                     now = time.strftime('%Y%m%d_%H%M%S',
@@ -227,7 +228,7 @@ class One(L.Signal):
         'green_awake',
         'orange_excited',
         'beer_sad',
-        'konfetti_happy',
+        'orange_sporadic_spiral',
         'white_awake',
         'orange_awake',
         'orange_curious',
