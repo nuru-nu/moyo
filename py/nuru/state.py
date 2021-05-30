@@ -109,9 +109,12 @@ class Kosmos(L.Signal):
             ps = [p for p in people if p['id'] != 0]
             if ps:
                 x, y, _ = ps[0]['cm']
-                x1, x2 =  1, -1.5
-                y1, y2 = -5, -2.5
-                x = max(0, min(1, (x - x1) / (x2 - x1)))
+                # x1, x2 =  1, -1.5
+                # x = max(0, min(1, (x - x1) / (x2 - x1)))
+                x = max(0, 1 - (x/3) ** 2)
+                y1, y2 = -5, -3
+                y = (y - y1) / (y2 - y1)
+                y = 0.2 + 5 * np.clip(y, 0, 1) ** 2.5
                 y = max(0, min(1, (y - y1) / (y2 - y1)))
                 overwrites['css'] = [x * 2 - 1, y * 2 - 1]
                 overwrites['anim_both'] = 0.2 + x * 0.8
