@@ -69,51 +69,54 @@ const Simulating = (pr) => {
   }
 }
 
-export const Kinect = (output, {network}) => {
+export const Kinect = (output, {network, readonly, headless, width, height}) => {
   const r_z0 = 0.3
   const r_z1 = 2
   const d_z2 = 5
   const d_z3 = 6
-  const width = 200
-  const height = 200
+  width = width || 200
+  height = height || 200
   const xlim = [-3, 3]
   const ylim = [-6, 0] // Needs to be square for arc drawing
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => x / width * (xlim[1] - xlim[0]) + xlim[0]
   const fromy = y => (height - y) / height * (ylim[1] - ylim[0]) + ylim[0]
-  const pr = 8
+  const pr = width / 22
+  const font = `${Math.floor(height / 13)}px Arial`
   const simulating = Simulating(Math.min(
     Math.abs(fromx(0) - fromx(pr)), Math.abs(fromy(0) - fromy(pr))))
   const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('kinect'),
+    headless ? [] : h.div({class: 'header'}).of('kinect'),
     ui.v(
-      ui.h(
+      readonly ? [] : ui.h(
         h.button('simulate').of('simulate'),
         h.button('add', {class: 'h'}).of('add'),
         h.button('del', {class: 'h'}).of('del'),
       ),
-      h.div().of(
+      readonly ? [] : h.div().of(
         ui.range('kinect_dphi', {network, text: null}),
       ),
       h.canvas('xy', {width, height}),
+      readonly ? [] :
       ui.choice('kinect_alg', {network, values:['algo', 'nite', 'merged']})
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
 
-  disp.add.addEventListener('click', simulating.add)
-  disp.del.addEventListener('click', simulating.del)
+  let simulate = false
+  if (!readonly) {
+    disp.add.addEventListener('click', simulating.add)
+    disp.del.addEventListener('click', simulating.del)
+    disp.simulate.addEventListener('click', () => {
+      network.sender({people_override: simulate ? null : [] })
+    })
+  }
 
   disp.xy.addEventListener('click', e => {
     if (!simulate) return
     const {left, top} = disp.xy.getBoundingClientRect()
     simulating.click(fromx(e.clientX - left), fromy(e.clientY - top))
-  })
-
-  let simulate = false
-  disp.simulate.addEventListener('click', () => {
-    network.sender({people_override: simulate ? null : [] })
   })
 
   function background(z0_alpha, z1_alpha, z2_alpha, z3_alpha) {
@@ -196,23 +199,27 @@ export const Kinect = (output, {network}) => {
     // console.log('override?', i++)
     if (data.people_override) {
       simulate = true
-      disp.add.classList.remove('h')
-      disp.del.classList.remove('h')
-      const should_update = simulating.should_update()
-      const people_override = simulating.tick(data.people_override)
-      // console.log(data.people_override)
-      if (should_update) {
-        // current problem: data gets sent every frame but somehow
-        // people_override is only updated 1x per second. FIXME!
-        // network.sender({ people_override })
-        network.sender({ people_override }, 'silent')
+      if (!readonly) {
+        disp.add.classList.remove('h')
+        disp.del.classList.remove('h')
+        const should_update = simulating.should_update()
+        const people_override = simulating.tick(data.people_override)
+        // console.log(data.people_override)
+        if (should_update) {
+          // current problem: data gets sent every frame but somehow
+          // people_override is only updated 1x per second. FIXME!
+          // network.sender({ people_override })
+          network.sender({ people_override }, 'silent')
+        }
+        disp.simulate.classList.add('on')
       }
-      disp.simulate.classList.add('on')
     } else {
       simulate = false
-      disp.add.classList.add('h')
-      disp.del.classList.add('h')
-      disp.simulate.classList.remove('on')
+      if (!readonly) {
+        disp.add.classList.add('h')
+        disp.del.classList.add('h')
+        disp.simulate.classList.remove('on')
+      }
     }
     ctx.clearRect(0, 0, width, height)
 
@@ -290,10 +297,12 @@ export const Kinect = (output, {network}) => {
         ctx.arc(tox(x), toy(y), r, 0, 2 * Math.PI)
         ctx.fill()
 
-        ctx.font = "15px Arial";
-        ctx.fillText(data.likes[p.id].toFixed(2), tox(p.cm[0]) + 7, toy(p.cm[1]) - 7);
+        ctx.font = font
+        ctx.fillText(data.likes[p.id].toFixed(2),
+                     tox(p.cm[0]) + pr,
+                     toy(p.cm[1]) - pr);
         ctx.fillStyle = ctx.strokeStyle = "white";
-        ctx.fillText(p.id, tox(p.cm[0]) - 5, toy(p.cm[1]) + 6);
+        ctx.fillText(p.id, tox(p.cm[0]) - pr / 2, toy(p.cm[1]) + pr / 2);
 
         if (x != 0 || y != 0) lcm.set(p.id, p.cm)
       })

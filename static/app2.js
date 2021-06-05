@@ -1,42 +1,30 @@
 
 import { h, ui } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
+import { Css } from './widgets.js'
+import { Kinect } from './kinect.js'
+import { NcaView } from './nca.js'
 
-const Settings = (output, { network }) => {
-  function slider(name) {
-    return h.div().of(
-      h.span().of(name),
-      ui.range(name, {network}),
-    )
-  }
-  const els = h.div().of(
-    ui.h(
-      h.button('next').of('▶▶'),
-      ' nca=',
-      h.span('nca').of('?'),
-      ' ',
-      h.a('img', {href: '#', target: '_blank'}).of('img'),
-    ),
-    h.div().of(
-      h.button('sparkle').of('sparkle'),
-      slider('speed'),
-      slider('hue'),
-      slider('saturation'),
-      slider('value'),
-      // slider('head'),
-    ),
-  ).into(output).els
 
-  let nca = null
-  network.listenJson('signals', data => {
-    if (data.nca && data.nca != nca) {
-      els.nca.textContent = data.nca
-      const [group, num] = data.nca.split('_')
-      els.img.href = `https://www.robots.ox.ac.uk/~vgg/data/dtd/thumbs/${group}/${data.nca}.jpg`
-      nca = data.nca
-    }
+fetch('/defs').then(resp => resp.json()).then(defs => {
+  const network = Network(null, {secondary: true})
+  const sz = 0.43 * Math.min(window.innerWidth, window.innerHeight)
+  Kinect('#left', {
+    network,
+    readonly: true,
+    headless: true,
+    width: sz, height: sz,
   })
-}
+  Css('#right', {
+    network,
+    readonly: true,
+    headless: true,
+    hidestate: true,
+    width: sz, height: sz,
+  })
+  NcaView('#bottom', { network, height: 0.7 * sz })
+})
 
-const network = Network(null, {secondary: true})
-Settings('#settings', {network})
+document.addEventListener('gesturestart', function (e) {
+  e.preventDefault();
+});
