@@ -136,6 +136,7 @@ cmd_cmd_port = 6108
 midi_sig_port = 6109
 kinect_cmd_port = 6111
 server2_sig_port = 6112
+server3_sig_port = 6113
 
 
 # files
