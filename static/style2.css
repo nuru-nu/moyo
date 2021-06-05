@@ -28,6 +28,9 @@ button {
   text-align: center;
   flex-grow: 1;
 }
+#bottom {
+  margin-top: 10vh;
+}
 .flex {
   /* display: flex; */
 }
