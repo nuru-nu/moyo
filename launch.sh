@@ -31,10 +31,13 @@ tmux selectp -R
 tmux send-keys 'sleep 3' 'C-m' './run nuru.server --port=0 --fadecandy' $CM
 # row 2
 tmux splitw -p 75
-tmux send-keys "./run nuru.server --server_address=${SERVER} --fps=0 --secondary" $CM
+tmux send-keys '(cd fadecandy; ./fcserver config.json)' $CM
 # row 3
 tmux splitw -p 66
-tmux send-keys '(cd fadecandy; ./fcserver config.json)' $CM
+tmux send-keys "./run nuru.server --server_address=${SERVER} --fps=0 --instance=2" $CM
+# row 4
+tmux splitw
+tmux send-keys "./run nuru.server --server_address=${SERVER} --fps=0 --instance=3 --index=index2.html --port=8081" $CM
 # tmux send-keys './run nuru.dmx' $CM
 # row 4
 # tmux splitw -p 66

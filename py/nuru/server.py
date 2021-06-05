@@ -26,8 +26,8 @@ parser.add_argument('--fps', type=int, default=60,
                     '0 to disable.')
 parser.add_argument('--fadecandy', action='store_true',
                     help='Whether to stream animations to fadecandy.')
-parser.add_argument('--secondary', action='store_true',
-                    help='Whether to use alternate UDP signal port.')
+parser.add_argument('--instance', choices=[1, 2, 3], default=1, type=int,
+                    help='Different instances can be run in parallel.')
 parser.add_argument('--index', default='index.html',
                     help='Main web page to serve.')
 parser.add_argument('--restricted', action='store_true',
@@ -205,13 +205,16 @@ async def send_nca_data(request):
 
 client = None
 if args.fadecandy:
-    assert not args.secondary
     client = opc.Client('localhost:7890')
     assert client.can_connect()
     client.set_interpolation(False)
 
 server = Server(static_dir='static', logger=logger, index_html=args.index)
-sig_port = settings.server2_sig_port if args.secondary else settings.server_sig_port
+sig_port = {
+    1: settings.server_sig_port,
+    2: settings.server2_sig_port,
+    3: settings.server3_sig_port,
+}[args.instance]
 udp_forwarding = UdpForwarding(
     '/+signals',
     in_udp=UdpEndpoint(args.integrator_address, sig_port),
