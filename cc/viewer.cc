@@ -71,7 +71,13 @@ int getch() {
 
 
 Viewer::Viewer(const bool gui) : hz_(kHzFast), gui_(gui) {
-  last_img_store_t_ = last_t_ = t0_ = std::chrono::high_resolution_clock::now();
+  
+  last_img_store_t_ = std::chrono::steady_clock::now();
+  last_t_ = std::chrono::steady_clock::now();
+  t0_ = std::chrono::steady_clock::now();
+  t_start_ = std::chrono::steady_clock::now();
+
+
   if (gui) {
     cv::namedWindow("viewer", cv::WINDOW_AUTOSIZE);
   } else {
@@ -123,7 +129,7 @@ void Viewer::update_graphs(const cv::Mat& img,
     /*thickness=fill=*/-1);
 
   for(int i = 0; i != people.size(); i++){
-    for(const auto& pair : people[i].depth) {
+    for(const auto& pair : people[i].scalars) {
 
       const int depth = graphs_.cols / 2 + static_cast<int>(
                                   (pair.second / 10000) * graphs_.cols / 2);
@@ -176,7 +182,7 @@ void Viewer::update(const cv::Mat& img,
 
   if (!should_dump_ && !gui_) return;
 
-  const auto t = std::chrono::high_resolution_clock::now();
+  const auto t = std::chrono::steady_clock::now();
   const long long microseconds =
     std::chrono::duration_cast<std::chrono::microseconds>(t - last_t_).count();
   last_t_ = t;
@@ -187,11 +193,14 @@ void Viewer::update(const cv::Mat& img,
   }
   t0_ = t;
 
+  const long dt_seconds =
+    std::chrono::duration_cast<std::chrono::seconds>(t - t_start_).count();
+    
   const std::string features_string =
     string_format("presence=%.2f", features.presence());
   const double fps = 1e6 / static_cast<double>(microseconds);
   const std::string fps_string =
-    string_format("fps=%.2f display_fps=%.2f", fps, hz_);
+    string_format("fps=%.2f display_fps=%.2f, t=%i s", fps, hz_, dt_seconds);
 
   double min, max;
   cv::Point minloc, maxloc;

@@ -38,7 +38,7 @@ class Viewer {
 
     const bool gui_;
     float hz_;
-    std::chrono::high_resolution_clock::time_point t0_, last_t_, last_img_store_t_;
+    std::chrono::steady_clock::time_point t0_, last_t_, last_img_store_t_, t_start_;
     bool should_quit_ = false;
     bool should_store_ = false;
     bool should_record_ = false;

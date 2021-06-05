@@ -132,22 +132,22 @@ state_signals = dict(
     wakeup=state.Reservoir(
         state.STATE_WAKEUP,
         start=0,
-        diff=1/5,
+        diff=1 / 5,
     ),
     active=state.Reservoir(
         state.STATE_AWAKE,
         start=1,
-        diff=(
-            (N.closest | S.To(0, .4))
-            + S.Const(-1/180)
-        ),
+        diff=((N.closest | S.To(0, .4)) + S.Const(-1 / 180)),
     ),
-    charge=S.ActionOnOff('charge=on', 'charge=off')  | S.Ramps(0.17, 0.75),
+    charge=S.ActionOnOff('charge=on', 'charge=off') | S.Ramps(0.17, 0.75),
     animation=S.ActionLatch('animation=(.*)', N.animation),
     scene=S.ActionLatch('scene=(.*)', N.scene),
     mode=S.ActionLatch('mode=(.*)', N.mode),
     # One of these is selected by "mode".
-    state_one=state.One(r_z2=R_Z2, sig=N.state_one, wakeup_duration=10),
+    state_one=state.One(r_z2=R_Z2,
+                        sig=N.state_one,
+                        wakeup_duration=10,
+                        sonar_threshold=0.1),
     state_kosmos=state.Kosmos(sig=N.state_kosmos),
     state_rnca=state.RNCA(secs=60),
     css=state.Css(alpha=L.Named('css_alpha')),
@@ -197,7 +197,7 @@ kinect_signals = dict(
     distance=S.KinectDistance(),
     mvmt=S.KinectMovement(5),
 )
-    
+
 numbers_features = dict(
     fc=S.ActionLatch('fc=(.*)', 0, int),
     n_people=L.Named('people') | S.Length(),

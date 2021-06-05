@@ -42,10 +42,22 @@ def signal2midi(data) -> Sequence[midi.Command]:
         commands += onoff('E0')
     elif action == 'scene=stop':
         commands += onoff('B2')
+
     elif action == 'charge=on':
         commands += on('C3', channel=2)
     elif action == 'charge=off':
         commands += off('C3', channel=2)
+    elif action == 'growl=off':
+        commands += onoff('C#3', channel=2)
+    elif action == 'charge=down':
+        commands += onoff('D3', channel=2)
+    elif action == 'hi=on':
+        commands += on('E3', channel=2)
+    elif action == 'hi=off':
+        commands += off('E3', channel=2)
+
+    elif action == 'growl=happy':
+        commands += onoff('F4', channel=3)
     elif action == 'growl=angry':
         commands += onoff('D4', channel=3)
     elif action == 'growl=hole':

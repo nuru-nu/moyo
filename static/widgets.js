@@ -104,7 +104,7 @@ export const Subsample = (output, {network}) => {
 
 export const Cmd = (output, {network, defs}) => {
   const actions = [
-    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'one=next',
+    'fc=0', 'fc=1', 'fc=2', 'fc=3', 'next',
     'growl=angry', 'sub=on', 'sub=off', 'growl=hole',
     'dream',
   ]
@@ -120,11 +120,23 @@ export const Cmd = (output, {network, defs}) => {
     network.sender({ action })
   }))
 
+  const lastraws = []
+  let lastrawi = 0
   els.raw.addEventListener('keyup', e => {
+    if (e.keyCode === 38 && lastrawi > 0) { // keyup
+      e.target.value = lastraws[--lastrawi]
+    }
+    if (e.keyCode === 40 && lastrawi < lastraws.length - 1) { // keydown
+      e.target.value = lastraws[++lastrawi]
+    }
     if (e.keyCode === 13) {
       const [name, ...value] = e.target.value.split('=')
       network.sender({[name]: value.join('=')})
+      if (lastraws.indexOf(e.target.value) === -1) {
+        lastraws.push(e.target.value)
+      }
       e.target.value = ''
+      lastrawi = lastraws.length
     }
   })
 }
@@ -158,8 +170,8 @@ export const Midi = (output) => {
   let channel, octave
   disp.channel.change(value => channel = value).init()
   disp.octave.change(value => octave = value).init()
-  function updatex() {
-    const value = Math.round(parseFloat(disp.xrange.value * 127))
+  function updatex(v) {
+    const value = Math.round(parseFloat(v * 127))
     if (disp.xchoice.value !== '-') {
       sender({midi: `${channel}: ${disp.xchoice.value}=${value}`})
     }

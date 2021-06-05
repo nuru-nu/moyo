@@ -118,7 +118,7 @@ int SignalSender::send_tracking_data(
       id_value.set_string(std::to_string(person.id));
       person_jobject.add_property("id", id_value);
 
-      for(const auto& pair : person.depth) {
+      for(const auto& pair : person.scalars) {
         jute::jValue value(jute::JNUMBER);
         value.set_string(std::to_string(pair.second));
         person_jobject.add_property(pair.first, value);
