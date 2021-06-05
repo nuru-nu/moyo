@@ -86,10 +86,11 @@ def flash():
     return A.FullOn(C.RGB(x, x, x))
 
 
+@anim
 def R():
     return (
         A.R() | S.Lin(
-            L.Named('v0') | S.To(0, 3) | S.Int(mod=1)
+            L.Named('v0') | S.To(-2, 2) | S.Int(mod=1)
         ) | S.Mod(1)
         | palette
     )
@@ -329,6 +330,13 @@ def charge():
     anim2 = A.Proj(images['covid_nmn'], scale=0.6, rotate=rot2)
     anim2 = anim2 | S.To(0, ctrl | S.From(0.5, 1) | S.To(0, 0.8) | S.Clip())
     return A.Sum(anim1, anim2)
+
+@anim
+def hi():
+    return (
+        A.R() | S.Lin(S.Const(-1) | S.Int(mod=1)) | S.Mod(1)
+        | P.Palette(P.ultra_rainbows)
+    )
 
 @anim
 def rotimg():

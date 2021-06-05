@@ -242,7 +242,7 @@ std::vector<person_t> Hardware::deduce_3D_cos(cv::Mat &depth_image){
 
     person.id = idx;
 
-    person.depth.insert(std::pair<std::string, float>("cm_depth", depth_image.at<ushort>(int(p.second.y), int(p.second.x))));
+    person.scalars.insert(std::pair<std::string, float>("cm_depth", depth_image.at<ushort>(int(p.second.y), int(p.second.x))));
     
     person.points_3d.insert(std::pair<std::string, cv::Point3d>("cm",
                                                   cv::Point3d((float) x,
@@ -277,7 +277,7 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                    user.getCenterOfMass().z,
                                    x, y, z);
 
-    person.depth.insert(std::pair<std::string, float>("cm_depth",
+    person.scalars.insert(std::pair<std::string, float>("cm_depth",
                                                   user.getCenterOfMass().z));
 
     person.points_3d.insert(std::pair<std::string, cv::Point3d>("cm",
@@ -285,20 +285,23 @@ std::vector<person_t> Hardware::get_tracking_data() {
                                                               (float) y,
                                                               (float) z)));
 
+    person.points_3d.insert(std::pair<std::string, cv::Point3d>("joints", cv::Point3d(0,0,0)));
     if (user.getSkeleton().getState() == nite::SKELETON_TRACKED)
     {
       for(const auto limb : limbs){
         const nite::SkeletonJoint& joint = user.getSkeleton().getJoint(limb.second);
-        if (joint.getPositionConfidence() > .5){
-          convertJointCoordinatesToWorld(joint.getPosition().x,
-                                      joint.getPosition().y,
-                                      joint.getPosition().z,
-                                      x, y, z);
-          person.points_3d.insert(std::pair<std::string, cv::Point3d>(limb.first,
-                                                        cv::Point3d((float) x,
-                                                                    (float) y,
-                                                                    (float) z)));                                      
-        }
+
+        person.scalars.insert(std::pair<std::string, float>(limb.first,
+                                                  joint.getPositionConfidence()));
+
+        convertJointCoordinatesToWorld(joint.getPosition().x,
+                                    joint.getPosition().y,
+                                    joint.getPosition().z,
+                                    x, y, z);
+        person.points_3d.insert(std::pair<std::string, cv::Point3d>(limb.first,
+                                                      cv::Point3d((float) x,
+                                                                  (float) y,
+                                                                  (float) z)));                                      
       }
     }
 
