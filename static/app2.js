@@ -7,7 +7,7 @@ import { Kinect } from './kinect.js'
 
 fetch('/defs').then(resp => resp.json()).then(defs => {
   const network = Network(null, {secondary: true})
-  const sz = 300
+  const sz = 0.40 * Math.min(window.innerWidth, window.innerHeight)
   Kinect('#left', {
     network,
     readonly: true,
