@@ -243,16 +243,16 @@ export const Midi = (output) => {
   }
 }
 
-export const Css = (output, {network}) => {
-  const width = 200
-  const height = 200
+export const Css = (output, {network, readonly, headless, width, height, hidestate}) => {
+  width = width || 200
+  height = height || 200
   const xlim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
   const ylim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
-  const r = 8
+  const r = width / 25
   const disp = h.div({class: 'flex widget'}).of(
-    h.div({class: 'header'}).of('css'),
+    headless ? [] : h.div({class: 'header'}).of('css'),
     ui.v(
-      h.div().of(
+      readonly ? [] : h.div().of(
         h.button('clear').of('clear'),
         ' α=',
         h.input('alpha', {type: 'range', min: 5, max: 100, value: 10}),
@@ -263,10 +263,12 @@ export const Css = (output, {network}) => {
   ).into(output).els
   const ctx = disp.xy.getContext('2d')
 
-  disp.clear.addEventListener('click', () => network.sender({target_css: null}))
-  disp.alpha.addEventListener('input', e => {
-    network.sender({css_alpha: parseFloat(e.target.value)})
-  })
+  if (!readonly) {
+    disp.clear.addEventListener('click', () => network.sender({target_css: null}))
+    disp.alpha.addEventListener('input', e => {
+      network.sender({css_alpha: parseFloat(e.target.value)})
+    })
+  }
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
@@ -277,10 +279,11 @@ export const Css = (output, {network}) => {
     network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
   })
 
+  const font = `${Math.floor(height / 13)}px Arial`
   function background(css) {
     ctx.lineWidth = 4
     ctx.strokeStyle = ctx.fillStyle = 'white'
-    ctx.font = "15px Arial";
+    ctx.font = font
     ctx.globalAlpha = 0.2
     if (css[0] < -0.25 && css[1] > 0){
       ctx.globalAlpha = 1
@@ -320,7 +323,7 @@ export const Css = (output, {network}) => {
     ctx.lineTo(width/2, height)
     ctx.closePath()
 
-    const darr = 10
+    const darr = height / 20
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width, height/2)
@@ -345,7 +348,7 @@ export const Css = (output, {network}) => {
 
     if (target_css) {
       ctx.strokeStyle = '#f00'
-      ctx.lineWidth = 2
+      ctx.lineWidth = Math.max(2, width / 100)
       ctx.beginPath()
       ctx.arc(tox(target_css[0]), toy(target_css[1]), r * 1.4, 0, 2 * Math.PI)
       ctx.stroke()
@@ -356,14 +359,14 @@ export const Css = (output, {network}) => {
       ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
       ctx.fill()
     }
-    if (css_alpha) disp.alpha.value = css_alpha
+    if (!readonly && css_alpha) disp.alpha.value = css_alpha
 
-    if (data.mode == 'one' && data.state_one) {
+    if (data.mode == 'one' && data.state_one && !hidestate) {
       const s = data.state_one
       disp.state.textContent = `one: ${s.state} (t=${Math.floor(s.timer)})`
     }
 
-    if (data.mode == 'kosmos' && data.state_kosmos) {
+    if (data.mode == 'kosmos' && data.state_kosmos && !hidestate) {
       const s = data.state_kosmos
       const t1 = Math.floor(Math.max(0, data.state_kosmos.timer))
       const t2 = Math.floor(Math.max(0, data.state_kosmos.sonar_timer))

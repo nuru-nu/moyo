@@ -166,8 +166,7 @@ async def send_kinect(request):
     )
 
 
-async def send_nca(request):
-    # import pdb; pdb.set_trace()
+def get_nca_models(request):
     nca_path = os.path.join(
         os.path.dirname(__file__),
         os.pardir,
@@ -180,16 +179,27 @@ async def send_nca(request):
     models = nca.export_models_to_js({
         name: np.load(f'{nca_path}/{name}.npy', allow_pickle=True),
     })
+    return models
+
+
+async def send_nca(request):
     content = open(os.path.join(
         os.path.dirname(__file__),
         os.pardir,
         os.pardir,
         'static',
         'ca.html'
-    )).read().replace('__models__', json.dumps(models))
+    )).read().replace('__models__', json.dumps(get_nca_models(request)))
     return web.Response(
         content_type='text/html',
         body=content,
+    )
+
+
+async def send_nca_data(request):
+    return web.Response(
+        content_type='Application/JSON',
+        text=json.dumps(get_nca_models(request)),
     )
 
 
@@ -208,6 +218,7 @@ udp_forwarding = UdpForwarding(
     out_udp=UdpEndpoint(args.integrator_address, settings.integrator_cmd_port),
 )
 server.forward_udp(udp_forwarding)
+server.routes.append(web.get('/nca_data', send_nca_data))
 server.routes.append(web.get('/nca', send_nca))
 
 if not args.restricted:
