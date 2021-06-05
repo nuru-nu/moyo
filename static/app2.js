@@ -3,11 +3,12 @@ import { h, ui } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Css } from './widgets.js'
 import { Kinect } from './kinect.js'
+import { NcaView } from './nca.js'
 
 
 fetch('/defs').then(resp => resp.json()).then(defs => {
   const network = Network(null, {secondary: true})
-  const sz = 0.40 * Math.min(window.innerWidth, window.innerHeight)
+  const sz = 0.43 * Math.min(window.innerWidth, window.innerHeight)
   Kinect('#left', {
     network,
     readonly: true,
@@ -21,6 +22,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
     hidestate: true,
     width: sz, height: sz,
   })
+  NcaView('#bottom', { network, height: 0.7 * sz })
 })
 
 document.addEventListener('gesturestart', function (e) {
