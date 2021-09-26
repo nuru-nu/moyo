@@ -37,5 +37,5 @@ if [ "$2" != reuse ]; then
 fi
 
 out="$(basename "$1")".mp4
-ffmpeg -start_number 0 -i tmp/img%03d.jpg -r 25 -b 80M -c:v libx264 "$out"
+ffmpeg -start_number 0 -i tmp/img%03d.jpg -r 25 -b 80M -c:v libx264 -x264opts keyint=1 "$out"
 ls -lh "$out"
