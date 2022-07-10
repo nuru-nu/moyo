@@ -228,7 +228,7 @@ class One(L.Signal):
         'green_awake',
         'orange_excited',
         'beer_sad',
-        'orange_sporadic_spiral',
+        # 'orange_sporadic_spiral',
         'white_awake',
         'orange_awake',
         'orange_curious',
