@@ -268,6 +268,9 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     disp.alpha.addEventListener('input', e => {
       network.sender({css_alpha: parseFloat(e.target.value)})
     })
+    disp.xy.addEventListener('click', e => {
+      network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
+    })
   }
 
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
@@ -275,13 +278,12 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
   const fromx = x => xlim[0] + x / width * (xlim[1] - xlim[0])
   const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
-  disp.xy.addEventListener('click', e => {
-    network.sender({target_css: [fromx(e.offsetX), fromy(e.offsetY)]})
-  })
-
-  const font = `${Math.floor(height / 13)}px Arial`
   function background(css) {
-    ctx.lineWidth = 4
+    var font_height = Math.floor(height / 20)
+    var font = `${font_height}px Arial`
+    var font2 = `${font_height * 1.5}px Arial`
+
+    ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = 'white'
     ctx.font = font
     ctx.globalAlpha = 0.2
@@ -295,14 +297,14 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     if (css[0] > 0.25 && css[1] > 0){
       ctx.globalAlpha = 1
     }
-    ctx.fillStyle = '#fc03fc' // Happy
+    ctx.fillStyle = '#7b03fc' // Happy
     ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0))
 
     ctx.globalAlpha = 0.2
     if (css[0] > -0.25 && css[0] < 0.25 && css[1] > 0){
       ctx.globalAlpha = 1
     }
-    ctx.fillStyle = '#ebc034' // Neutral
+    ctx.fillStyle = '#ebc034' // Calm
     ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0))
 
     ctx.globalAlpha = 0.2
@@ -313,9 +315,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1))
     ctx.globalAlpha = 1
     
-    ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = 'white'
-    ctx.fillText("CSS", 0, height);
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
@@ -323,7 +323,42 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.lineTo(width/2, height)
     ctx.closePath()
 
-    const darr = height / 20
+    // Arrow Heads
+    const darr = height / 30
+    var x =  width / 2 - ctx.measureText("High").width - font_height / 2
+    ctx.fillText("High", x, 2* darr + font_height / 2);
+    ctx.fillText("Arousal", width / 2 + font_height / 2, 2* darr + font_height / 2);
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(width/2, 0)
+    ctx.lineTo(width/2-darr, darr)
+    ctx.lineTo(width/2+darr, darr)
+    ctx.closePath()
+    ctx.fill()
+
+    var x =  width / 2 - ctx.measureText("Low").width - font_height / 2
+    ctx.fillText("Low", x, height - darr - font_height / 2);
+    ctx.fillText("Arousal", width / 2 + font_height / 2, height - darr - font_height / 2);
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(width/2, height)
+    ctx.lineTo(width/2-darr, height-darr)
+    ctx.lineTo(width/2+darr, height-darr)
+    ctx.closePath()
+    ctx.fill()
+
+    var x =  (width / 2 - ctx.measureText("Negative").width) / 2
+    ctx.fillText("Negative", width / 8, height / 2 + 3*font_height / 3);
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(0, height/2)
+    ctx.lineTo(darr, height/2-darr)
+    ctx.lineTo(darr, height/2+darr)
+    ctx.closePath()
+    ctx.fill()
+
+    var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 2 
+    ctx.fillText("Positive", x, height / 2 + 3*font_height / 3);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width, height/2)
@@ -333,12 +368,17 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fill()
 
     ctx.stroke()
-    ctx.beginPath()
-    ctx.moveTo(width/2, 0)
-    ctx.lineTo(width/2-darr, darr)
-    ctx.lineTo(width/2+darr, darr)
-    ctx.closePath()
-    ctx.fill()
+
+    ctx.font = font2
+    ctx.strokeStyle = ctx.fillStyle = 'white'
+    var emo_width = (tox(-0.25) - tox(-1))
+    var x = (emo_width - ctx.measureText("Angry").width) / 2
+    ctx.fillText("Angry", x, height / 4 + font_height/3);
+    var x = width - ((emo_width - ctx.measureText("Happy").width) / 2 + ctx.measureText("Happy").width)
+    ctx.fillText("Happy", x, height / 4 + font_height/3);
+    ctx.fillText("Calm", width / 2 - ctx.measureText("Calm").width / 2, height / 4 + font_height/3);
+    ctx.fillText("Sleep", width / 2 - ctx.measureText("Sleep").width / 2,  7  *height / 8);
+
   }
 
   network.listenJson('signals', function listener(data) {
