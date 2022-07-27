@@ -76,8 +76,8 @@ export const Kinect = (output, {network, readonly, headless, width, height}) => 
   const d_z3 = 6
   width = width || 200
   height = height || 200
-  const xlim = [-3, 3]
-  const ylim = [-6, 0] // Needs to be square for arc drawing
+  const xlim = [-3, 3.01]
+  const ylim = [-6, -0.01] // Needs to be square for arc drawing
   const tox = x => width  * (x - xlim[0]) / (xlim[1] - xlim[0])
   const toy = y => height - height * (y - ylim[0]) / (ylim[1] - ylim[0])
   const fromx = x => x / width * (xlim[1] - xlim[0]) + xlim[0]
@@ -173,9 +173,7 @@ export const Kinect = (output, {network, readonly, headless, width, height}) => 
     ctx.stroke()
 
     ctx.globalAlpha = 1;
-    ctx.fillStyle = ctx.strokeStyle = "white";
-
-
+    ctx.fillStyle = ctx.strokeStyle = '#3b3b3b';
     ctx.lineWidth = 1
     ctx.beginPath()
     for (let x = Math.floor(xlim[0] - 1); x <= xlim[1]; ++x) {
@@ -301,7 +299,9 @@ export const Kinect = (output, {network, readonly, headless, width, height}) => 
         ctx.fillText(data.likes[p.id].toFixed(2),
                      tox(p.cm[0]) + pr,
                      toy(p.cm[1]) - pr);
-        ctx.fillStyle = ctx.strokeStyle = "white";
+        ctx.fillStyle = (colors.user_colors_bright.indexOf(ctx.fillStyle) !== -1 ?
+                         "black" : "white")
+        ctx.strokeStyle = ctx.fillStyle
         ctx.fillText(p.id, tox(p.cm[0]) - pr / 2, toy(p.cm[1]) + pr / 2);
 
         if (x != 0 || y != 0) lcm.set(p.id, p.cm)
