@@ -154,9 +154,9 @@ export const Midi = (output) => {
     ui.v(
       ui.h(
         'channel ',
-        ui.choice('channel', {values: ['1', '2', '3', '4']}),
+        ui.choice('channel', {values: ['1', '2', '3', '4', '5']}),
         'octave ',
-        ui.choice('octave', {values: ['0', '1', '2', '3', '4'], initial: '2'}),
+        ui.choice('octave', {values: ['0', '1', '2', '3', '4', '5'], initial: '2'}),
       ),
       notes.map(note => h.button(note).of(note)),
       h.div('cont'),
@@ -315,7 +315,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1))
     ctx.globalAlpha = 1
     
-    ctx.strokeStyle = ctx.fillStyle = 'white'
+    ctx.strokeStyle = ctx.fillStyle = '#bababa'
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
