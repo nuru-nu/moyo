@@ -219,6 +219,7 @@ class One(L.Signal):
         'blue_sleep',
         'stout_sleep',
         'dots_sleep',
+        'spiral_sleep',
     ]
     AWAKE_ANIMS = [
         'cristal_neutral',
@@ -242,6 +243,7 @@ class One(L.Signal):
     # WAKEUP_ANIMS = [
     #     'wakeup',
     # ]
+    HAPPY_MIDI_FMT = '5: C5 {}'
 
     def init(self,
             r_z2,
@@ -287,7 +289,7 @@ class One(L.Signal):
 
         if mode != 'one':
             return None
-        valence_attractors, overwrites = [], {'action': []}
+        valence_attractors, overwrites = [], {'action': [], 'midi': []}
 
         state = self.state['state']
         timer = self.state['timer']
@@ -410,15 +412,17 @@ class One(L.Signal):
                     arousal = max(0, arousal)
 
         if self.state['charge']:
-            if sonar < self.sonar_threshold or closest_dist > self.r_z2:
+            if (sonar < self.sonar_threshold or closest_dist > self.r_z2 or
+                state == STATE_ANGRY):
+                self.state['charge'] = False
                 overwrites['action'].append('charge=off')
+                overwrites['action'].append('growl=off')
                 # last_anim = self.state['last_anim']
                 # overwrites['action'].append(f'animation={last_anim}')
-                overwrites['action'].append('animation=happy')
-                state = STATE_HAPPY
+                if state != STATE_ANGRY:
+                    overwrites['action'].append('animation=happy')
+                    state = STATE_HAPPY
                 timer = 0
-                self.state['charge'] = False
-                overwrites['action'].append('growl=off')
                 # print('XXX charge off')
             elif self.state['charge'] and timer <= 0:
                 state = STATE_HI
@@ -444,6 +448,10 @@ class One(L.Signal):
             max(-1, min(1, arousal)),
         ]
         if state != self.state['state']:
+            if state == STATE_HAPPY:
+                overwrites['midi'].append(self.HAPPY_MIDI_FMT.format('on'))
+            if self.state['state'] == STATE_HAPPY:
+                overwrites['midi'].append(self.HAPPY_MIDI_FMT.format('off'))
             overwrites['action'] += [
                 f'state={state}',
             ]
