@@ -922,6 +922,50 @@
       },
       "mtime": "20210523_2205",
       "ctime": "20210523_2205"
+    },
+    {
+      "name": "orange_sporadic_spiral",
+      "author": "Gabriel",
+      "signals": {
+        "animation": "nca",
+        "anim_both": 0.9857704232253579,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_mix": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca": "scaly_0186",
+        "nca_speed": 3.1481994680430834,
+        "nca_clip": true,
+        "nca2": "smeared_0041",
+        "nca_speed2": 1,
+        "nca_clip2": true
+      },
+      "mtime": "20210530_2338",
+      "ctime": "20210530_2338"
+    },
+    {
+      "name": "cristal_excited",
+      "author": "Andreas",
+      "signals": {
+        "animation": "nca",
+        "anim_both": 1,
+        "anim_head": 1,
+        "anim_arms": 1,
+        "anim_mix": 1,
+        "anim_hue": 0,
+        "anim_sat": 1,
+        "nca": "crystalline_0204",
+        "nca_speed": 1,
+        "nca_wrapx": 1,
+        "nca_clip": true,
+        "nca2": "bubbly_0166",
+        "nca_speed2": 1,
+        "nca_wrapx2": 1,
+        "nca_clip2": true
+      },
+      "mtime": "20210605_1703",
+      "ctime": "20210605_1703"
     }
   ]
 }
