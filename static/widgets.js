@@ -315,7 +315,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1))
     ctx.globalAlpha = 1
     
-    ctx.strokeStyle = ctx.fillStyle = '#bababa'
+    ctx.strokeStyle = ctx.fillStyle = 'white'
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
@@ -348,7 +348,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fill()
 
     var x =  (width / 2 - ctx.measureText("Negative").width) / 2
-    ctx.fillText("Negative", width / 8, height / 2 + 3*font_height / 3);
+    ctx.fillText("Negative", x, height / 2 + 3*font_height / 3);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(0, height/2)
