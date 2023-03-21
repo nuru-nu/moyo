@@ -17,6 +17,10 @@ timetracing = False
 log_debug = False
 
 
+# GC Speech to text
+
+google_default_credentials_path = "../../credentials/application_default_credentials.json"
+
 # audio
 ###############################################################################
 
