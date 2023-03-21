@@ -20,6 +20,12 @@ pip install -r requirements.txt
 
 note that on OS X you have to install portaudio & specify some extra parameters:
 
+Install with brew
+brew install portaudio
+find / -name portaudio.h 2>/dev/null # Find the port audio, usually in ~/homebrew/
+CFLAGS="-I/path_to_ort_audio/include -L/path_to_ort_audio/lib" python -m pip install pyaudio
+
+
 ```
 brew install portaudio &&
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
@@ -109,7 +115,7 @@ cd /Applications/Blender/blender.app/Contents/Resources/2.79/python/bin
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ./python3.5m get-pip.py
 C_INCLUDE_PATH=/usr/local/Cellar/python//3.6.4_2/Frameworks/Python.framework/Versions/3.6/include/python3.6m ./pip3 install scipy pyaudio
-ln -s /Applications/Blender/blender.app/Contents/Resources/2.79/python/lib/python3.5/site-packages /Applications/Blender/blenderplayer.app/Contents/Resources/2.79/python/lib/python3.5/site-packages 
+ln -s /Applications/Blender/blender.app/Contents/Resources/2.79/python/lib/python3.5/site-packages /Applications/Blender/blenderplayer.app/Contents/Resources/2.79/python/lib/python3.5/site-packages
 (also renamed old numpy installation)
 
 ### Git
@@ -152,4 +158,3 @@ View with w.g. Google Cardboard:
 6. (tf.ipynb) run experiments
 7. (tf.ipynb) store new model
 8. (hotplug_signals.ipynb) load & use new model
-
