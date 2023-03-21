@@ -19,3 +19,4 @@ pyserial
 tensorflow_cpu
 yapf
 google-cloud-speech
+openai
