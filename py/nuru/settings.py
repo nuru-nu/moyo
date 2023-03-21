@@ -3,6 +3,7 @@
 import collections, os, subprocess
 from dataclasses import dataclass
 import sys
+import json
 
 import numpy as np  # type: ignore
 import pyaudio  # type: ignore
@@ -17,9 +18,20 @@ timetracing = False
 log_debug = False
 
 
+# ChatGPT
+
+openai_api_key = "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"
+
+with open('shimoni_prompts.json') as json_file:
+    chatgpt_personas = json.load(json_file)
+
+
 # GC Speech to text
 
-google_default_credentials_path = "../../credentials/application_default_credentials.json"
+google_default_credentials_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "credentials/application_default_credentials.json"
+)
 
 # audio
 ###############################################################################
