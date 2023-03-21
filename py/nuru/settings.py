@@ -25,10 +25,11 @@ openai_api_key = "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"
 with open('shimoni_prompts.json') as json_file:
     chatgpt_personas = json.load(json_file)
 
+chat_gpt_model = "gpt-3.5-turbo"
 
 # GC Speech to text
 
-google_default_credentials_path = os.path.join(
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "credentials/application_default_credentials.json"
 )
@@ -46,6 +47,7 @@ if is_osx:
 else:
     in_channels = 2
 rate = 16000
+chunk = int(rate / 10)  # 100ms
 
 # Sample rate output 1
 out1_rate = 44100

@@ -10,12 +10,6 @@ from google.cloud import speech
 import pyaudio
 from six.moves import queue
 
-# Audio recording parameters
-RATE = 16000
-CHUNK = int(RATE / 10)  # 100ms
-
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = settings.google_default_credentials_path
-
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
 
@@ -148,7 +142,7 @@ def main():
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=RATE,
+        sample_rate_hertz=settings.rate,
         language_code=language_code,
     )
 
@@ -156,7 +150,7 @@ def main():
         config=config, interim_results=True
     )
 
-    with MicrophoneStream(RATE, CHUNK) as stream:
+    with MicrophoneStream(settings.rate, settings.chunk) as stream:
         audio_generator = stream.generator()
         requests = (
             speech.StreamingRecognizeRequest(audio_content=content)
