@@ -3,7 +3,7 @@ from __future__ import division
 import re
 import sys
 import os
-import settings
+from nuru import settings
 
 from google.cloud import speech
 

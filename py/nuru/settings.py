@@ -17,20 +17,21 @@ is_interactive = not hasattr(main, '__file__')
 timetracing = False
 log_debug = False
 
+nuru_path = os.path.dirname(os.path.abspath(__file__))
 
 # ChatGPT
 
 openai_api_key = "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"
 
-with open('shimoni_prompts.json') as json_file:
+with open(os.path.join(nuru_path,'shimoni_prompts.json')) as json_file:
     chatgpt_personas = json.load(json_file)
 
-chat_gpt_model = "gpt-3.5-turbo"
+chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo"][1]
 
 # GC Speech to text
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
+    nuru_path,
     "credentials/application_default_credentials.json"
 )
 
@@ -155,6 +156,7 @@ midi_sig_port = 6109
 kinect_cmd_port = 6111
 server2_sig_port = 6112
 server3_sig_port = 6113
+chatgpt_cmd_port = 6114
 
 
 # files
