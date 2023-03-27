@@ -28,6 +28,8 @@ with open(os.path.join(nuru_path,'shimoni_prompts.json')) as json_file:
 
 chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo"][1]
 
+gpt_hz = 4
+
 # GC Speech to text
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
@@ -156,8 +158,7 @@ midi_sig_port = 6109
 kinect_cmd_port = 6111
 server2_sig_port = 6112
 server3_sig_port = 6113
-chatgpt_cmd_port = 6114
-
+gpt_cmd_port = 6114
 
 # files
 ###############################################################################
