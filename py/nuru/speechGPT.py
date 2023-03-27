@@ -3,6 +3,8 @@ from __future__ import division
 import re
 import sys
 import argparse
+import threading
+import time
 
 from google.cloud import speech
 import nuru.gc_speech_to_text as stt
@@ -33,14 +35,17 @@ openai.api_key = settings.openai_api_key
 class ChatGPTComms:
     """Class for communicating with ChatGPT"""
 
-    def __init__(self, integrator_sig_port, system_message):
+    def __init__(self, integrator_sig_port, status_address, gpt_cmd_port, system_message):
         """Initialize the ChatGPTComms class"""
 
+        self.integrator_sig_port = integrator_sig_port
         self.emo_state = {"valence": 0, "arousal": 0}
         self.speech = ""
         self.answer = ""
-        self.integrator_sig_port = integrator_sig_port
+        self.network_msg = ""   
 
+        self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
+        self.lock = threading.Lock()
         self.messages = [
             {
                 "role": "system",
@@ -49,10 +54,45 @@ class ChatGPTComms:
         ]
 
     def __call__(self, responses):
+        """Run read_network_responses and read_audio_responses in parallel."""
+
+        # Create threads for read_network_responses and read_audio_responses
+        network_thread = threading.Thread(target=self.read_network_responses)
+        audio_thread = threading.Thread(target=self.read_audio_responses, args=(responses,))
+
+        # Start both threads
+        network_thread.start()
+        audio_thread.start()
+
+        # Wait for both threads to complete
+        network_thread.join()
+        audio_thread.join()
+
+    def read_network_responses(self):
+        """Process and respond to user input from network"""
+
+        while True:
+            data = network.get_json(self.sock, None)
+            if data and "gpt_msg" in data:
+
+                network.send(self.integrator_sig_port, dict(responding_network_gpt=1))
+
+                self.network_msg = data["gpt_msg"]
+                logger.info(f"Network: {self.network_msg}")
+
+                # Generate a response using ChatGPT
+                with self.lock:
+                    self.answer = self.get_chatGPT_response(self.network_msg)
+
+                logger.info(f"ChatGPT: {self.answer}")
+                network.send(self.integrator_sig_port, dict(responding_network_gpt=0))
+            time.sleep(1 / settings.gpt_hz)
+
+
+    def read_audio_responses(self, responses):
         """Process and respond to user input from speech-to-text API."""
 
         num_chars_printed = 0
-
         for response in responses:
             if not response.results:
                 continue
@@ -69,51 +109,61 @@ class ChatGPTComms:
                 sys.stdout.flush()
                 num_chars_printed = len(transcript)
             else:
-                self.speech = transcript + overwrite_chars
+                network.send(self.integrator_sig_port, dict(responding_speech_gpt=1))
 
-                logger.info(f"You: {self.speech}")
+                self.speech = transcript + overwrite_chars
+                logger.info(f"Particapant: {self.speech}")
 
                 # Send user input to the server
                 network.send(self.integrator_sig_port, dict(speech_gpt=self.speech))
 
                 # Generate a response using ChatGPT
-                self.answer = self.stream_chatGPT_response(self.speech)
+                with self.lock:
+                    self.answer = self.stream_chatGPT_response(self.speech)
 
                 logger.info(f"ChatGPT: {self.answer}")
-
-                # Check for exit command
-                if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                    logger.info("Exiting..")
-                    break
-
                 num_chars_printed = 0
+                network.send(self.integrator_sig_port, dict(responding_speech_gpt=0))
+
 
     def get_chatGPT_response(self, msg):
         """Get a response from ChatGPT"""
+        
         self.messages.append({"role": "user", "content": msg})
+
+        network.send(self.integrator_sig_port, dict(thinking_gpt=1))
+        network.send(self.integrator_sig_port, dict(speaking_gpt=1))
         response = openai.ChatCompletion.create(
             model=settings.chat_gpt_model,
             messages=self.messages,
         )
         answer = response.choices[0].message.content
         self.emo_state = self.find_emo_state(answer)
+
         network.send(self.integrator_sig_port, dict(answer_gpt=answer))
+        network.send(self.integrator_sig_port, dict(thinking_gpt=0))
+        network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+
         self.messages.append({"role": "assistant", "content": answer})
         return answer
 
     def stream_chatGPT_response(self, msg):
         """Get a streamed response from ChatGPT"""
+
         self.messages.append({"role": "user", "content": msg})
 
+        network.send(self.integrator_sig_port, dict(thinking_gpt=1))
         response = openai.ChatCompletion.create(
             model=settings.chat_gpt_model,
             messages=self.messages,
             temperature=0,
             stream=True
         )
+        network.send(self.integrator_sig_port, dict(thinking_gpt=0))
 
         answer = ""
         self.emo_state=None
+        network.send(self.integrator_sig_port, dict(speaking_gpt=1))
         for chunk in response:
             answer += chunk['choices'][0]['delta'].get('content', '')
             network.send(self.integrator_sig_port, dict(answer_gpt=answer))
@@ -122,6 +172,8 @@ class ChatGPTComms:
             sys.stdout.flush()
             if not self.emo_state:
                 self.emo_state = self.find_emo_state(answer)
+    
+        network.send(self.integrator_sig_port, dict(speaking_gpt=0))
 
         self.messages.append({"role": "assistant", "content": answer})
         return answer
@@ -162,7 +214,10 @@ def main():
     )
 
     listener = ChatGPTComms(
-        settings.integrator_sig_port, settings.chatgpt_personas[args.chatgpt_persona]
+        settings.integrator_sig_port, 
+        settings.status_address, 
+        settings.gpt_cmd_port,
+        settings.chatgpt_personas[args.chatgpt_persona]
     )
     with stt.MicrophoneStream(settings.rate, settings.chunk) as stream:
         audio_generator = stream.generator()

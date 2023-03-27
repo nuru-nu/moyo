@@ -78,6 +78,7 @@ class Integrator:
                 settings.sonar_cmd_port,
                 settings.cmd_cmd_port,
                 settings.kinect_cmd_port,
+                settings.chatgpt_cmd_port,
             ),
         )
         self.server.onsignal(self.onsignal)
