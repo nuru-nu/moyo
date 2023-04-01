@@ -289,7 +289,7 @@ defaults = dict(
 )
 
 # TODO? cleanup/unify
-transients = ('action', 'midi', 'signal', 'event')
+transients = ('action', 'midi', 'signal', 'event', 'speech_gpt', 'emo_gpt')
 # TODO? implement these as "overwrites"
 transient_loops = dict(
     css_action='action',
@@ -318,6 +318,7 @@ monitor_def = dict(
         'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
         'touch': touchs,
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
+        'gpt': ['thinking_gpt', 'speaking_gpt', 'listening_gpt'],
         'empty': [],
     },
     preset_signals=[

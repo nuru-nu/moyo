@@ -17,7 +17,7 @@ tmux splitw -v -p 66
 tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
 # row 4
 tmux splitw -v
-tmux send-keys "./run nuru.midi" $CM
+tmux send-keys "./run nuru.speechGPT" $CM
 
 tmux selectp -D
 tmux attach-session
