@@ -105,10 +105,12 @@ class ChatGPTComms:
             overwrite_chars = " " * (num_chars_printed - len(transcript))
 
             if not result.is_final:
+                network.send(self.integrator_sig_port, dict(listening_gpt=1))
                 sys.stdout.write(transcript + overwrite_chars + "\r")
                 sys.stdout.flush()
                 num_chars_printed = len(transcript)
             else:
+                network.send(self.integrator_sig_port, dict(listening_gpt=0))
                 network.send(self.integrator_sig_port, dict(responding_speech_gpt=1))
 
                 self.speech = transcript + overwrite_chars
@@ -185,12 +187,10 @@ class ChatGPTComms:
             return None
         
         emo = response[response.find('[')+1:].split("]")[0].split(",")
-        emo = {"valence": float(emo[0]), "arousal": float(emo[1])}
+        emo = [float(emo[0]), float(emo[1])]
 
         logger.info(f"EmoState: {emo}")
-        network.send(self.integrator_sig_port, dict(valence_state_gpt=emo['valence']))
-        network.send(self.integrator_sig_port, dict(arousal_state_gpt=emo['arousal']))
-
+        network.send(self.integrator_sig_port, dict(target_css=emo))
         return emo
 
 

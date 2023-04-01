@@ -21,7 +21,8 @@ nuru_path = os.path.dirname(os.path.abspath(__file__))
 
 # ChatGPT
 
-openai_api_key = "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"
+openai_api_key_gab = "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"
+openai_api_key = "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"
 
 with open(os.path.join(nuru_path,'shimoni_prompts.json')) as json_file:
     chatgpt_personas = json.load(json_file)
