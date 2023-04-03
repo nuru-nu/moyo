@@ -9,14 +9,12 @@ tmux start-server
 tmux new-session -d -s nuru
 
 # row 1
+tmux send-keys "./run nuru.integrator" $CM
 # row 2
 tmux splitw -v -p 75
-tmux send-keys "./run nuru.integrator" $CM
+tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
 # row 3
 tmux splitw -v -p 66
-tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
-# row 4
-tmux splitw -v
 tmux send-keys "./run nuru.speechGPT" $CM
 
 tmux selectp -D
