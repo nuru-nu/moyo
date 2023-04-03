@@ -27,7 +27,8 @@ openai_api_key = "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"
 with open(os.path.join(nuru_path,'shimoni_prompts.json')) as json_file:
     chatgpt_personas = json.load(json_file)
 
-chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo"][1]
+# Available Models: https://platform.openai.com/docs/models/overview
+chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4"][1]
 
 gpt_hz = 4
 
