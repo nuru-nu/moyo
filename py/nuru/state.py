@@ -24,6 +24,8 @@ import numpy as np
 
 from smanmi import logic as L
 from smanmi import util
+from smanmi import network
+from nuru import settings
 
 from . import presets
 
@@ -258,6 +260,10 @@ class One(L.Signal):
         self.state = {}
         for name in self.SLEEP_ANIMS + self.AWAKE_ANIMS:
             assert name in _presets_by_name, name
+        self.gpt_states = {
+            "in_intimate_zone": False,
+            "in_sonar_zone": False,
+        }
 
     def next_anim(self, which, overwrites):
         anims = getattr(self, f'{which.upper()}_ANIMS')
@@ -310,6 +316,8 @@ class One(L.Signal):
                         overwrites[k] = v
 
         people_closest, closest_dist = None, None
+        # people = [] # ChatGPT HACK!
+        # closest = None
         if people:
             people_closest = sorted(
                 people,
@@ -403,13 +411,15 @@ class One(L.Signal):
         for person in people:
             dist = np.linalg.norm(person['cm'][:2])
             if dist < self.r_z2:
-                like = likes.get(str(person['id']), 0)
-                if like > 1:
-                    valence_attractors.append([1.5, .4])
-                else:
-                    valence = -0.25
-                    valence_attractors.append([-0.4, 1])
-                    arousal = max(0, arousal)
+                like = likes.get(str(person['id']), 0) 
+                if not self.gpt_states['in_intimate_zone']:
+                    if like > 1:
+                        network.send(settings.gpt_cmd_port, dict(gpt_msg="liked_intimate_interaction"))  
+                    else:
+                        network.send(settings.gpt_cmd_port, dict(gpt_msg="disliked_intimate_interaction"))  
+                self.gpt_states['in_intimate_zone'] = True
+            else:
+                self.gpt_states['in_intimate_zone'] = False
 
         if self.state['charge']:
             if (sonar < self.sonar_threshold or closest_dist > self.r_z2 or

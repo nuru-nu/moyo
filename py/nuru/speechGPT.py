@@ -74,6 +74,7 @@ class ChatGPTComms:
         while True:
             data = network.get_json(self.sock, None)
             if data and "gpt_msg" in data:
+                logger.info('received gpt_action={data}')
 
                 network.send(self.integrator_sig_port, dict(responding_network_gpt=1))
 
@@ -126,7 +127,6 @@ class ChatGPTComms:
                 logger.info(f"ChatGPT: {self.answer}")
                 num_chars_printed = 0
                 network.send(self.integrator_sig_port, dict(responding_speech_gpt=0))
-
 
     def get_chatGPT_response(self, msg):
         """Get a response from ChatGPT"""
