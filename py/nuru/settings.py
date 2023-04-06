@@ -4,7 +4,7 @@ import collections, os, subprocess
 from dataclasses import dataclass
 import sys
 import json
-
+import glob
 import numpy as np  # type: ignore
 import pyaudio  # type: ignore
 
@@ -24,8 +24,12 @@ nuru_path = os.path.dirname(os.path.abspath(__file__))
 openai_api_key_gab = "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"
 openai_api_key = "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"
 
-with open(os.path.join(nuru_path,'shimoni_prompts.json')) as json_file:
-    chatgpt_personas = json.load(json_file)
+chatgpt_personas = {}
+for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
+    with open(file, 'r') as f:
+        text = f.read()
+    key = file.split('/')[-1].split('.')[0]  # extract the file name without extension
+    chatgpt_personas[key] = text
 
 # Available Models: https://platform.openai.com/docs/models/overview
 chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4"][1]
