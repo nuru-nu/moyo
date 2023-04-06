@@ -24,7 +24,7 @@ parser.add_argument(
 parser.add_argument(
     '--chatgpt_persona',
     type=str,
-    default="emo_out_0",
+    default="emo_state_0",
 )
 args = parser.parse_args()
 
