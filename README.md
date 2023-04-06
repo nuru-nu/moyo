@@ -10,6 +10,46 @@ Note that you also need to check out submodules:
 - `git submodule init && git submodule update`
 - `git pull --recurse-submodules=yes`
 
+### Kinect OSX install
+
+#### Install libfreenect2
+
+brew install libusb cmake glfw
+
+git clone https://github.com/OpenKinect/libfreenect2.git
+cd libfreenect2
+mkdir build && cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/freenect2
+make
+make install
+
+export LIBFREENECT2_INSTALL_DIR=$HOME/git/build
+export DYLD_LIBRARY_PATH=$LIBFREENECT2_INSTALL_DIR/lib:$DYLD_LIBRARY_PATH
+export CPATH=$LIBFREENECT2_INSTALL_DIR/include:$CPATH
+
+Test
+
+cd $LIBFREENECT2_INSTALL_DIR/bin
+./Protonect
+
+#### Install pylibfreenect2
+
+mkdir build/include
+cp build/libfreenect2 build/include
+
+git clone https://github.com/r9y9/pylibfreenect2.git
+cd pylibfreenect2
+
+vim setup.py
+extra_link_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
+
+pip install .
+
+LIBFREENECT2_PATH="$HOME/git/libfreenect2/build/lib"
+export DYLD_LIBRARY_PATH="$LIBFREENECT2_PATH:$DYLD_LIBRARY_PATH"
+
+Add EXPORTS to .zsh
+
 ### Python packages
 
 ```
