@@ -21,6 +21,15 @@ nuru_path = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.dirname(os.path.dirname(nuru_path))
 data_path = os.path.join(root_path, 'data')
 
+# YOLO 
+
+yolo_person_id = 0
+models_path = os.path.join(data_path, 'models')
+yolo_models = {
+    path.split("/")[-1].split(".")[0]: path 
+    for path in glob.glob(os.path.join(models_path, 'yolo*.pt'))
+}
+
 # Py Kinect
 
 kinect_data_path = os.path.join(data_path, 'kinect')
