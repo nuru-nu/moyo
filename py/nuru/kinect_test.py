@@ -23,13 +23,15 @@ class YOLOSegmentation:
 
         results = self.model.predict(source=img.copy(), save=False, save_txt=False)
         result = results[0]
+
         self.segmentations = []
-        for seg in result.masks.xyn:
-            # contours
-            seg[:, 0] *= width
-            seg[:, 1] *= height
-            segment = np.array(seg, dtype=np.int32)
-            self.segmentations.append(segment)
+        if result.masks is not None:
+            for seg in result.masks.xyn:
+                # contours
+                seg[:, 0] *= width
+                seg[:, 1] *= height
+                segment = np.array(seg, dtype=np.int32)
+                self.segmentations.append(segment)
 
         self.bboxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
         # Get class ids
@@ -39,13 +41,17 @@ class YOLOSegmentation:
         
         return self.bboxes, self.class_ids, self.segmentations, self.scores
     
-    def draw_detections(self, img, class_ids=None):
-        for bbox, class_id, seg, score in zip(self.bboxes, self.class_ids, self.segmentations, self.scores):
+    def draw_detections(self, img, seg_labels, class_ids=None):
+        for class_id, seg in seg_labels.items():
             if class_ids is None or class_id in class_ids:
-                (x, y, x2, y2) = bbox
-                cv2.rectangle(img, (x, y), (x2, y2), (255, 0, 0), 2)
+                # (x, y, x2, y2) = bbox
+                x, y = np.mean(seg, axis=0).astype(int)
+                # cv2.rectangle(img, (x, y), (x2, y2), (255, 0, 0), 2)
                 cv2.polylines(img, [seg], True, (0, 0, 255), 4)
-                cv2.putText(img, self.model.names[int(class_id)], (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
+                cv2.putText(
+                    img, self.model.names[int(class_id)], (x, y - 10), 
+                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2
+                )
 
 # Segmentation detector
 ys = YOLOSegmentation(settings.yolo_models["yolov8n-seg"])
@@ -65,6 +71,15 @@ def save_point_cloud(cloud, filename):
     # header = ply.make_header([('x', 'f4'), ('y', 'f4'), ('z', 'f4'), ('scalar', 'f4')])
     # ply.save_ply(filename, points, header, binary=True)
     return points
+
+def ir_enhance(rgb, ir):
+    """Enhance the rgb image by adaptively adding IR to the V channel of the HSV image."""
+
+    hsv_img = cv2.cvtColor(rgb, cv2.COLOR_BGR2HSV).astype(np.float32) / 255.0
+    hsv_img[:,:,2] += np.clip(ir - hsv_img[:,:,2], 0, 1)
+    rgb_img = cv2.cvtColor((hsv_img * 255).astype(np.uint8), cv2.COLOR_HSV2BGR)
+
+    return rgb_img
 
 freenect = Freenect2()
 num_devices = freenect.enumerateDevices()
@@ -98,31 +113,37 @@ while True:
     fps = fps_chunk_size / np.sum(dts)
     logger.info(f"{fps:.2f}fps")
     
+    # Get libfreect frames
     frames = listener.waitForNewFrame()
-        
     ir = frames["ir"]
     color = frames["color"]
     depth = frames["depth"]
-
     registration.apply(color, depth, undistorted, registered)
 
+    # Convert libfreect image data to OpenCV format
     color_image = cv2.cvtColor(color.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR)
     color_image[:,:,[0, 2]] = color_image[:,:, [2, 0]] # BGR to RGB
     depth_image = cv2.normalize(depth.asarray(dtype=np.float32), None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F)
-    # depth_image = np.expand_dims(depth_image, axis=-1)
     ir_image = cv2.normalize(ir.asarray(dtype=np.float32), None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F)
+    depth_color = cv2.cvtColor(registered.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR)
+    depth_color[:,:,[0, 2]] = depth_color[:,:, [2, 0]] # BGR to RGB
 
+    ir_enhanced_rgb = ir_enhance(depth_color, ir_image)
+
+    # Get YOLO detections
     ts = time.time()
-    bboxes, classes, segmentations, scores = ys.detect(color_image)
-    # ys.draw_detections(color_image, class_ids=[settings.yolo_person_id])
-    ys.draw_detections(color_image)
+    bboxes, classes, segmentations, scores = ys.detect(ir_enhanced_rgb)
+    seg_labels = {class_id: seg for class_id, seg in zip(classes, segmentations)}
+    ys.draw_detections(ir_enhanced_rgb, seg_labels)
     logger.info(f"Found {[ys.model.names[int(class_id)] for class_id in classes]}")
     logger.debug(f"YOLO took {time.time() - ts:.2f}s")
-    
+
+    # Draw Images
     cv2.putText(color_image, f"{fps:.2f}fps", (0, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
     cv2.imshow('Color', color_image)
     cv2.imshow('Depth', depth_image)
-    cv2.imshow('ir', ir_image)
+    cv2.imshow('IR', ir_image)
+    cv2.imshow('IR Enhanced RGB', ir_enhanced_rgb)
 
     key = cv2.waitKey(1)
     
