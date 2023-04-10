@@ -18,6 +18,12 @@ timetracing = False
 log_debug = False
 
 nuru_path = os.path.dirname(os.path.abspath(__file__))
+root_path = os.path.dirname(os.path.dirname(nuru_path))
+data_path = os.path.join(root_path, 'data')
+
+# Py Kinect
+
+kinect_data_path = os.path.join(data_path, 'kinect')
 
 # ChatGPT
 
