@@ -42,16 +42,23 @@ class YOLOSegmentation:
         return self.bboxes, self.class_ids, self.segmentations, self.scores
     
     def draw_detections(self, img, seg_labels, class_ids=None):
-        for class_id, seg in seg_labels.items():
+        for class_id, data in seg_labels.items():
             if class_ids is None or class_id in class_ids:
-                # (x, y, x2, y2) = bbox
-                x, y = np.mean(seg, axis=0).astype(int)
+
+                r, c = data["rgb_loc"]
+                x, y, z = data["3D_loc"]
+
                 # cv2.rectangle(img, (x, y), (x2, y2), (255, 0, 0), 2)
-                cv2.polylines(img, [seg], True, (0, 0, 255), 4)
+                cv2.polylines(img, [data["seg"]], True, (0, 0, 255), 4)
                 cv2.putText(
-                    img, self.model.names[int(class_id)], (x, y - 10), 
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2
+                    img, self.model.names[int(class_id)], (r, c - 10), 
+                    cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2
                 )
+                cv2.putText(
+                    img, f"x: {x:.2f}, y: {y:.2f}, z: {z:.2f}", (r, c + 30), 
+                    cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2
+                )
+
 
 # Segmentation detector
 ys = YOLOSegmentation(settings.yolo_models["yolov8n-seg"])
@@ -133,7 +140,15 @@ while True:
     # Get YOLO detections
     ts = time.time()
     bboxes, classes, segmentations, scores = ys.detect(ir_enhanced_rgb)
-    seg_labels = {class_id: seg for class_id, seg in zip(classes, segmentations)}
+    seg_labels = {}
+    for class_id, seg in zip(classes, segmentations):
+        c, r = np.mean(seg, axis=0).astype(int)
+        seg_labels[class_id] = {
+            "rgb_loc": [c, r],
+            "3D_loc": registration.getPointXYZ(undistorted, c, r),
+            "seg": seg, 
+        } 
+       
     ys.draw_detections(ir_enhanced_rgb, seg_labels)
     logger.info(f"Found {[ys.model.names[int(class_id)] for class_id in classes]}")
     logger.debug(f"YOLO took {time.time() - ts:.2f}s")
