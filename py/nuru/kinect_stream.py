@@ -9,6 +9,8 @@ from pylibfreenect2 import FrameType, Registration, Frame
 from ultralytics import YOLO
 from collections import deque
 from datetime import datetime
+import colorsys
+import open3d as o3d
 
 from nuru import settings
 from smanmi import util
@@ -16,15 +18,22 @@ from smanmi import util
 logger = util.createLogger('kinect', debug=False)
 
 class Kinect:
-    def __init__(self, streams=["color", "depth", "ir"]):
+    def __init__(self, streams=["color", "depth", "ir"], output_dir=None, flip=False, width = 512, height = 424):
+        """Initialize the Kinect device."""
+
         self.freenect = Freenect2()
         num_devices = self.freenect.enumerateDevices()
         assert num_devices > 0, "No Kinect device detected"
 
         serial = self.freenect.getDeviceSerialNumber(0)
         self.device = self.freenect.openDevice(serial)
-
+        
         self.streams = streams
+        self.output_dir = output_dir
+        self.flip = flip
+        self.width = width
+        self.height = height
+
         frame_types = 0
         if "ir_rgb" in streams:
             streams += ["color", "ir"]
@@ -45,13 +54,15 @@ class Kinect:
             self.device.getIrCameraParams(), self.device.getColorCameraParams()
         )
 
-        self.undistorted = Frame(512, 424, 4)
-        self.registered = Frame(512, 424, 4)
+        self.undistorted = Frame(width, height, 4)
+        self.registered = Frame(width, height, 4)
 
     def __iter__(self):
         return self
 
     def __next__(self):
+        """Get the next frames from the Kinect device."""
+
         frames = self.listener.waitForNewFrame()
 
         # Apply registration if both color and depth are enabled
@@ -98,6 +109,11 @@ class Kinect:
         if "ir_rgb" in self.streams:
             output["ir_rgb"] = self.ir_enhance(output["scaled_color"], output["ir"])
 
+        if self.flip:
+            for k, v in output.items():
+                output[k] = cv2.flip(v, 1)
+                output[k] = cv2.flip(v, 0)
+
         self.listener.release(frames)
         return output
     
@@ -116,37 +132,84 @@ class Kinect:
         x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
 
         return x, y, z
+    
+    def save_point_cloud(self):
+        """Save the current point cloud to a PLY file."""
+
+        assert self.output_dir is not None, "Output directory not specified"
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        ply_path = os.path.join(self.output_dir, f'pcl_{timestamp}.ply')
+
+        # Get the point cloud
+        pts = []
+        for r in range(self.width ):
+            for c in range(self.height):
+                x, y, z = self.get_point_3d(c, r)
+                if z is not np.nan and z > 0:
+                    pts.append([x, y, z])
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(pts)
+
+        o3d.io.write_point_cloud(ply_path, pcd, write_ascii=True)
 
     def close(self):
+        """Close the Kinect device."""
+
         self.device.stop()
         self.device.close()
 
 class ImageAnnotator:
-    def __init__(self, font_size=1, font_thickness=2, color=(0, 0, 255)):
+    def __init__(self, font_size=1, font_thickness=2, line_thickness=2, num_colors=100):
+        """Initialize the image annotator."""
+
         self.font_size = font_size
         self.font_thickness = font_thickness
-        self.color = color
+        self.colors = self.generate_colors(num_colors)
+        self.line_thickness = line_thickness
+
+    def generate_colors(self, n):
+        """Generate n colors for segmentation masks."""
+
+        colors = []
+        for i in range(n):
+            hue = float(i) / n
+            saturation = 0.9
+            lightness = 0.6
+            r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
+            colors.append([int(r * 255), int(g * 255), int(b * 255)])
+        return colors
 
     def draw_detections(self, img, seg_labels, class_ids=None):
+        """Draw the segmentation masks and class names on the image."""
+
         for class_id, data in seg_labels.items():
             if class_ids is None or class_id in class_ids:
+                color = self.colors[int(class_id) % len(self.colors)]
                 r, c = data["rgb_loc"]
                 x, y, z = data["3D_loc"]
 
                 # Draw polylines and text
-                cv2.polylines(img, [data["seg"]], True, self.color, 4)
-                self.write_text(img, data["class_name"], (r, c - 10))
-                self.write_text(img, f"x: {x:.2f}, y: {y:.2f}, z: {z:.2f}", (r, c + 30))
+                cv2.polylines(img, [data["seg"]], True, color, self.line_thickness)
+                self.write_text(img, data["class_name"], (r, c - 10), color)
+                self.write_text(img, f"x: {x:.2f}, y: {y:.2f}, z: {z:.2f}", (r, c + 30), color)
 
-    def write_text(self, img, text, pos):
-        cv2.putText(img, text, pos, cv2.FONT_HERSHEY_PLAIN, self.font_size, self.color, self.font_thickness)
+    def write_text(self, img, text, pos, color):
+        """Write text on the image."""
+
+        cv2.putText(img, text, pos, cv2.FONT_HERSHEY_PLAIN, self.font_size, color, self.font_thickness)
 
 class YOLOSegmentation:
     def __init__(self, model_path, class_ids_filter=None):
+        """Initialize the YOLO segmentation model."""
+
         self.model = YOLO(model_path)
         self.class_ids_filter = class_ids_filter
 
     def detect(self, img):
+        """Detect objects in the image."""
+
         height, width, channels = img.shape
 
         results = self.model.predict(source=img.copy(), save=False, save_txt=False)
@@ -179,12 +242,16 @@ class YOLOSegmentation:
 
 class VideoWriter:
     def __init__(self, folder):
+        """Initialize the video writer."""
+
         self.folder = folder
         self.video_writer = None
         self.recording = False
         self.nr_frames_rec = 0
 
     def start_recording(self, frame_size, fps=30):
+        """Start recording a video."""
+
         if not self.recording:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             vid_path = os.path.join(self.folder, f'video_{timestamp}.mp4')
@@ -197,6 +264,8 @@ class VideoWriter:
             logger.info(f"Starting recording to: {vid_path}")
 
     def stop_recording(self):
+        """Stop recording a video."""
+
         if self.recording:
             logger.info(f"Stopping recording and storing: {self.folder}")
             self.recording = False
@@ -204,6 +273,8 @@ class VideoWriter:
             self.video_writer = None
 
     def save_frame(self, frame):
+        """Save a frame to the video."""
+
         if self.recording:
             logger.info(f"Recording frame {self.nr_frames_rec}")
             self.nr_frames_rec += 1
@@ -214,12 +285,16 @@ class VideoWriter:
 
 class FPSCounter:
     def __init__(self, chunk_size=5):
+        """Initialize the FPS counter."""
+
         self.chunk_size = chunk_size
         self.dts = deque(maxlen=self.chunk_size)
         self.t = time.time()
         self.fps = 0
 
     def update(self):
+        """Update the FPS counter."""
+
         self.dts.append(time.time() - self.t)
         self.t = time.time()
         self.fps = self.chunk_size / sum(self.dts)
@@ -239,6 +314,9 @@ if __name__ == "__main__":
         help="YOLO model name. See settings.py for available models."
     )
     parser.add_argument(
+        '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
+    )
+    parser.add_argument(
         '--yolo_classe_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect.'
     )
     parser.add_argument(
@@ -246,26 +324,36 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # Combine streams for Kinect 
+    streams = set(args.streams + [args.rec_stream, args.yolo_stream])
+
+    # Initialize modules
     video_writer = VideoWriter(args.data_out)
     dynamic_fps = FPSCounter()
-    kinect = Kinect(streams=args.streams + [args.rec_stream])
+    kinect = Kinect(streams=list(streams), output_dir=args.data_out)
     ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_classe_ids)
     annotator = ImageAnnotator()
     # tracker = Tracker()
+
+    # Start Kinect frame stream   
     for frame_data in kinect:
         rec_frame = frame_data[args.rec_stream]
         dynamic_fps.update()
         key = cv2.waitKey(1)
-        if "ir_rgb" in frame_data:
-            # Detect objects
-            img_segments = ys.detect(frame_data["ir_rgb"])
+        
+        # If yolo_stream is grayscale, convert to RGB
+        if len(frame_data[args.yolo_stream].shape) == 2:
+            frame_data[args.yolo_stream] = cv2.cvtColor(frame_data[args.yolo_stream], cv2.COLOR_GRAY2RGB)
+        
+        # Run YOLO detection
+        img_segments = ys.detect(frame_data[args.yolo_stream])
 
-            # Get 3D locations
-            for class_id, data in img_segments.items():
-                data["3D_loc"] = kinect.get_point_3d(*data["rgb_loc"])
+        # Get 3D locations
+        for class_id, data in img_segments.items():
+            data["3D_loc"] = kinect.get_point_3d(*data["rgb_loc"])
 
-            # tracker.update(img_segments)
-            annotator.draw_detections(frame_data["ir_rgb"], img_segments)
+        # Draw detections
+        annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
@@ -273,6 +361,10 @@ if __name__ == "__main__":
                 video_writer.start_recording(rec_frame.shape[1::-1], dynamic_fps.fps)
             else:
                 video_writer.stop_recording()
+
+        # Save point cloud when 'p' is pressed
+        if key == ord('p'):
+            kinect.save_point_cloud()
 
         # Save frame to the video file
         if video_writer.is_recording():
