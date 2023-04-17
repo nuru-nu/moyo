@@ -18,6 +18,34 @@ from smanmi import network, util
 
 logger = util.createLogger('kinect', debug=False)
 
+parser = argparse.ArgumentParser(description="Kinect Recorder")
+parser.add_argument(
+    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb'], nargs='*', 
+    default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
+)
+parser.add_argument(
+    '--rec_stream', type=str, default='ir_rgb', help="Stream type to record"
+)
+parser.add_argument(
+    '--yolo_model', type=str, default='yolov8n-seg', 
+    help="YOLO model name. See settings.py for available models."
+)
+parser.add_argument(
+    '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
+)
+parser.add_argument(
+    '--yolo_class_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect. 0 for people.'
+)
+parser.add_argument(
+    '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
+)
+parser.add_argument(
+    '--shimono_trafo_path', type=str, default=os.path.join(settings.blender_path, "data", "kinect_trafo.json"), 
+    help="Kinect to Shimoni transform."
+)
+args = parser.parse_args()
+
+
 class Kinect:
     def __init__(
             self, 
@@ -152,7 +180,8 @@ class Kinect:
                     points_3d.append([x, y, z])
 
             data["3D_point"] = np.mean(points_3d, axis=0)
-            data["2D_shimoni"] = self.get_point_2d_shimino_space(*data["3D_point"])
+            data["3D_shimoni"] = self.get_point_shimino_space(*data["3D_point"])
+            data["cm"] = data["3D_shimoni"] # HACK: for compatibility with old code
 
         return seg_labels
     
@@ -166,14 +195,14 @@ class Kinect:
         
         return x, y, z
     
-    def get_point_2d_shimino_space(self, x, y, z):
+    def get_point_shimino_space(self, x, y, z):
         """Gets 3D point in kinect space and transforms to shimoni space."""
         
         assert self.shimoni_trafo is not None, "Shimoni transformation not loaded"
 
-        x_s, y_s, _, w = self.shimoni_trafo @ np.array([x, y, z, 1.0])
+        x_s, y_s, z_s, w = self.shimoni_trafo @ np.array([x, y, z, 1.0])
 
-        return x_s/w, y_s/w
+        return x_s/w, y_s/w, z_s/w
     
     def save_point_cloud(self):
         """Save the current point cloud to a PLY file."""
@@ -253,8 +282,8 @@ class ImageAnnotator:
                 if r - 10 >= 0 and r + 30 < h and c - 10 >= 0 and c + 10 < w:
                     self.write_text(img, data["class_name"], (r, c - 10), color)
                     
-                    if "2D_shimoni" in data:
-                        x, y = data["2D_shimoni"]
+                    if "3D_shimoni" in data:
+                        x, y, z = data["3D_shimoni"]
                         self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
 
     def write_text(self, img, text, pos, color):
@@ -363,33 +392,6 @@ class FPSCounter:
         logger.info(f"{self.fps:.2f}fps")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Kinect Recorder")
-    parser.add_argument(
-        '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb'], nargs='*', 
-        default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
-    )
-    parser.add_argument(
-        '--rec_stream', type=str, default='ir_rgb', help="Stream type to record"
-    )
-    parser.add_argument(
-        '--yolo_model', type=str, default='yolov8n-seg', 
-        help="YOLO model name. See settings.py for available models."
-    )
-    parser.add_argument(
-        '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
-    )
-    parser.add_argument(
-        '--yolo_class_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect. 0 for people.'
-    )
-    parser.add_argument(
-        '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
-    )
-    parser.add_argument(
-        '--shimono_trafo_path', type=str, default=os.path.join(settings.blender_path, "data", "kinect_trafo.json"), 
-        help="Kinect to Shimoni transform."
-    )
-    args = parser.parse_args()
-
     # Combine streams for Kinect 
     streams = set(args.streams + [args.rec_stream, args.yolo_stream])
 
@@ -419,6 +421,13 @@ if __name__ == "__main__":
 
         # Draw detections
         annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
+
+        # Send detections to integrator
+        people = [
+            {"cm": np.array(seg["cm"]).tolist(), "id": class_id} 
+            for class_id, seg in img_segments.items() if class_id == 0
+        ]
+        network.send(settings.integrator_sig_port, dict(people_sensor=people))
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
