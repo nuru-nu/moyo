@@ -20,11 +20,18 @@ log_debug = False
 nuru_path = os.path.dirname(os.path.abspath(__file__))
 root_path = os.path.dirname(os.path.dirname(nuru_path))
 data_path = os.path.join(root_path, 'data')
+blender_path = os.path.join(root_path, 'blender')
+ml_models_path = os.path.join(data_path, 'models')
+
+# SER
+
+ser_model_path = os.path.join(ml_models_path, 'ser', 'w2v2-L-robust-12.6bc4a7fd-1.1.0')
+ser_sampling_rate = 16000 # Hz
 
 # YOLO 
 
 yolo_person_id = 0
-models_path = os.path.join(data_path, 'models')
+models_path = os.path.join(ml_models_path, 'yolo')
 yolo_models = {
     path.split("/")[-1].split(".")[0]: path 
     for path in glob.glob(os.path.join(models_path, 'yolo*.pt'))

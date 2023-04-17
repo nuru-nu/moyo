@@ -11,14 +11,23 @@ from collections import deque
 from datetime import datetime
 import colorsys
 import open3d as o3d
+import json
 
 from nuru import settings
-from smanmi import util
+from smanmi import network, util
 
 logger = util.createLogger('kinect', debug=False)
 
 class Kinect:
-    def __init__(self, streams=["color", "depth", "ir"], output_dir=None, flip=False, width = 512, height = 424):
+    def __init__(
+            self, 
+            streams=["color", "depth", "ir"], 
+            shimono_trafo_path=None, 
+            output_dir=None, 
+            flip=False, 
+            width = 512, 
+            height = 424
+        ):
         """Initialize the Kinect device."""
 
         self.freenect = Freenect2()
@@ -56,6 +65,8 @@ class Kinect:
 
         self.undistorted = Frame(width, height, 4)
         self.registered = Frame(width, height, 4)
+
+        self.shimoni_trafo = self.load_transform(shimono_trafo_path)
 
     def __iter__(self):
         return self
@@ -133,6 +144,16 @@ class Kinect:
 
         return x, y, z
     
+    def get_point_2d_shimino_space(self, c, r):
+        """Gets 3D point in kinect space and transforms to shimoni space."""
+        
+        assert self.shimoni_trafo is not None, "Shimoni transformation not loaded"
+
+        x, y, z = self.get_point_3d(c, r)
+        x_s, y_s, _, w = self.shimoni_trafo @ np.array([x, y, z, 1.0])
+
+        return x_s/w, y_s/w
+    
     def save_point_cloud(self):
         """Save the current point cloud to a PLY file."""
 
@@ -153,6 +174,17 @@ class Kinect:
         pcd.points = o3d.utility.Vector3dVector(pts)
 
         o3d.io.write_point_cloud(ply_path, pcd, write_ascii=True)
+
+    def load_transform(self, path):
+        """Load the transformation matrix from the given path."""
+
+        if path is None:
+            return None
+        
+        with open(path, 'r') as file:
+            data = json.load(file)
+
+        return np.array(data['world_matrix'])
 
     def close(self):
         """Close the Kinect device."""
@@ -179,6 +211,7 @@ class ImageAnnotator:
             lightness = 0.6
             r, g, b = colorsys.hls_to_rgb(hue, lightness, saturation)
             colors.append([int(r * 255), int(g * 255), int(b * 255)])
+
         return colors
 
     def draw_detections(self, img, seg_labels, class_ids=None):
@@ -188,12 +221,12 @@ class ImageAnnotator:
             if class_ids is None or class_id in class_ids:
                 color = self.colors[int(class_id) % len(self.colors)]
                 r, c = data["rgb_loc"]
-                x, y, z = data["3D_loc"]
+                x, y = data["2D_shimoni"]
 
                 # Draw polylines and text
                 cv2.polylines(img, [data["seg"]], True, color, self.line_thickness)
                 self.write_text(img, data["class_name"], (r, c - 10), color)
-                self.write_text(img, f"x: {x:.2f}, y: {y:.2f}, z: {z:.2f}", (r, c + 30), color)
+                self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
 
     def write_text(self, img, text, pos, color):
         """Write text on the image."""
@@ -317,10 +350,14 @@ if __name__ == "__main__":
         '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
     )
     parser.add_argument(
-        '--yolo_classe_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect.'
+        '--yolo_class_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect. 31 for persons.'
     )
     parser.add_argument(
         '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
+    )
+    parser.add_argument(
+        '--shimono_trafo_path', type=str, default=os.path.join(settings.blender_path, "data", "kinect_trafo.json"), 
+        help="Kinect to Shimoni transform."
     )
     args = parser.parse_args()
 
@@ -330,8 +367,8 @@ if __name__ == "__main__":
     # Initialize modules
     video_writer = VideoWriter(args.data_out)
     dynamic_fps = FPSCounter()
-    kinect = Kinect(streams=list(streams), output_dir=args.data_out)
-    ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_classe_ids)
+    kinect = Kinect(streams=list(streams), shimono_trafo_path=args.shimono_trafo_path, output_dir=args.data_out)
+    ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
     annotator = ImageAnnotator()
     # tracker = Tracker()
 
@@ -351,6 +388,8 @@ if __name__ == "__main__":
         # Get 3D locations
         for class_id, data in img_segments.items():
             data["3D_loc"] = kinect.get_point_3d(*data["rgb_loc"])
+            data["2D_shimoni"] = kinect.get_point_2d_shimino_space(*data["rgb_loc"])
+            logger.info(f"Class {class_id}: {data['2D_shimoni']}")
 
         # Draw detections
         annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
