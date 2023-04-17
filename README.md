@@ -10,6 +10,12 @@ Note that you also need to check out submodules:
 - `git submodule init && git submodule update`
 - `git pull --recurse-submodules=yes`
 
+### Speech Emotion Recognition (SER)
+
+https://docs.google.com/document/d/13RMaLnRfHT0_A8e4Z7dG9mOuveXZvXusNEhvAdiNp0U/edit#
+
+https://github.com/audeering/w2v2-how-to
+
 ### Kinect OSX install
 
 #### Install libfreenect2
