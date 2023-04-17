@@ -350,7 +350,7 @@ if __name__ == "__main__":
         '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
     )
     parser.add_argument(
-        '--yolo_class_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect. 31 for persons.'
+        '--yolo_class_ids', type=str, nargs='*', default=None, help='YOLO class ids to detect. 0 for people.'
     )
     parser.add_argument(
         '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
@@ -389,7 +389,7 @@ if __name__ == "__main__":
         for class_id, data in img_segments.items():
             data["3D_loc"] = kinect.get_point_3d(*data["rgb_loc"])
             data["2D_shimoni"] = kinect.get_point_2d_shimino_space(*data["rgb_loc"])
-            logger.info(f"Class {class_id}: {data['2D_shimoni']}")
+            logger.info(f"Class {class_id}: x={data['2D_shimoni'][0]:.2f}, y={data['2D_shimoni'][1]:.2f}")
 
         # Draw detections
         annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
