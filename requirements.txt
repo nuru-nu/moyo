@@ -22,3 +22,5 @@ google-cloud-speech
 openai
 opencv-python 
 open3d
+audinterface
+audonnx
