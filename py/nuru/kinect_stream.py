@@ -137,19 +137,40 @@ class Kinect:
 
         return rgb_img
     
+    def get_mean_coords_for_segments(self, seg_labels):
+        """Get the mean 3D location of each segmentation label."""
+
+        for data in seg_labels.values():
+            mask = np.zeros((self.width, self.height), dtype=np.uint8)
+            cv2.fillPoly(mask, [data["seg"]], 255)
+
+            points_3d = []
+            for seg_point in np.argwhere(mask == 255):
+                c, r = seg_point
+                x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
+                if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
+                    points_3d.append([x, y, z])
+
+            data["3D_point"] = np.mean(points_3d, axis=0)
+            data["2D_shimoni"] = self.get_point_2d_shimino_space(*data["3D_point"])
+
+        return seg_labels
+    
     def get_point_3d(self, c, r):
         """Get the 3D location of a point in the depthmap."""
 
         x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
 
+        if np.isnan(x) or np.isnan(y) or np.isnan(z):
+            return None
+        
         return x, y, z
     
-    def get_point_2d_shimino_space(self, c, r):
+    def get_point_2d_shimino_space(self, x, y, z):
         """Gets 3D point in kinect space and transforms to shimoni space."""
         
         assert self.shimoni_trafo is not None, "Shimoni transformation not loaded"
 
-        x, y, z = self.get_point_3d(c, r)
         x_s, y_s, _, w = self.shimoni_trafo @ np.array([x, y, z, 1.0])
 
         return x_s/w, y_s/w
@@ -166,9 +187,9 @@ class Kinect:
         pts = []
         for r in range(self.width ):
             for c in range(self.height):
-                x, y, z = self.get_point_3d(c, r)
-                if z is not np.nan and z > 0:
-                    pts.append([x, y, z])
+                point = self.get_point_3d(c, r)
+                if point is not None:
+                    pts.append(point)
 
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(pts)
@@ -213,20 +234,28 @@ class ImageAnnotator:
             colors.append([int(r * 255), int(g * 255), int(b * 255)])
 
         return colors
-
+    
     def draw_detections(self, img, seg_labels, class_ids=None):
         """Draw the segmentation masks and class names on the image."""
 
         for class_id, data in seg_labels.items():
             if class_ids is None or class_id in class_ids:
                 color = self.colors[int(class_id) % len(self.colors)]
-                r, c = data["rgb_loc"]
-                x, y = data["2D_shimoni"]
 
                 # Draw polylines and text
                 cv2.polylines(img, [data["seg"]], True, color, self.line_thickness)
-                self.write_text(img, data["class_name"], (r, c - 10), color)
-                self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
+
+                # Calculate the centroid of the segment
+                r, c = np.int32(np.mean(np.array(data["seg"], dtype=np.float32), axis=0))
+                
+                # Check if the text will be inside the image boundaries
+                h, w = img.shape[:2]
+                if r - 10 >= 0 and r + 30 < h and c - 10 >= 0 and c + 10 < w:
+                    self.write_text(img, data["class_name"], (r, c - 10), color)
+                    
+                    if "2D_shimoni" in data:
+                        x, y = data["2D_shimoni"]
+                        self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
 
     def write_text(self, img, text, pos, color):
         """Write text on the image."""
@@ -385,11 +414,8 @@ if __name__ == "__main__":
         # Run YOLO detection
         img_segments = ys.detect(frame_data[args.yolo_stream])
 
-        # Get 3D locations
-        for class_id, data in img_segments.items():
-            data["3D_loc"] = kinect.get_point_3d(*data["rgb_loc"])
-            data["2D_shimoni"] = kinect.get_point_2d_shimino_space(*data["rgb_loc"])
-            logger.info(f"Class {class_id}: x={data['2D_shimoni'][0]:.2f}, y={data['2D_shimoni'][1]:.2f}")
+        # Get segment locations
+        img_segments = kinect.get_mean_coords_for_segments(img_segments)
 
         # Draw detections
         annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
