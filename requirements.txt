@@ -21,3 +21,4 @@ yapf
 google-cloud-speech
 openai
 opencv-python 
+open3d
