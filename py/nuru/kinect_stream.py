@@ -178,7 +178,10 @@ class Kinect:
                 x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
                 if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
                     points_3d.append([x, y, z])
-
+            
+            if len(points_3d) == 0:
+                continue
+            
             data["3D_point"] = np.mean(points_3d, axis=0)
             data["3D_shimoni"] = self.get_point_shimino_space(*data["3D_point"])
             data["cm"] = data["3D_shimoni"] # HACK: for compatibility with old code
@@ -330,6 +333,7 @@ class YOLOSegmentation:
                     "class_name": self.model.names[int(class_id)],
                 }
         return img_segments
+
 
 class VideoWriter:
     def __init__(self, folder):
