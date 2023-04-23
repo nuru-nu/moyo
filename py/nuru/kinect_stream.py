@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 import os
 import time
-from argparse import ArgumentParser
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 from ultralytics import YOLO
@@ -14,7 +13,7 @@ import open3d as o3d
 import json
 from collections import defaultdict
 
-from nuru import settings
+from nuru import settings, people_tracking
 from smanmi import network, util
 
 logger = util.createLogger('kinect', debug=False)
@@ -179,7 +178,7 @@ class Kinect:
         for detections in seg_labels.values():
             for detection in detections:
                 mask = np.zeros((self.width, self.height), dtype=np.uint8)
-                cv2.fillPoly(mask, [detection["seg"]], 255)
+                cv2.fillPoly(mask, [detection["2D_outline"]], 255)
 
                 points_3d = []
                 for seg_point in np.argwhere(mask == 255):
@@ -287,10 +286,10 @@ class ImageAnnotator:
                 color = self.colors[(int(class_id) + idx) % len(self.colors)]
 
                 # Draw polylines and text
-                cv2.polylines(img, [detection["seg"]], True, color, self.line_thickness)
+                cv2.polylines(img, [detection["2D_outline"]], True, color, self.line_thickness)
 
                 # Calculate the centroid of the segment
-                r, c = np.int32(np.mean(np.array(detection["seg"], dtype=np.float32), axis=0))
+                r, c = np.int32(np.mean(np.array(detection["2D_outline"], dtype=np.float32), axis=0))
                 
                 # Check if the text will be inside the image boundaries
                 h, w = img.shape[:2]
@@ -339,7 +338,7 @@ class YOLOSegmentation:
                 c, r = np.mean(seg, axis=0).astype(int)
                 img_segments[class_id].append({
                     "rgb_loc": [c, r],
-                    "seg": seg,
+                    "2D_outline": seg,
                     "bbox": bbox,
                     "score": score,
                     "class_name": self.model.names[int(class_id)],
@@ -439,7 +438,7 @@ if __name__ == "__main__":
     if args.run_yolo:
         ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
         annotator = ImageAnnotator()
-        # tracker = Tracker()
+        tracker = people_tracking.Tracker()
 
     # Start Kinect frame stream   
     for frame_data in kinect:
@@ -465,7 +464,11 @@ if __name__ == "__main__":
                 {"cm": np.array(seg["cm"]).tolist(), "id": class_id} 
                 for class_id, seg in img_segments.items() if class_id == 0 and "cm" in seg
             ]
-            network.send(settings.integrator_sig_port, dict(people_sensor=people))
+
+            # Track people
+            tracked_people = tracker.update(people)
+
+            network.send(settings.integrator_sig_port, dict(people_sensor=tracked_people))
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
