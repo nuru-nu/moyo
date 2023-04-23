@@ -85,8 +85,7 @@ class Tracker():
         ["people_tracker_associations", "new_people_indices", "lost_tracker_indices"]
     )
 
-    def __init__(self, max_iou_threshold=0.3, max_away_frames=3):
-        self.max_iou_threshold = max_iou_threshold  # Threshold to consider a detection as a new person
+    def __init__(self, max_away_frames=3):
         self.max_away_frames = max_away_frames  # Number of frames to wait before removing a tracker
         self.trackers = []  # List of PersonTracker objects
         self.id_count = 0  # Counter to assign unique IDs to people
