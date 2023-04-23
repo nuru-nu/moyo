@@ -12,6 +12,7 @@ from datetime import datetime
 import colorsys
 import open3d as o3d
 import json
+from collections import defaultdict
 
 from nuru import settings
 from smanmi import network, util
@@ -20,11 +21,12 @@ logger = util.createLogger('kinect', debug=False)
 
 parser = argparse.ArgumentParser(description="Kinect Recorder")
 parser.add_argument(
-    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb'], nargs='*', 
+    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled_color'], nargs='*', 
     default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
 )
 parser.add_argument(
-    '--rec_stream', type=str, default='ir_rgb', help="Stream type to record"
+    '--rec_streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled_color'], nargs='*', 
+   default=['scaled_color', 'depth'],  help="Stream type to record"
 )
 parser.add_argument(
     '--yolo_model', type=str, default='yolov8n-seg', 
@@ -38,6 +40,12 @@ parser.add_argument(
 )
 parser.add_argument(
     '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
+)
+parser.add_argument(
+    '--flip', action='store_true', default=False, help="If kinect upside down."
+)
+parser.add_argument(
+    '--run_yolo', action='store_true', default=False, help="Run yolo detector."
 )
 parser.add_argument(
     '--shimono_trafo_path', type=str, default=os.path.join(settings.blender_path, "data", "kinect_trafo.json"), 
@@ -168,23 +176,24 @@ class Kinect:
     def get_mean_coords_for_segments(self, seg_labels):
         """Get the mean 3D location of each segmentation label."""
 
-        for data in seg_labels.values():
-            mask = np.zeros((self.width, self.height), dtype=np.uint8)
-            cv2.fillPoly(mask, [data["seg"]], 255)
+        for detections in seg_labels.values():
+            for detection in detections:
+                mask = np.zeros((self.width, self.height), dtype=np.uint8)
+                cv2.fillPoly(mask, [detection["seg"]], 255)
 
-            points_3d = []
-            for seg_point in np.argwhere(mask == 255):
-                c, r = seg_point
-                x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
-                if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
-                    points_3d.append([x, y, z])
-            
-            if len(points_3d) == 0:
-                continue
-            
-            data["3D_point"] = np.mean(points_3d, axis=0)
-            data["3D_shimoni"] = self.get_point_shimino_space(*data["3D_point"])
-            data["cm"] = data["3D_shimoni"] # HACK: for compatibility with old code
+                points_3d = []
+                for seg_point in np.argwhere(mask == 255):
+                    c, r = seg_point
+                    x, y, z = self.registration.getPointXYZ(kinect.undistorted, c, r)
+                    if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
+                        points_3d.append([x, y, z])
+                
+                if len(points_3d) == 0:
+                    continue
+                
+                detection["3D_point"] = np.mean(points_3d, axis=0)
+                detection["3D_shimoni"] = self.get_point_shimino_space(*detection["3D_point"])
+                detection["cm"] = detection["3D_shimoni"] # HACK: for compatibility with old code
 
         return seg_labels
     
@@ -246,7 +255,7 @@ class Kinect:
         self.device.close()
 
 class ImageAnnotator:
-    def __init__(self, font_size=1, font_thickness=2, line_thickness=2, num_colors=100):
+    def __init__(self, font_size=1, font_thickness=2, line_thickness=2, num_colors=8):
         """Initialize the image annotator."""
 
         self.font_size = font_size
@@ -270,23 +279,26 @@ class ImageAnnotator:
     def draw_detections(self, img, seg_labels, class_ids=None):
         """Draw the segmentation masks and class names on the image."""
 
-        for class_id, data in seg_labels.items():
-            if class_ids is None or class_id in class_ids:
-                color = self.colors[int(class_id) % len(self.colors)]
+        for class_id, detections in seg_labels.items():
+            if class_ids is not None and class_id not in class_ids:
+                continue
+
+            for idx, detection in enumerate(detections):
+                color = self.colors[(int(class_id) + idx) % len(self.colors)]
 
                 # Draw polylines and text
-                cv2.polylines(img, [data["seg"]], True, color, self.line_thickness)
+                cv2.polylines(img, [detection["seg"]], True, color, self.line_thickness)
 
                 # Calculate the centroid of the segment
-                r, c = np.int32(np.mean(np.array(data["seg"], dtype=np.float32), axis=0))
+                r, c = np.int32(np.mean(np.array(detection["seg"], dtype=np.float32), axis=0))
                 
                 # Check if the text will be inside the image boundaries
                 h, w = img.shape[:2]
                 if r - 10 >= 0 and r + 30 < h and c - 10 >= 0 and c + 10 < w:
-                    self.write_text(img, data["class_name"], (r, c - 10), color)
+                    self.write_text(img, detection["class_name"], (r, c - 10), color)
                     
-                    if "3D_shimoni" in data:
-                        x, y, z = data["3D_shimoni"]
+                    if "3D_shimoni" in detection:
+                        x, y, z = detection["3D_shimoni"]
                         self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
 
     def write_text(self, img, text, pos, color):
@@ -321,42 +333,50 @@ class YOLOSegmentation:
                 seg[:, 1] *= height
                 self.segmentations.append(np.array(seg, dtype=np.int32))
 
-        img_segments = {}
+        img_segments = defaultdict(list)
         for class_id, seg, bbox, score in zip(self.class_ids, self.segmentations, self.bboxes, self.scores):
             if self.class_ids_filter is None or class_id in self.class_ids_filter:
                 c, r = np.mean(seg, axis=0).astype(int)
-                img_segments[class_id] = {
+                img_segments[class_id].append({
                     "rgb_loc": [c, r],
                     "seg": seg,
                     "bbox": bbox,
                     "score": score,
                     "class_name": self.model.names[int(class_id)],
-                }
+                })
         return img_segments
 
-
 class VideoWriter:
-    def __init__(self, folder):
+    def __init__(self, folder, record_streams):
         """Initialize the video writer."""
 
         self.folder = folder
-        self.video_writer = None
+        self.video_writers = {record_stream: None for record_stream in record_streams}
         self.recording = False
         self.nr_frames_rec = 0
 
-    def start_recording(self, frame_size, fps=30):
+    def create_recorder(self, frame_size, fps, name):
+        """Create a video recorder."""
+
+        is_color = True if len(frame_size) == 3 else False
+        logger.info(f"Creating video recorder for stream: {name} RGB={is_color}")
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        vid_path = os.path.join(self.folder, f'video_{name}_{timestamp}.mp4')
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+
+        return cv2.VideoWriter(
+            vid_path, fourcc, fps, frame_size[1::-1], isColor=is_color
+        )
+
+    def start_recording(self, frames, fps=30):
         """Start recording a video."""
 
         if not self.recording:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            vid_path = os.path.join(self.folder, f'video_{timestamp}.mp4')
-            fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            self.video_writer = cv2.VideoWriter(
-                vid_path, fourcc, fps, frame_size, isColor=True
-            )
+            for record_stream in self.video_writers.keys():
+                self.video_writers[record_stream] = self.create_recorder(frames[record_stream].shape, fps=fps, name=record_stream)
             self.nr_frames_rec = 0
             self.recording = True
-            logger.info(f"Starting recording to: {vid_path}")
+            logger.info(f"Starting recording for stream: {self.video_writers.keys()}")
 
     def stop_recording(self):
         """Stop recording a video."""
@@ -364,16 +384,24 @@ class VideoWriter:
         if self.recording:
             logger.info(f"Stopping recording and storing: {self.folder}")
             self.recording = False
-            self.video_writer.release()
-            self.video_writer = None
+            for video_writer in self.video_writers.values():
+                video_writer.release()
+                video_writer = None
 
-    def save_frame(self, frame):
-        """Save a frame to the video."""
+    def save_frames(self, frames):
+        """Save a dict of frames to video."""
 
         if self.recording:
             logger.info(f"Recording frame {self.nr_frames_rec}")
             self.nr_frames_rec += 1
-            self.video_writer.write(frame)
+            for stream_name, video_writer in self.video_writers.items():
+
+                assert stream_name in frames, f"Stream {stream_name} not recorded!"
+                if len(frames[stream_name].shape) == 2:
+                    frame = np.uint8(frames[stream_name] * 255)
+                else:
+                    frame = frames[stream_name]
+                video_writer.write(frame)
     
     def is_recording(self):
         return self.recording
@@ -397,19 +425,24 @@ class FPSCounter:
 
 if __name__ == "__main__":
     # Combine streams for Kinect 
-    streams = set(args.streams + [args.rec_stream, args.yolo_stream])
+    streams = set(args.streams + [args.yolo_stream] + args.rec_streams)
 
     # Initialize modules
-    video_writer = VideoWriter(args.data_out)
+    video_writer = VideoWriter(args.data_out, args.rec_streams)
     dynamic_fps = FPSCounter()
-    kinect = Kinect(streams=list(streams), shimono_trafo_path=args.shimono_trafo_path, output_dir=args.data_out)
-    ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
-    annotator = ImageAnnotator()
-    # tracker = Tracker()
+    kinect = Kinect(
+        streams=list(streams), 
+        shimono_trafo_path=args.shimono_trafo_path, 
+        output_dir=args.data_out, 
+        flip=args.flip
+    )
+    if args.run_yolo:
+        ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
+        annotator = ImageAnnotator()
+        # tracker = Tracker()
 
     # Start Kinect frame stream   
     for frame_data in kinect:
-        rec_frame = frame_data[args.rec_stream]
         dynamic_fps.update()
         key = cv2.waitKey(1)
         
@@ -417,26 +450,27 @@ if __name__ == "__main__":
         if len(frame_data[args.yolo_stream].shape) == 2:
             frame_data[args.yolo_stream] = cv2.cvtColor(frame_data[args.yolo_stream], cv2.COLOR_GRAY2RGB)
         
-        # Run YOLO detection
-        img_segments = ys.detect(frame_data[args.yolo_stream])
+        if args.run_yolo:
+            # Run YOLO detection
+            img_segments = ys.detect(frame_data[args.yolo_stream])
 
-        # Get segment locations
-        img_segments = kinect.get_mean_coords_for_segments(img_segments)
+            # Get segment locations
+            img_segments = kinect.get_mean_coords_for_segments(img_segments)
 
-        # Draw detections
-        annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
+            # Draw detections
+            annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
 
-        # Send detections to integrator
-        people = [
-            {"cm": np.array(seg["cm"]).tolist(), "id": class_id} 
-            for class_id, seg in img_segments.items() if class_id == 0
-        ]
-        network.send(settings.integrator_sig_port, dict(people_sensor=people))
+            # Send detections to integrator
+            people = [
+                {"cm": np.array(seg["cm"]).tolist(), "id": class_id} 
+                for class_id, seg in img_segments.items() if class_id == 0 and "cm" in seg
+            ]
+            network.send(settings.integrator_sig_port, dict(people_sensor=people))
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
             if not video_writer.is_recording():
-                video_writer.start_recording(rec_frame.shape[1::-1], dynamic_fps.fps)
+                video_writer.start_recording(frame_data, dynamic_fps.fps)
             else:
                 video_writer.stop_recording()
 
@@ -446,7 +480,7 @@ if __name__ == "__main__":
 
         # Save frame to the video file
         if video_writer.is_recording():
-            video_writer.save_frame(rec_frame)
+            video_writer.save_frames(frame_data)
 
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
             break
