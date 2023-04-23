@@ -21,12 +21,12 @@ logger = util.createLogger('kinect', debug=False)
 
 parser = argparse.ArgumentParser(description="Kinect Recorder")
 parser.add_argument(
-    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled_color'], nargs='*', 
+    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color'], nargs='*', 
     default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
 )
 parser.add_argument(
-    '--rec_streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled_color'], nargs='*', 
-   default=['scaled_color', 'depth'],  help="Stream type to record"
+    '--rec_streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color'], nargs='*', 
+   default=['scaled-color', 'depth'],  help="Stream type to record"
 )
 parser.add_argument(
     '--yolo_model', type=str, default='yolov8n-seg', 
@@ -127,10 +127,10 @@ class Kinect:
             )
             output["color"][:,:,[0, 2]] = output["color"][:,:, [2, 0]] # BGR to RGB
 
-            output["scaled_color"] = cv2.cvtColor(
+            output["scaled-color"] = cv2.cvtColor(
                 self.registered.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR
             )
-            output["scaled_color"][:,:,[0, 2]] = output["scaled_color"][:,:, [2, 0]] # BGR to RGB
+            output["scaled-color"][:,:,[0, 2]] = output["scaled-color"][:,:, [2, 0]] # BGR to RGB
 
         if "depth" in self.streams:
             depth = frames["depth"]
@@ -154,7 +154,7 @@ class Kinect:
                 cv2.CV_32F,
             )
         if "ir_rgb" in self.streams:
-            output["ir_rgb"] = self.ir_enhance(output["scaled_color"], output["ir"])
+            output["ir_rgb"] = self.ir_enhance(output["scaled-color"], output["ir"])
 
         if self.flip:
             for k, v in output.items():
