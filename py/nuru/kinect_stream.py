@@ -50,8 +50,13 @@ parser.add_argument(
     '--shimono_trafo_path', type=str, default=os.path.join(settings.blender_path, "data", "kinect_trafo.json"), 
     help="Kinect to Shimoni transform."
 )
+parser.add_argument(
+    '--max_person_away_frames', type=int, default=3, 
+    help="Number of frames to wait for a person to reappear after being lost."
+)
 args = parser.parse_args()
 
+PERSON_ID = 0
 
 class Kinect:
     def __init__(
@@ -435,10 +440,12 @@ if __name__ == "__main__":
         output_dir=args.data_out, 
         flip=args.flip
     )
+
+    # Initialize YOLO tracking objects if specified
     if args.run_yolo:
         ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
         annotator = ImageAnnotator()
-        tracker = people_tracking.Tracker()
+        tracker = people_tracking.Tracker(args.max_person_away_frames)
 
     # Start Kinect frame stream   
     for frame_data in kinect:
@@ -456,18 +463,15 @@ if __name__ == "__main__":
             # Get segment locations
             img_segments = kinect.get_mean_coords_for_segments(img_segments)
 
+            # Track people only if cm coordinates are available
+            tracked_people = tracker.update(
+                [seg for seg in img_segments[PERSON_ID] if "cm" in seg]
+            )
+
             # Draw detections
-            annotator.draw_detections(frame_data[args.yolo_stream], img_segments)
+            annotator.draw_detections(frame_data[args.yolo_stream], tracked_people)
 
-            # Send detections to integrator
-            people = [
-                {"cm": np.array(seg["cm"]).tolist(), "id": class_id} 
-                for class_id, seg in img_segments.items() if class_id == 0 and "cm" in seg
-            ]
-
-            # Track people
-            tracked_people = tracker.update(people)
-
+            # Send tracked people to integrator
             network.send(settings.integrator_sig_port, dict(people_sensor=tracked_people))
 
         # Start/stop record video when 's' is pressed
