@@ -3,12 +3,10 @@ import numpy as np
 import cv2
 import os
 import time
-from ultralytics import YOLO
 from collections import deque
 from datetime import datetime
-from collections import defaultdict
 
-from nuru import settings, people_tracking, kinect_lib, tracker_annotation_lib
+from nuru import settings, people_tracking, kinect_lib, tracker_annotation_lib, object_detection_lib
 from smanmi import network, util
 
 PERSON_ID = 0
@@ -29,10 +27,10 @@ parser.add_argument(
     help="YOLO model name. See settings.py for available models."
 )
 parser.add_argument(
-    '--yolo_stream', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
+    '--detection_steam', type=str, default='ir_rgb', help="Kinect stream name for YOLO."
 )
 parser.add_argument(
-    '--yolo_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
+    '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
 )
 parser.add_argument(
     '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
@@ -58,46 +56,6 @@ parser.add_argument(
     '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and rgb video paths."
 )
 args = parser.parse_args()
-
-class YOLOSegmentation:
-    def __init__(self, model_path, class_ids_filter=None):
-        """Initialize the YOLO segmentation model."""
-
-        self.model = YOLO(model_path)
-        self.class_ids_filter = class_ids_filter
-
-    def detect(self, img):
-        """Detect objects in the image."""
-
-        height, width, channels = img.shape
-
-        results = self.model.predict(source=img.copy(), save=False, save_txt=False)
-        result = results[0]
-                
-        self.bboxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
-        self.class_ids = np.array(result.boxes.cls.cpu(), dtype="int")
-        self.scores = np.array(result.boxes.conf.cpu(), dtype="float").round(2)
-
-        self.segmentations = []
-        if result.masks is not None:
-            for seg in result.masks.xyn:
-                # contours
-                seg[:, 0] *= width
-                seg[:, 1] *= height
-                self.segmentations.append(np.array(seg, dtype=np.int32))
-
-        img_segments = defaultdict(list)
-        for class_id, seg, bbox, score in zip(self.class_ids, self.segmentations, self.bboxes, self.scores):
-            if self.class_ids_filter is None or class_id in self.class_ids_filter:
-                c, r = np.mean(seg, axis=0).astype(int)
-                img_segments[class_id].append({
-                    "rgb_loc": [c, r],
-                    "2D_outline": seg,
-                    "bbox": bbox,
-                    "score": score,
-                    "class_name": self.model.names[int(class_id)],
-                })
-        return img_segments
 
 class VideoWriter:
     def __init__(self, folder, record_streams):
@@ -178,7 +136,7 @@ class FPSCounter:
 
 if __name__ == "__main__":
     # Combine streams for Kinect 
-    streams = set(args.streams + [args.yolo_stream] + args.rec_streams)
+    streams = set(args.streams + [args.detection_steam] + args.rec_streams)
 
     # Initialize modules
     video_writer = VideoWriter(args.data_out, args.rec_streams)
@@ -202,7 +160,10 @@ if __name__ == "__main__":
 
     # Initialize YOLO tracking objects if specified
     if args.run_yolo:
-        ys = YOLOSegmentation(settings.yolo_models[args.yolo_model], args.yolo_class_ids)
+        image_detector = object_detection_lib.YOLOSegmentation(
+            settings.yolo_models[args.yolo_model], 
+            args.detection_class_ids,
+        )
         annotator = tracker_annotation_lib.ImageAnnotator()
         # tracker = people_tracking.Tracker(args.max_person_away_frames)
 
@@ -211,13 +172,13 @@ if __name__ == "__main__":
         dynamic_fps.update()
         key = cv2.waitKey(1)
         
-        # If yolo_stream is grayscale, convert to RGB
-        if len(frame_data[args.yolo_stream].shape) == 2:
-            frame_data[args.yolo_stream] = cv2.cvtColor(frame_data[args.yolo_stream], cv2.COLOR_GRAY2RGB)
+        # If detection_steam is grayscale, convert to RGB
+        if len(frame_data[args.detection_steam].shape) == 2:
+            frame_data[args.detection_steam] = cv2.cvtColor(frame_data[args.detection_steam], cv2.COLOR_GRAY2RGB)
         
         if args.run_yolo:
-            # Run YOLO detection
-            img_segments = ys.detect(frame_data[args.yolo_stream])
+            # Run object detection
+            img_segments = image_detector.detect(frame_data[args.detection_steam])
 
             # Get segment locations
             img_segments = kinect.get_mean_coords_for_segments(img_segments)
@@ -229,7 +190,7 @@ if __name__ == "__main__":
             # )
 
             # Draw detections
-            annotator.draw_detections(frame_data[args.yolo_stream], tracked_people)
+            annotator.draw_detections(frame_data[args.detection_steam], tracked_people)
 
             # Send tracked people to integrator
             # network.send(settings.integrator_sig_port, dict(people_sensor=tracked_people))
