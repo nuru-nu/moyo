@@ -206,3 +206,68 @@ class Kinect:
 
         self.device.stop()
         self.device.close()
+
+class KinectDummy(Kinect):
+    """A dummy Kinect class that reads from video streams."""
+    
+    def __init__(self, depth_video_path, rgb_video_path, *args, **kwargs):
+        """Initialize the dummy Kinect."""
+
+        super().__init__(*args, **kwargs)
+
+        # Open the video streams
+        self.depth_video = cv2.VideoCapture(depth_video_path)
+        self.rgb_video = cv2.VideoCapture(rgb_video_path)
+
+        # Check that the videos are valid
+        self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        self.rgb_video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+        # Get the video properties
+        self.width = int(self.depth_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.depth_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.frame_count = int(self.depth_video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        assert self.width == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        assert self.height == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        assert self.frame_count == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Set the frame counter
+        self.frame = 0
+    
+    def __next__(self):
+        """Get the next frames from the Kinect device."""
+
+        # Reset the frame counter to loop the video
+        if self.frame >= self.frame_count:
+            self.frame = 0
+
+        self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
+        self.rgb_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
+
+        ret_depth, depth_frame = self.depth_video.read()
+        ret_rgb, rgb_frame = self.rgb_video.read()
+
+        # Check that the frames are valid
+        if not ret_depth or not ret_rgb:
+            raise StopIteration
+
+        self.frame += 1
+
+        output = {
+            "scaled-color": rgb_frame,
+            "depth": depth_frame
+        }
+
+        if self.flip:
+            for k, v in output.items():
+                output[k] = cv2.flip(v, 1)
+                output[k] = cv2.flip(v, 0)
+
+        return output
+    
+    def close(self):
+        """Close the Kinect device."""
+
+        self.depth_video.release()
+        self.rgb_video.release()
