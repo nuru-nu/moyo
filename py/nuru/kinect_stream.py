@@ -50,6 +50,9 @@ parser.add_argument(
     '--max_person_away_frames', type=int, default=3, 
     help="Number of frames to wait for a person to reappear after being lost."
 )
+parser.add_argument(
+    '--display_streams', type=str, nargs='*', default=None, help="Streams to show in the UI."
+)
 args = parser.parse_args()
 
 PERSON_ID = 0
@@ -291,6 +294,9 @@ if __name__ == "__main__":
 
         # Show frames
         for stream, frame in frame_data.items():
-            cv2.imshow(stream, frame)  
+            if args.display_streams is None:
+                break
+            if stream in args.display_streams:
+                cv2.imshow(stream, frame)  
 
     kinect.close()
