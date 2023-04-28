@@ -53,6 +53,9 @@ parser.add_argument(
 parser.add_argument(
     '--display_streams', type=str, nargs='*', default=None, help="Streams to show in the UI."
 )
+parser.add_argument(
+    '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and rgb video paths."
+)
 args = parser.parse_args()
 
 PERSON_ID = 0
@@ -233,12 +236,22 @@ if __name__ == "__main__":
     # Initialize modules
     video_writer = VideoWriter(args.data_out, args.rec_streams)
     dynamic_fps = FPSCounter()
-    kinect = kinect_lib.Kinect(
-        streams=list(streams), 
-        shimono_trafo_path=args.shimono_trafo_path, 
-        output_dir=args.data_out, 
-        flip=args.flip
-    )
+    if args.dummy_kinect:
+        kinect = kinect_lib.KinectDummy(
+            depth_video_path=args.dummy_kinect[0], 
+            rgb_video_path=args.dummy_kinect[1],
+            streams=list(streams), 
+            shimono_trafo_path=args.shimono_trafo_path, 
+            output_dir=args.data_out, 
+            flip=args.flip
+        )
+    else:
+        kinect = kinect_lib.Kinect(
+            streams=list(streams), 
+            shimono_trafo_path=args.shimono_trafo_path, 
+            output_dir=args.data_out, 
+            flip=args.flip
+        )
 
     # Initialize YOLO tracking objects if specified
     if args.run_yolo:
