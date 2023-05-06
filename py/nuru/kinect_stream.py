@@ -53,7 +53,7 @@ parser.add_argument(
     '--display_streams', type=str, nargs='*', default=None, help="Streams to show in the UI."
 )
 parser.add_argument(
-    '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and rgb video paths."
+    '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and color stream video paths."
 )
 args = parser.parse_args()
 
@@ -72,7 +72,7 @@ class VideoWriter:
         is_color = True if len(frame_size) == 3 else False
         logger.info(f"Creating video recorder for stream: {name} RGB={is_color}")
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        vid_path = os.path.join(self.folder, f'video_{name}_{timestamp}.mp4')
+        vid_path = os.path.join(self.folder, f'video_{name}_{timestamp}.avi')
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
         return cv2.VideoWriter(
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     if args.dummy_kinect:
         kinect = kinect_lib.KinectDummy(
             depth_video_path=args.dummy_kinect[0], 
-            rgb_video_path=args.dummy_kinect[1],
+            scaled_color_video_path=args.dummy_kinect[1],
             streams=list(streams), 
             shimono_trafo_path=args.shimono_trafo_path, 
             output_dir=args.data_out, 
@@ -167,6 +167,9 @@ if __name__ == "__main__":
         annotator = tracker_annotation_lib.ImageAnnotator()
         # tracker = people_tracking.Tracker(args.max_person_away_frames)
 
+    for stream_name in args.display_streams:
+        cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
+
     # Start Kinect frame stream   
     for frame_data in kinect:
         dynamic_fps.update()
@@ -176,6 +179,10 @@ if __name__ == "__main__":
         if len(frame_data[args.detection_steam].shape) == 2:
             frame_data[args.detection_steam] = cv2.cvtColor(frame_data[args.detection_steam], cv2.COLOR_GRAY2RGB)
         
+        # Save frame to the video file
+        if video_writer.is_recording():
+            video_writer.save_frames(frame_data)
+
         if args.run_yolo:
             # Run object detection
             img_segments = image_detector.detect(frame_data[args.detection_steam])
@@ -205,10 +212,6 @@ if __name__ == "__main__":
         # Save point cloud when 'p' is pressed
         if key == ord('p'):
             kinect.save_point_cloud()
-
-        # Save frame to the video file
-        if video_writer.is_recording():
-            video_writer.save_frames(frame_data)
 
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
             break
