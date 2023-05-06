@@ -26,7 +26,7 @@ class Kinect:
         serial = self.freenect.getDeviceSerialNumber(0)
         self.device = self.freenect.openDevice(serial)
         
-        self.streams = streams
+        self.streams = set(streams)
         self.output_dir = output_dir
         self.flip = flip
         self.width = width
@@ -59,7 +59,7 @@ class Kinect:
 
     def __iter__(self):
         return self
-
+    
     def __next__(self):
         """Get the next frames from the Kinect device."""
 
@@ -72,23 +72,22 @@ class Kinect:
             )
 
         # Create output images
-        output = {}
+        np_frames = {}
         if "color" in self.streams:
             color = frames["color"]
-            output["color"] = cv2.cvtColor(
+            np_frames["color"] = cv2.cvtColor(
                 color.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR
             )
-            output["color"][:,:,[0, 2]] = output["color"][:,:, [2, 0]] # BGR to RGB
+            np_frames["color"][:,:,[0, 2]] = np_frames["color"][:,:, [2, 0]] # BGR to RGB
 
-            output["scaled-color"] = cv2.cvtColor(
+            np_frames["scaled-color"] = cv2.cvtColor(
                 self.registered.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR
             )
-            output["scaled-color"][:,:,[0, 2]] = output["scaled-color"][:,:, [2, 0]] # BGR to RGB
+            np_frames["scaled-color"][:,:,[0, 2]] = np_frames["scaled-color"][:,:,[2, 0]] # BGR to RGB
 
         if "depth" in self.streams:
-            depth = frames["depth"]
-            output["depth"] = cv2.normalize(
-                depth.asarray(dtype=np.float32),
+            np_frames["depth"] = cv2.normalize(
+                self.undistorted.asarray(dtype=np.float32),
                 None,
                 0,
                 1,
@@ -98,7 +97,7 @@ class Kinect:
 
         if "ir" in self.streams:
             ir = frames["ir"]
-            output["ir"] = cv2.normalize(
+            np_frames["ir"] = cv2.normalize(
                 ir.asarray(dtype=np.float32),
                 None,
                 0,
@@ -107,15 +106,15 @@ class Kinect:
                 cv2.CV_32F,
             )
         if "ir_rgb" in self.streams:
-            output["ir_rgb"] = self.ir_enhance(output["scaled-color"], output["ir"])
+            np_frames["ir_rgb"] = self.ir_enhance(np_frames["scaled-color"], np_frames["ir"])
 
         if self.flip:
-            for k, v in output.items():
-                output[k] = cv2.flip(v, 1)
-                output[k] = cv2.flip(v, 0)
+            for k, v in np_frames.items():
+                np_frames[k] = cv2.flip(v, 1)
+                np_frames[k] = cv2.flip(v, 0)
 
         self.listener.release(frames)
-        return output
+        return np_frames
     
     def ir_enhance(self, rgb, ir):
         """Enhance the rgb image by adaptively adding IR to the V channel of the HSV image."""
@@ -137,9 +136,9 @@ class Kinect:
                 points_3d = []
                 for seg_point in np.argwhere(mask == 255):
                     c, r = seg_point
-                    x, y, z = self.registration.getPointXYZ(self.undistorted, c, r)
-                    if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
-                        points_3d.append([x, y, z])
+                    p = self.get_point_3d(c, r)
+                    if p is not None:
+                        points_3d.append(p)
                 
                 if len(points_3d) == 0:
                     continue
@@ -210,14 +209,14 @@ class Kinect:
 class KinectDummy(Kinect):
     """A dummy Kinect class that reads from video streams."""
     
-    def __init__(self, depth_video_path, rgb_video_path, *args, **kwargs):
+    def __init__(self, depth_video_path, scaled_color_video_path, *args, **kwargs):
         """Initialize the dummy Kinect."""
 
         super().__init__(*args, **kwargs)
 
         # Open the video streams
         self.depth_video = cv2.VideoCapture(depth_video_path)
-        self.rgb_video = cv2.VideoCapture(rgb_video_path)
+        self.rgb_video = cv2.VideoCapture(scaled_color_video_path)
 
         # Check that the videos are valid
         self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -232,11 +231,13 @@ class KinectDummy(Kinect):
         assert self.height == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
         assert self.frame_count == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_COUNT))
 
+        self.bytes_per_pixel = 4  # Assuming 4 bytes per pixel (RGBA), adjust according to your needs
+
         # Set the frame counter
         self.frame = 0
-    
+
     def __next__(self):
-        """Get the next frames from the Kinect device."""
+        """Get the next color and depth frames."""
 
         # Reset the frame counter to loop the video
         if self.frame >= self.frame_count:
@@ -245,8 +246,12 @@ class KinectDummy(Kinect):
         self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
         self.rgb_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
 
-        ret_depth, depth_frame = self.depth_video.read()
-        ret_rgb, rgb_frame = self.rgb_video.read()
+        np_frames = {}
+        ret_depth, np_frames["depth"] = self.depth_video.read()
+        np_frames["depth"] = cv2.cvtColor(np_frames["depth"], cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
+        ret_rgb, np_frames["scaled-color"] = self.rgb_video.read()
+
+        self.depth = np_frames["depth"]
 
         # Check that the frames are valid
         if not ret_depth or not ret_rgb:
@@ -254,17 +259,58 @@ class KinectDummy(Kinect):
 
         self.frame += 1
 
-        output = {
-            "scaled-color": rgb_frame,
-            "depth": depth_frame
-        }
+        return np_frames
+    
+    def get_point_3d(self, c, r):
+        """Get the 3D location of a point in the depthmap."""
 
-        if self.flip:
-            for k, v in output.items():
-                output[k] = cv2.flip(v, 1)
-                output[k] = cv2.flip(v, 0)
+        undistorted = Frame(
+            self.width, 
+            self.height, 
+            self.bytes_per_pixel, 
+            FrameType.Depth,
+            self.depth * 4500.0
+        )
 
-        return output
+        x, y, z = self.registration.getPointXYZ(undistorted, c, r)
+
+        if np.isnan(x) or np.isnan(y) or np.isnan(z):
+            return None
+        
+        return x, y, z
+    
+    def get_mean_coords_for_segments(self, seg_labels):
+        """Get the mean 3D location of each segmentation label."""
+
+        undistorted = Frame(
+            self.width, 
+            self.height, 
+            self.bytes_per_pixel, 
+            FrameType.Depth,
+            self.depth * 4500.0
+        )
+
+        for detections in seg_labels.values():
+            for detection in detections:
+                mask = np.zeros((self.width, self.height), dtype=np.uint8)
+                cv2.fillPoly(mask, [detection["2D_outline"]], 255)
+
+                points_3d = []
+                for seg_point in np.argwhere(mask == 255):
+                    c, r = seg_point
+                    x, y, z = self.registration.getPointXYZ(undistorted, c, r)
+                    if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
+                        points_3d.append([x, y, z])
+                
+                if len(points_3d) == 0:
+                    continue
+                
+                detection["3D_point"] = np.mean(points_3d, axis=0)
+                detection["3D_shimoni"] = self.get_point_shimino_space(*detection["3D_point"])
+                detection["cm"] = detection["3D_shimoni"] # HACK: for compatibility with old code
+
+        return seg_labels
+    
     
     def close(self):
         """Close the Kinect device."""
