@@ -29,7 +29,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/freenect2
 make
 make install
 
-export LIBFREENECT2_INSTALL_DIR=$HOME/git/build
+export LIBFREENECT2_INSTALL_DIR=$HOME/freenect2
 export DYLD_LIBRARY_PATH=$LIBFREENECT2_INSTALL_DIR/lib:$DYLD_LIBRARY_PATH
 export CPATH=$LIBFREENECT2_INSTALL_DIR/include:$CPATH
 
@@ -40,11 +40,13 @@ cd $LIBFREENECT2_INSTALL_DIR/bin
 
 #### Install pylibfreenect2
 
+Only necessary if pip install fails!!
+
 mkdir build/include
 cp build/libfreenect2 build/include
 
 git clone https://github.com/r9y9/pylibfreenect2.git
-cd pylibfreenect2
+cd pylibfreenect2cd
 
 vim setup.py
 extra_link_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']

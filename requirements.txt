@@ -1,5 +1,5 @@
 Pillow
-PyAudio
+PyAudio # OSX run before: brew install portaudio
 PyCmdMessenger
 aiohttp
 functiontrace
@@ -13,7 +13,7 @@ git+https://github.com/google-research/self-organising-systems#egg=self_organisi
 git+https://github.com/pvigier/perlin-numpy
 pylint
 pytest
-rtmidi_python
+# rtmidi_python
 scipy
 pyserial
 tensorflow_cpu
@@ -24,3 +24,6 @@ opencv-python
 open3d
 audinterface
 audonnx
+cython==0.29
+ultralytics
+pylibfreenect2
