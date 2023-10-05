@@ -174,11 +174,7 @@ kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
 
     people=S.Overridable(
-        L.Named('people_sensor') | S.KinectFix(
-            phantoms=([0.884383, -4.013486, 0.935697],),
-            dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
-            people_aug=L.Named('people_sensor_2'),
-        ),
+        L.Named('people_sensor'),
         L.Named('people_override'),
     ),
     people_2=S.Overridable(

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+LIBFREENECT2_PATH="/Users/groux/git/libfreenect2/build/lib"
+export DYLD_LIBRARY_PATH="$LIBFREENECT2_PATH:$DYLD_LIBRARY_PATH"
+
 # Utility to quickly start task, like `./run nuru.recorder`
 
 cd "$(dirname "$0")"
