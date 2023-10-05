@@ -14,7 +14,6 @@ from nuru import settings
 from smanmi import network, util
 import numpy as np
 
-from scipy.signal import butter, filtfilt
 from collections import deque
 
 import audonnx
@@ -22,11 +21,6 @@ import audinterface
 
 parser = argparse.ArgumentParser(
     description='Reads audio from active microphone, converts to text and prompts ChatGPT'
-)
-parser.add_argument(
-    '--integrator_address',
-    type=str,
-    default='127.0.0.1',
 )
 parser.add_argument(
     '--chatgpt_persona',
