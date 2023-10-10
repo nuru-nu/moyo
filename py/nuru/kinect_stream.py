@@ -15,7 +15,7 @@ logger = util.createLogger('kinect', debug=False)
 
 parser = argparse.ArgumentParser(description="Kinect Recorder")
 parser.add_argument(
-    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color'], nargs='*', 
+    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks'], nargs='*', 
     default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
 )
 parser.add_argument(
@@ -135,6 +135,9 @@ class FPSCounter:
         logger.info(f"{self.fps:.2f}fps")
 
 if __name__ == "__main__":
+    # Print interface info
+    print("Save point cloud when 'p' is pressed.\nPress 'q' or 'ESC' to exit.")
+
     # Combine streams for Kinect 
     streams = set(args.streams + [args.detection_steam] + args.rec_streams)
 
@@ -198,6 +201,10 @@ if __name__ == "__main__":
 
             # Draw detections
             annotator.draw_detections(frame_data[args.detection_steam], tracked_people)
+
+            # Draw 2d tracks
+            if "tracks" in args.display_streams:
+                frame_data["tracks"] = annotator.draw_2d_track(tracked_people.get(PERSON_ID, []))
 
             # Send tracked people to integrator
             # network.send(settings.integrator_sig_port, dict(people_sensor=tracked_people))
