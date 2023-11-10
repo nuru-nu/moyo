@@ -25,13 +25,8 @@ brew install libusb cmake glfw
 git clone https://github.com/OpenKinect/libfreenect2.git
 cd libfreenect2
 mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$HOME/freenect2
+cmake -DLibUSB_LIBRARIES="/opt/homebrew/Cellar/libusb/1.0.26/lib/libusb-1.0.0.dylib" -DLibUSB_INCLUDE_DIR="/opt/homebrew/include/libusb-1.0" -DCMAKE_INSTALL_PREFIX=$HOME/freenect2 ..
 make
-make install
-
-export LIBFREENECT2_INSTALL_DIR=$HOME/freenect2
-export DYLD_LIBRARY_PATH=$LIBFREENECT2_INSTALL_DIR/lib:$DYLD_LIBRARY_PATH
-export CPATH=$LIBFREENECT2_INSTALL_DIR/include:$CPATH
 
 Test
 
@@ -43,20 +38,17 @@ cd $LIBFREENECT2_INSTALL_DIR/bin
 Only necessary if pip install fails!!
 
 mkdir build/include
-cp build/libfreenect2 build/include
+cp -r build/libfreenect2 build/include
 
 git clone https://github.com/r9y9/pylibfreenect2.git
 cd pylibfreenect2cd
 
 vim setup.py
+
+Edit the import path to your libfreenect2/build folder
 extra_link_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
 pip install .
-
-LIBFREENECT2_PATH="$HOME/git/libfreenect2/build/lib"
-export DYLD_LIBRARY_PATH="$LIBFREENECT2_PATH:$DYLD_LIBRARY_PATH"
-
-Add EXPORTS to .zsh
 
 ### Python packages
 
