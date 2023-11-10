@@ -16,7 +16,7 @@ pytest
 # rtmidi_python
 scipy
 pyserial
-tensorflow_cpu
+tensorflow_cpu # tensorflow-macos
 yapf
 google-cloud-speech
 openai
@@ -27,3 +27,4 @@ audonnx
 cython==0.29
 ultralytics
 pylibfreenect2
+filterpy
