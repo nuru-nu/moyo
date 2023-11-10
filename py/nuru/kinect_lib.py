@@ -24,7 +24,7 @@ class Kinect:
         assert num_devices > 0, "No Kinect device detected"
 
         serial = self.freenect.getDeviceSerialNumber(0)
-        self.device = self.freenect.openDevice(None)
+        self.device = self.freenect.openDevice(serial)
         
         self.streams = set(streams)
         self.output_dir = output_dir
