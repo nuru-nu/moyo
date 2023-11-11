@@ -207,7 +207,14 @@ if __name__ == "__main__":
                 frame_data["tracks"] = annotator.draw_2d_track(tracked_people.get(PERSON_ID, []))
 
             # Send tracked people to integrator
-            # network.send(settings.integrator_sig_port, dict(people_sensor=tracked_people))
+            people = [
+                {"cm": np.array(person["cm"]).tolist(), "id": class_id} 
+                for class_id, seg in img_segments.items() 
+                for person in seg
+                if class_id == 0
+            ]
+            network.send(settings.integrator_sig_port, dict(people_sensor=people))
+
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):

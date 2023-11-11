@@ -184,7 +184,7 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-
+    connection=S.ConnectionMeter(1 / 30, 1 / 120),
     closest=(
         S.KinectDistance()
         | S.With(6.5) | S.Min() | S.From(6.5, 0)
@@ -311,7 +311,7 @@ monitor_def = dict(
     transients=cc(transients, transient_loops),
     selected={
         'default': ['heart', 'rnd1'],
-        'sensors': ['closest', 'mvmt', 'sonar', 'pir'],
+        'sensors': ['closest', 'mvmt', 'sonar', 'pir', 'connection'],
         'touch': touchs,
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
         'gpt': ['thinking_gpt', 'speaking_gpt', 'listening_gpt'],
