@@ -51,6 +51,40 @@ heart_palette = P.parse_colors_hex([
     (1, 'f00'),
 ])
 
+blue = P.parse_colors_hex([
+    (0, '000'),
+    (1, '00f'),
+])
+
+orange = P.parse_colors_hex([
+    (0, '000'),
+    (1, 'f80'),
+])
+
+red = P.parse_colors_hex([
+    (0, '000'),
+    (1, 'f00'),
+])
+
+
+@anim
+def radial_wave():
+    return (
+        L.Named('connection') | S.Lin(0, 0.3) | A.SinWave(2) | P.InterpolPalette(
+            L.Named('connection'), 
+            (
+                (0, blue),
+                (0.5, orange),
+                (1, red),
+            )
+        )
+    )
+
+@anim
+def standing_wave():
+    return (
+        L.Named('t') | S.Lin(mult=1) | A.SandingWave(2) | P.Palette(blue)
+    )
 
 @anim
 def heart():
