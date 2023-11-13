@@ -436,6 +436,35 @@ class Dist3D(L.Signal):
         return self.dist
 
 
+class SinWave(L.Signal):
+    """Use: sig | SinWave() | Gradient."""
+
+    def init(self, f=1):
+        r = phi_r_mapping[:, 1]
+        self.x = r / r.max()
+        self.t_prev = time.time()
+        self.dist_prev = 0
+
+    def call(self, value):
+        dt = time.time() - self.t_prev
+        self.t_prev = time.time()
+        self.dist_prev += dt * value
+        x = self.x + self.dist_prev
+        return ((np.sin(self.f * (x * 2 * np.pi)) + 1) / 2)
+
+
+class SandingWave(L.Signal):
+    """Use: sig | SinWave() | Gradient."""
+
+    def init(self, f=1):
+        r = phi_r_mapping[:, 1]
+        self.x = r / r.max()
+
+    def call(self, value):
+        intensity = np.sin(value)
+        return ((np.sin(self.f * (self.x * 2 * np.pi)) * intensity + 1) / 2)
+
+
 class CompWave(L.Signal):
     """Use: sig | CompWave() | Gradient."""
 
