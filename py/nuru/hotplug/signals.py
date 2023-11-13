@@ -149,6 +149,7 @@ state_signals = dict(
                         wakeup_duration=10,
                         sonar_threshold=0.1),
     state_kosmos=state.Kosmos(sig=N.state_kosmos),
+    state_kraftwerk=state.Kraftwerk(sig=N.state_kraftwerk),
     state_rnca=state.RNCA(secs=60),
     css=state.Css(alpha=L.Named('css_alpha')),
 )
@@ -242,6 +243,7 @@ defaults = dict(
     # state=state.State(),
     state_one=state.One.INITIAL_STATE,
     state_kosmos=state.Kosmos.INITIAL_STATE,
+    state_kraftwerk=state.Kraftwerk.INITIAL_STATE,
     state=state.STATE_SLEEP,
     mode='manual',
     animation='nca',
@@ -298,7 +300,7 @@ transient_loops = dict(
 )
 
 cc = lambda *x: functools.reduce(operator.add, map(list, x), [])
-modes = ['rnca', 'manual', 'css', 'simple', 'one', 'kosmos']
+modes = ['rnca', 'manual', 'css', 'simple', 'one', 'kosmos', 'kraftwerk']
 monitor_def = dict(
     graphs=dict(
         audio=audio_signals.keys(),
@@ -341,6 +343,7 @@ monitor_def = dict(
         # state
         'state_one',
         'state_kosmos',
+        'state_kraftwerk',
         'rec_state',
         'scene',
         'animation',

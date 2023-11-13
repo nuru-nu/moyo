@@ -45,6 +45,51 @@ _presets_by_name = {
     for preset in _presets['animations']
 }
 _kosmos_log_path = pathlib.Path(__file__).parent.parent.parent / 'tmp' / 'kosmos.log'
+_kraftwerk_log_path = pathlib.Path(__file__).parent.parent.parent / 'tmp' / 'kraftwerk.log'
+
+
+class Kraftwerk(L.Signal):
+
+    INITIAL_STATE = dict(
+        state=None, # off
+        timer=0,
+        sonar_timer=0,
+        log_timer=0,
+    )
+    sig: Mapping[str, Any]
+    state: Mapping[str, Any]
+    sleep_secs: float
+
+    def init(self, sig, sleep_secs=60):
+        self.state = None
+        self.f = open(_kraftwerk_log_path, 'a')
+
+    def call(self, t, dt, people, connection, mode):
+        if not self.state:
+            self.state = self.INITIAL_STATE
+            if self.sig:
+                self.state.update({
+                    k: v for k, v in self.sig.items()
+                    if k in self.INITIAL_STATE
+                })
+                logging.info('Kraftwerk reinit: %s', self.state)
+
+        if mode != 'kraftwerk':
+            return None
+
+        state = self.state['state']
+        timer = self.state['timer']
+        sonar_timer = self.state['sonar_timer']
+        log_timer = self.state['log_timer']
+        overwrites = {'action': []}
+        state = STATE_AWAKE
+
+        if connection == 0:
+            overwrites['action'].append(f'animation=standing_wave')
+        else:
+            overwrites['action'].append(f'animation=radial_wave')
+
+        return {**self.state, 'overwrites': overwrites}
 
 
 class Kosmos(L.Signal):
