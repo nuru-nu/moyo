@@ -4,11 +4,27 @@ Shared doc : https://docs.google.com/document/d/1DKIEItOe5IRh6JfeMJ1ERkpSYmWZ7JR
 
 ## Installation
 
-check out the git repository : `git clone smanmi@figur.li:nuru.git`
+check out the git repository : 
+
+```
+git clone smanmi@figur.li:nuru.git
+```
 
 Note that you also need to check out submodules:
-- `git submodule init && git submodule update`
-- `git pull --recurse-submodules=yes`
+```
+git submodule init && git submodule update
+git pull --recurse-submodules=yes
+```
+### Google Cloud Setup 
+
+OSX Install:
+```
+brew install --cask mycloud
+```
+Login to Moshi.na.vioo Google account:
+```
+gcloud auth application-default login
+```
 
 ### Speech Emotion Recognition (SER)
 
@@ -20,36 +36,48 @@ https://github.com/audeering/w2v2-how-to
 
 #### Install libfreenect2
 
+```
 brew install libusb cmake glfw
-
+```
+```
 git clone https://github.com/OpenKinect/libfreenect2.git
 cd libfreenect2
 mkdir build && cd build
 cmake -DLibUSB_LIBRARIES="/opt/homebrew/Cellar/libusb/1.0.26/lib/libusb-1.0.0.dylib" -DLibUSB_INCLUDE_DIR="/opt/homebrew/include/libusb-1.0" -DCMAKE_INSTALL_PREFIX=$HOME/freenect2 ..
 make
-
+```
 Test
 
+```
 cd $LIBFREENECT2_INSTALL_DIR/bin
 ./Protonect
+```
 
 #### Install pylibfreenect2
 
 Only necessary if pip install fails!!
-
+```
 mkdir build/include
 cp -r build/libfreenect2 build/include
-
+```
+```
 git clone https://github.com/r9y9/pylibfreenect2.git
 cd pylibfreenect2cd
+```
 
+Edit the import path to your libfreenect2/build folder in setup.py.
+
+```
 vim setup.py
+```
+Might need to add on OSX:
 
-Edit the import path to your libfreenect2/build folder
 extra_link_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
+Run pip install on local folder
+```
 pip install .
-
+```
 ### Python packages
 
 ```
@@ -151,24 +179,29 @@ See instructions in `notebooks/dmx.ipynb` and `py/nuru/dmx.py`.
 We use Blender to simulate the Neopixel
 
 tested with Blender 2.79b
+```
 cd /Applications/Blender/blender.app/Contents/Resources/2.79/python/bin
+
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 ./python3.5m get-pip.py
+
 C_INCLUDE_PATH=/usr/local/Cellar/python//3.6.4_2/Frameworks/Python.framework/Versions/3.6/include/python3.6m ./pip3 install scipy pyaudio
+
 ln -s /Applications/Blender/blender.app/Contents/Resources/2.79/python/lib/python3.5/site-packages /Applications/Blender/blenderplayer.app/Contents/Resources/2.79/python/lib/python3.5/site-packages
 (also renamed old numpy installation)
-
+```
 ### Git
 
-git config status.submodulesummary 1
+git config status.submodulesummary
 
 ### VIM config
 
+```
 https://github.com/Vimjas/vim-python-pep8-indent.git
 https://github.com/vim-syntastic/syntastic/
 let g:syntastic_python_flake8_config_file='.flake8'
 set cc=80
-
+```
 ### Jupyter
 
 
