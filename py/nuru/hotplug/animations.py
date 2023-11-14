@@ -70,20 +70,32 @@ red = P.parse_colors_hex([
 @anim
 def radial_wave():
     return (
-        L.Named('connection') | S.Lin(0, 0.3) | A.SinWave(2) | P.InterpolPalette(
+        L.Named('connection') | S.Lin(0.02, 0.2) | A.SinWave(3) | P.InterpolPalette(
             L.Named('connection'), 
             (
-                (0, blue),
-                (0.5, orange),
-                (1, red),
+                (0, P.blueish),
+                (1, P.gabe_red),
             )
         )
     )
 
 @anim
-def standing_wave():
+def speaking_radial_wave():
     return (
-        L.Named('t') | S.Lin(mult=1) | A.SandingWave(2) | P.Palette(blue)
+       L.Named('t') | S.Lin(mult=2) | A.SandingWave(3) | P.Palette(P.gabe_red)
+    )
+
+
+@anim
+def blue_standing_wave():
+    return (
+        L.Named('t') | S.Lin(mult=0.8) | A.SandingWave(3) | P.Palette(P.blueish)
+    )
+
+@anim
+def red_standing_wave():
+    return (
+        L.Named('t') | S.Lin(mult=2) | A.SandingWave(3) | P.Palette(P.gabe_red)
     )
 
 @anim
