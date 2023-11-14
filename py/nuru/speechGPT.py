@@ -9,7 +9,7 @@ import time
 from google.cloud import speech
 import nuru.gc_speech_to_text as stt
 
-import openai
+from openai import OpenAI
 from nuru import settings
 from smanmi import network, util
 import numpy as np
@@ -31,8 +31,6 @@ args = parser.parse_args()
 
 logger = util.createLogger('speechGPT', debug=False)
 
-openai.api_key = settings.openai_api_key
-
 class ChatGPTComms:
     """Class for communicating with ChatGPT"""
 
@@ -45,6 +43,7 @@ class ChatGPTComms:
         self.speech = ""
         self.answer = ""
         self.network_msg = ""   
+        self.openai_client = OpenAI(api_key=settings.openai_api_key)
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -54,6 +53,7 @@ class ChatGPTComms:
                 "content": system_message,
             },
         ]
+        logger.info("ChatGPTComms Initialized...")
 
     def __call__(self, responses):
         """Run read_network_responses and read_audio_responses in parallel."""
@@ -156,6 +156,7 @@ class ChatGPTComms:
         """Transcribe emotion from audio"""
 
         # Send the audio buffer to the speech to emotion model
+        print(self.audio_buffer.shape)
         emo_response = self.speech_to_emo_model.process_signal(self.audio_buffer, settings.rate)
         
         # Reset the audio buffer
@@ -175,6 +176,7 @@ class ChatGPTComms:
 
         network.send(self.integrator_sig_port, dict(thinking_gpt=1))
         network.send(self.integrator_sig_port, dict(speaking_gpt=1))
+
         response = openai.ChatCompletion.create(
             model=settings.chat_gpt_model,
             messages=self.messages,
@@ -195,7 +197,7 @@ class ChatGPTComms:
         self.messages.append({"role": "user", "content": msg})
 
         network.send(self.integrator_sig_port, dict(thinking_gpt=1))
-        response = openai.ChatCompletion.create(
+        response = self.openai_client.chat.completions.create(
             model=settings.chat_gpt_model,
             messages=self.messages,
             temperature=0,
@@ -207,7 +209,8 @@ class ChatGPTComms:
         self.emo_state=None
         network.send(self.integrator_sig_port, dict(speaking_gpt=1))
         for chunk in response:
-            answer += chunk['choices'][0]['delta'].get('content', '')
+            # print(chunk.choices[0].delta.content or "")
+            answer += chunk.choices[0].delta.content or ""
             network.send(self.integrator_sig_port, dict(answer_gpt=answer))
 
             print(answer, end='\r')

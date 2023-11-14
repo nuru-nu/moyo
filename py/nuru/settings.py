@@ -43,8 +43,9 @@ kinect_data_path = os.path.join(data_path, 'kinect')
 
 # ChatGPT
 
-openai_api_key_gab = "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"
-openai_api_key = "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"
+openai_api_key_gab = "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"
+openai_api_key_nuru = "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"
+openai_api_key = openai_api_key_gab
 
 chatgpt_personas = {}
 for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
