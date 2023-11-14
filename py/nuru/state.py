@@ -64,7 +64,7 @@ class Kraftwerk(L.Signal):
         self.state = None
         self.f = open(_kraftwerk_log_path, 'a')
 
-    def call(self, t, dt, people, connection, mode):
+    def call(self, t, dt, people, connection, thinking_gpt, speaking_gpt, listening_gpt, mode):
         if not self.state:
             self.state = self.INITIAL_STATE
             if self.sig:
@@ -85,7 +85,16 @@ class Kraftwerk(L.Signal):
         state = STATE_AWAKE
 
         if connection == 0:
-            overwrites['action'].append(f'animation=standing_wave')
+            overwrites['action'].append(f'animation=blue_standing_wave')
+        elif connection == 1:
+            if thinking_gpt:
+                overwrites['action'].append(f'animation=red_standing_wave')
+            elif speaking_gpt:
+                overwrites['action'].append(f'animation=speaking_radial_wave')
+            elif listening_gpt:
+                overwrites['action'].append(f'animation=radial_wave')
+            else:
+                overwrites['action'].append(f'animation=red_standing_wave')
         else:
             overwrites['action'].append(f'animation=radial_wave')
 
