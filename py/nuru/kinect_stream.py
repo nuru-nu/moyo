@@ -59,6 +59,10 @@ parser.add_argument(
 parser.add_argument(
     '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and color stream video paths."
 )
+parser.add_argument(
+    '--max_nr_people', type=int, default=10, 
+    help="Number of people to uniquly identify, assigns ID and annotation color."
+)
 args = parser.parse_args()
 
 class VideoWriter:
@@ -171,10 +175,11 @@ if __name__ == "__main__":
             settings.yolo_models[args.yolo_model], 
             args.detection_class_ids,
         )
-        annotator = tracker_annotation_lib.ImageAnnotator()
+        annotator = tracker_annotation_lib.ImageAnnotator(num_colors=args.max_nr_people)
         tracker = people_tracking.Tracker(
             forget_dt=args.person_forget_time_s, 
             nr_people_queue_size=args.nr_frames_to_estimate_nr_people,
+            max_person_id=args.max_nr_people,
         )
 
     for stream_name in args.display_streams:
