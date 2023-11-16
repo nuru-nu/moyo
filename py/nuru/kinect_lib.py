@@ -158,7 +158,8 @@ class Kinect:
                 # colors = self.np_frames["scaled-color"][seg_points[:, 0], seg_points[:, 1]]
                 # detection["color_histogram"] = create_color_histogram(colors)
 
-                detection["cm"] = detection["3D_shimoni"]  # HACK: for compatibility with old code
+                detection["3D_point"] = np.mean(points_3d, axis=0)
+                detection["cm"] = self.get_point_shimino_space(*detection["3D_point"])
 
         return seg_labels
     
