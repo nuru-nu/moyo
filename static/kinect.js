@@ -99,7 +99,7 @@ export const Kinect = (output, {network, readonly, headless, width, height}) => 
       ),
       h.canvas('xy', {width, height}),
       readonly ? [] :
-      ui.choice('kinect_alg', {network, values:['algo', 'nite', 'merged']})
+      ui.choice('kinect_alg', {network, values:['algo', 'nite', 'yolo', 'merged']})
     ),
   ).into(output).els
   const ctx = disp.xy.getContext('2d')

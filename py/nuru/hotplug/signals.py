@@ -179,9 +179,9 @@ kinect_signals = dict(
         L.Named('people_override'),
     ),
     people_2=S.Overridable(
-        L.Named('people_sensor_2') | S.KinectFix(
+        L.Named('people_sensor') | S.KinectFix(
             phantoms=(),
-            dphi=N.kinect_dphi | S.From(0, 1) | S.To(-90, 90),
+            dphi=N.kinect_dphi | S.From(0, 1) | S.To(0, 360),
         ),
         L.Named('people_override'),
     ),
