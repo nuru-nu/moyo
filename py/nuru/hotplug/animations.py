@@ -82,7 +82,13 @@ def radial_wave():
 @anim
 def speaking_radial_wave():
     return (
-       L.Named('t') | S.Lin(mult=2) | A.SandingWave(3) | P.Palette(P.gabe_red)
+        L.Named('arousal') | S.Lin(-0.1, -0.4) | A.SinWave(3) | P.InterpolPalette(
+            L.Named('connection'), 
+            (
+                (0, P.blueish),
+                (1, P.gabe_red),
+            )
+        )
     )
 
 
