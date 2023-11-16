@@ -2,26 +2,54 @@ import numpy as np
 import cv2
 from filterpy.kalman import KalmanFilter
 from scipy.optimize import linear_sum_assignment
-from collections import namedtuple
+from collections import namedtuple, deque
+import time
 
-def polygon_iou(segmentsA, segmentsB):
+def polygon_iou(segmentsA, segmentsB, width = 512, height = 424):
     """Calculate the Intersection over Union (IoU) between two image segments."""
 
-    # Calculate the intersection area between the two polygons
-    _, intersection = cv2.intersectConvexConvex(segmentsA, segmentsB)
-    intersection_area = cv2.contourArea(intersection)
+    # Create two blank images
+    image1 = np.zeros((width, height), dtype=np.uint8)
+    image2 = np.zeros((width, height), dtype=np.uint8)
 
-    # Calculate the individual areas of the polygons
-    areaA = cv2.contourArea(segmentsA)
-    areaB = cv2.contourArea(segmentsB)
+    # Draw the polygons
+    cv2.fillPoly(image1, [segmentsA], 255)
+    cv2.fillPoly(image2, [segmentsB], 255)
 
-    # Calculate the union area between the two polygons
-    union_area = areaA + areaB - intersection_area
+    # Perform bitwise AND
+    intersection = cv2.bitwise_and(image1, image2)
 
-    # Calculate the IoU
-    iou = intersection_area / union_area
+    # Calculate Intersection (bitwise AND)
+    intersection = cv2.bitwise_and(image1, image2)
+    intersection_area = cv2.countNonZero(intersection)
 
-    return iou
+    # Calculate Union (bitwise OR)
+    union = cv2.bitwise_or(image1, image2)
+    union_area = cv2.countNonZero(union)
+
+    # Calculate IoU
+    if union_area == 0:
+        return 0
+    else:
+        return intersection_area / union_area
+
+def euclidean_similarity(hist1, hist2):
+    if hist1.shape != hist1.shape:
+        return 0
+    dist = np.linalg.norm(hist1 - hist2)
+    similarity = 1 / (1 + dist)  # Inverse of distance
+    return similarity
+
+def measure_similarity(person1, person2):
+    assert "2D_outline" in person1, "No 2d segmention outline found."
+    assert "2D_outline" in person2, "No 2d segmention outline found."
+    dist_meters = np.linalg.norm(np.array(person1["cm"]) - np.array(person2["cm"])) # TEST!!
+    iou = polygon_iou(person1["2D_outline"], person2["2D_outline"])
+    # color_iou = euclidean_similarity(
+    #     person1.get("color_histogram", np.array([])), 
+    #     person2.get("color_histogram", np.array([]))
+    # )
+    return iou - dist_meters
 
 class PersonTracker:
     """PersonTracker class uses the Kalman filter to track individual people."""
@@ -78,102 +106,78 @@ class PersonTracker:
 
 
 class Tracker():
-    """Class to track people using the Kalman filter tracker."""
+    """Class to track people using the image segment IoU."""
 
-    AssociationResult = namedtuple(
-        "AssociationResult", 
-        ["people_tracker_associations", "new_people_indices", "lost_tracker_indices"]
-    )
+    def __init__(self, forget_dt, nr_people_queue_size = 5, max_person_id=10):
+        self.forget_dt = forget_dt  # Max time person can not be seen
+        self.max_person_id = max_person_id  # Max allowed person ID
+        self.tracked_people = []  # List of PersonTracker objects
+        self.person_id_count = 0  # Counter to assign unique IDs to people
+        self.nr_people_queue = deque(maxlen = nr_people_queue_size)
 
-    def __init__(self, max_away_frames=3):
-        self.max_away_frames = max_away_frames  # Number of frames to wait before removing a tracker
-        self.trackers = []  # List of PersonTracker objects
-        self.id_count = 0  # Counter to assign unique IDs to people
-
-    def __call__(self, people):
+    def __call__(self, new_people):
         """Update the trackers and return the list of of people tracked by the kalman filter tracker."""
-        
+
         # Associate new people with existing trackers
-        associations = self.associate_new_people_with_trackers(self.trackers, people)
+        associations = self.associate_new_people_with_trackers(new_people)
 
         # Update the trackers
-        self.update_trackers(associations, people)
-
-        # Get the current person state of each tracker
-        tracked_people = [t.get_current_person_state for t in self.trackers]
-
-        # Predict the next position for each tracker
-        for t in self.trackers:
-            t.predict()
-
-        # Increment frames_since_seen for all trackers
-        for t in self.trackers:
-            t.frames_since_seen += 1
+        self.update_trackers(associations, new_people)
             
-        return tracked_people
+        return self.tracked_people 
     
-    def update_trackers(self, associations, people):
-        """Update the trackers with the associated detections and remove the lost trackers."""     
+    def update_trackers(self, associations, new_people):
+        """Update the trackers with the associated detections and remove the lost trackers."""
 
-        # Update trackers with the associated detections
-        for tracker_idx, detection_idx in associations.people_tracker_associations:
-            self.trackers[tracker_idx].update(people[detection_idx])
-            self.trackers[tracker_idx].frames_since_seen = 0
+        # Allocate current time to all new people tracked
+        for new_person in new_people:
+            new_person["t_last_seen"] = time.time()
 
-        # Call predict() an for the lost trackers
-        for tracker_idx in associations.lost_tracker_indices:
-            self.trackers[tracker_idx].predict()
+        # Update tracked people with the associated detections
+        for association in associations.T:
+            tracked_person_idx, new_person_idx = association
+            for key, new_value in new_people[new_person_idx].items():
+                self.tracked_people[tracked_person_idx][key] = new_value
+            dt_seen =  time.time() - self.tracked_people[tracked_person_idx]["first_seen"]
+            self.tracked_people[tracked_person_idx]["time_known"] = dt_seen
+        
+        # Remove tracked people that have reached forget time away
+        self.tracked_people = [
+            tracked_person 
+            for tracked_person in self.tracked_people 
+            if time.time() - tracked_person["t_last_seen"] <= self.forget_dt
+        ]
+
+        # Only consider adding new people if expected number larger than tracked number
+        self.nr_people_queue.append(len(new_people))
+        expected_nr_people = int(np.round(np.mean(self.nr_people_queue)))
+        if len(self.tracked_people) >= expected_nr_people:
+            return
 
         # Create new trackers for unassociated detections (new people)
-        for new_person_idx in associations.new_people_indices:
-            self.id_count += 1
-            self.trackers.append(
-                PersonTracker(
-                    people[new_person_idx],
-                    self.id_count,
-                    self.max_away_frames,
-                )
-            )
-        
-        # Remove trackers that have reached the max_away_frames
-        self.trackers = [t for t in self.trackers if t.frames_since_seen <= self.max_away_frames]
+        for new_person_idx, new_person in enumerate(new_people):
+            new_person_idxs = associations[1,:]
+            if new_person_idx in new_person_idxs:
+                continue
+
+            # If no association found for new person add to tracked people
+            self.person_id_count = (self.person_id_count + 1) % self.max_person_id
+            new_people[new_person_idx]["id"] = self.person_id_count
+            new_people[new_person_idx]["first_seen"] = time.time()
+            self.tracked_people.append(new_people[new_person_idx])
     
     # Function to associate data between trackers and people
-    def associate_new_people_with_trackers(self, people):
+    def associate_new_people_with_trackers(self, new_people):
         """Associate new people with existing trackers using the Hungarian algorithm."""
 
         # Initialize the cost matrix with zeros
-        cost_matrix = np.zeros((len(self.trackers), len(people)))
+        cost_matrix = np.zeros((len(self.tracked_people), len(new_people)))
 
-        # Calculate the IoU between each tracker and person
-        for tracker_idx, tracker in enumerate(self.trackers):
-            for person_idx, person in enumerate(people):
-                iou = polygon_iou(tracker._2d_outline, person["2d_outline"])
-                # TODO Add 3D dist cost here if necessary
-                cost_matrix[tracker_idx, person_idx] = 1 - iou
+        # Calculate the similarity between each tracker and person
+        for tracked_person_idx, tracked_person in enumerate(self.tracked_people):
+            for new_person_idx, new_person in enumerate(new_people):
+                similarity = measure_similarity(tracked_person, new_person)
+                cost_matrix[tracked_person_idx, new_person_idx] = - similarity
 
         # Use the Hungarian algorithm to find the best association based on the cost matrix
-        row_indices, col_indices = linear_sum_assignment(cost_matrix)
-
-        # Create a list of associated tracker-person pairs
-        people_tracker_associations = [
-            (tracker_idx, person_idx) 
-            for tracker_idx, person_idx in zip(row_indices, col_indices)
-        ]
-
-        # Find the new people (if any)
-        new_people_indices = [
-            person_idx 
-            for person_idx in range(len(people)) 
-            if person_idx not in col_indices
-        ]
-
-        # Find the lost self.trackers (if any)
-        lost_tracker_indices = [
-            tracker_idx 
-            for tracker_idx in range(len(self.trackers)) 
-            if tracker_idx not in row_indices
-        ]
-
-        # Return the list of associations and new people indices
-        return self.AssociationResult(people_tracker_associations, new_people_indices, lost_tracker_indices)
+        return np.array(linear_sum_assignment(cost_matrix))

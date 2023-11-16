@@ -46,8 +46,12 @@ parser.add_argument(
     help="Kinect to Shimoni transform."
 )
 parser.add_argument(
-    '--max_person_away_frames', type=int, default=3, 
-    help="Number of frames to wait for a person to reappear after being lost."
+    '--person_forget_time_s', type=float, default=2, 
+    help="Time in seconds to wait for a person to reappear after being lost."
+)
+parser.add_argument(
+    '--nr_frames_to_estimate_nr_people', type=int, default=10, 
+    help="Size of people count queue. Larger values will increase detection time. Lower values will decrease accuracy"
 )
 parser.add_argument(
     '--display_streams', type=str, nargs='*', default=None, help="Streams to show in the UI."
@@ -168,7 +172,10 @@ if __name__ == "__main__":
             args.detection_class_ids,
         )
         annotator = tracker_annotation_lib.ImageAnnotator()
-        # tracker = people_tracking.Tracker(args.max_person_away_frames)
+        tracker = people_tracking.Tracker(
+            forget_dt=args.person_forget_time_s, 
+            nr_people_queue_size=args.nr_frames_to_estimate_nr_people,
+        )
 
     for stream_name in args.display_streams:
         cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
@@ -194,24 +201,24 @@ if __name__ == "__main__":
             img_segments = kinect.get_mean_coords_for_segments(img_segments)
 
             # Track people only if cm coordinates are available
-            tracked_people = img_segments
-            # tracked_people = tracker.update(
-            #     [seg for seg in img_segments[PERSON_ID] if "cm" in seg]
-            # )
+            tracked_people = tracker(img_segments.get(PERSON_ID, []))
 
             # Draw detections
-            annotator.draw_detections(frame_data[args.detection_steam], tracked_people)
+            annotator.draw_detections(frame_data[args.detection_steam], {PERSON_ID: tracked_people})
+            # annotator.draw_detections(frame_data[args.detection_steam], img_segments)
 
             # Draw 2d tracks
             if "tracks" in args.display_streams:
-                frame_data["tracks"] = annotator.draw_2d_track(tracked_people.get(PERSON_ID, []))
+                frame_data["tracks"] = annotator.draw_2d_track(tracked_people)
 
             # Send tracked people to integrator
             people = [
-                {"cm": np.array(person["cm"]).tolist(), "id": class_id} 
-                for class_id, seg in img_segments.items() 
-                for person in seg
-                if class_id == 0
+                {
+                    "cm": person.get("cm", []), 
+                    "id": person["id"], 
+                    "time_known": person.get("time_known", -1), 
+                } 
+                for person in tracked_people
             ]
             network.send(settings.integrator_sig_port, dict(people_sensor=people))
 
