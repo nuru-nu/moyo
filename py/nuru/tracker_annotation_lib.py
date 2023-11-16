@@ -61,8 +61,8 @@ class ImageAnnotator:
                 if r - 10 >= 0 and r + 30 < h and c - 10 >= 0 and c + 10 < w:
                     self.write_text(img, detection["class_name"], (r, c - 10), color)
 
-                    if "3D_shimoni" in detection:
-                        x, y, _ = detection["3D_shimoni"]
+                    if "cm" in detection:
+                        x, y, _ = detection["cm"]
                         self.write_text(img, f"x: {x:.2f}, y: {y:.2f}", (r, c + 30), color)
 
     def draw_2d_track(self, people):
@@ -74,8 +74,8 @@ class ImageAnnotator:
         # Append the newest coordinates to each track
         img = self._track_2d_img.copy()
         for idx, person in people.items():
-            assert "3D_shimoni" in person, "get_mean_coords_for_segments() must be run prior to this function."
-            x, y, _ = person["3D_shimoni"]
+            assert "cm" in person, "get_mean_coords_for_segments() must be run prior to this function."
+            x, y, _ = person["cm"]
 
             x_img = self._track_2d_img.shape[1] - int(((x - self._kinect_2d_x_range[0]) / self._kinect_2d_width) * self._track_2d_img.shape[1])
             y_img = int(((y - self._kinect_2d_y_range[0]) / self._kinect_2d_height) * self._track_2d_img.shape[0])

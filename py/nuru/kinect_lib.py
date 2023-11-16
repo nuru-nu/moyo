@@ -134,6 +134,7 @@ class Kinect:
 
         for detections in seg_labels.values():
             for detection in detections:
+                detection["cm"] = [-99,-99,-99]
                 mask = np.zeros((self.width, self.height), dtype=np.uint8)
                 cv2.fillPoly(mask, [detection["2D_outline"]], 255)
 
@@ -157,8 +158,6 @@ class Kinect:
                 # colors = self.np_frames["scaled-color"][seg_points[:, 0], seg_points[:, 1]]
                 # detection["color_histogram"] = create_color_histogram(colors)
 
-                detection["3D_point"] = np.mean(points_3d, axis=0)
-                detection["3D_shimoni"] = self.get_point_shimino_space(*detection["3D_point"])
                 detection["cm"] = detection["3D_shimoni"]  # HACK: for compatibility with old code
 
         return seg_labels
@@ -292,39 +291,6 @@ class KinectDummy(Kinect):
             return None
         
         return x, y, z
-    
-    def get_mean_coords_for_segments(self, seg_labels):
-        """Get the mean 3D location of each segmentation label."""
-
-        undistorted = Frame(
-            self.width, 
-            self.height, 
-            self.bytes_per_pixel, 
-            FrameType.Depth,
-            self.depth * 4500.0
-        )
-
-        for detections in seg_labels.values():
-            for detection in detections:
-                mask = np.zeros((self.width, self.height), dtype=np.uint8)
-                cv2.fillPoly(mask, [detection["2D_outline"]], 255)
-
-                points_3d = []
-                for seg_point in np.argwhere(mask == 255):
-                    c, r = seg_point
-                    x, y, z = self.registration.getPointXYZ(undistorted, c, r)
-                    if not np.isnan(x) and not np.isnan(y) and not np.isnan(z):
-                        points_3d.append([x, y, z])
-                
-                if len(points_3d) == 0:
-                    continue
-                
-                detection["3D_point"] = np.mean(points_3d, axis=0)
-                detection["3D_shimoni"] = self.get_point_shimino_space(*detection["3D_point"])
-                detection["cm"] = detection["3D_shimoni"] # HACK: for compatibility with old code
-
-        return seg_labels
-    
     
     def close(self):
         """Close the Kinect device."""
