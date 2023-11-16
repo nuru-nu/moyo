@@ -15,7 +15,8 @@ class Kinect:
             output_dir=None, 
             flip=False, 
             width = 512, 
-            height = 424
+            height = 424,
+            subsample_step_size = 10,
         ):
         """Initialize the Kinect device."""
 
@@ -31,6 +32,7 @@ class Kinect:
         self.flip = flip
         self.width = width
         self.height = height
+        self.subsample_step_size = subsample_step_size
 
         frame_types = 0
         if "ir_rgb" in streams:
@@ -57,6 +59,8 @@ class Kinect:
 
         self.shimoni_trafo = self.load_transform(shimono_trafo_path)
 
+        self.np_frames = {}
+
     def __iter__(self):
         return self
     
@@ -72,21 +76,21 @@ class Kinect:
             )
 
         # Create output images
-        np_frames = {}
+        self.np_frames = {}
         if "color" in self.streams:
             color = frames["color"]
-            np_frames["color"] = cv2.cvtColor(
+            self.np_frames["color"] = cv2.cvtColor(
                 color.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR
             )
-            np_frames["color"][:,:,[0, 2]] = np_frames["color"][:,:, [2, 0]] # BGR to RGB
+            self.np_frames["color"][:,:,[0, 2]] = self.np_frames["color"][:,:, [2, 0]] # BGR to RGB
 
-            np_frames["scaled-color"] = cv2.cvtColor(
+            self.np_frames["scaled-color"] = cv2.cvtColor(
                 self.registered.asarray(dtype=np.uint8), cv2.COLOR_RGBA2BGR
             )
-            np_frames["scaled-color"][:,:,[0, 2]] = np_frames["scaled-color"][:,:,[2, 0]] # BGR to RGB
+            self.np_frames["scaled-color"][:,:,[0, 2]] = self.np_frames["scaled-color"][:,:,[2, 0]] # BGR to RGB
 
         if "depth" in self.streams:
-            np_frames["depth"] = cv2.normalize(
+            self.np_frames["depth"] = cv2.normalize(
                 self.undistorted.asarray(dtype=np.float32),
                 None,
                 0,
@@ -97,7 +101,7 @@ class Kinect:
 
         if "ir" in self.streams:
             ir = frames["ir"]
-            np_frames["ir"] = cv2.normalize(
+            self.np_frames["ir"] = cv2.normalize(
                 ir.asarray(dtype=np.float32),
                 None,
                 0,
@@ -106,15 +110,15 @@ class Kinect:
                 cv2.CV_32F,
             )
         if "ir_rgb" in self.streams:
-            np_frames["ir_rgb"] = self.ir_enhance(np_frames["scaled-color"], np_frames["ir"])
+            self.np_frames["ir_rgb"] = self.ir_enhance(self.np_frames["scaled-color"], self.np_frames["ir"])
 
         if self.flip:
-            for k, v in np_frames.items():
-                np_frames[k] = cv2.flip(v, 1)
-                np_frames[k] = cv2.flip(v, 0)
+            for k, v in self.np_frames.items():
+                self.np_frames[k] = cv2.flip(v, 1)
+                self.np_frames[k] = cv2.flip(v, 0)
 
         self.listener.release(frames)
-        return np_frames
+        return self.np_frames
     
     def ir_enhance(self, rgb, ir):
         """Enhance the rgb image by adaptively adding IR to the V channel of the HSV image."""
@@ -126,26 +130,36 @@ class Kinect:
         return rgb_img
     
     def get_mean_coords_for_segments(self, seg_labels):
-        """Get the mean 3D location of each segmentation label."""
+        """Get the mean 3D location of each segmentation label using optimized numpy operations."""
 
         for detections in seg_labels.values():
             for detection in detections:
                 mask = np.zeros((self.width, self.height), dtype=np.uint8)
                 cv2.fillPoly(mask, [detection["2D_outline"]], 255)
 
+                # Get indices of all points with value 255 in the mask.
+                seg_points = np.argwhere(mask == 255)[::self.subsample_step_size]
+
+                if len(seg_points) == 0:
+                    continue
+
+                # Extract 3D points
                 points_3d = []
-                for seg_point in np.argwhere(mask == 255):
-                    c, r = seg_point
-                    p = self.get_point_3d(c, r)
-                    if p is not None:
-                        points_3d.append(p)
-                
+                for c, r in seg_points:
+                    point_3d = self.get_point_3d(c, r)
+                    if point_3d is not None:
+                        points_3d.append(point_3d)
+
                 if len(points_3d) == 0:
                     continue
-                
+
+                # Calculate color histogram
+                # colors = self.np_frames["scaled-color"][seg_points[:, 0], seg_points[:, 1]]
+                # detection["color_histogram"] = create_color_histogram(colors)
+
                 detection["3D_point"] = np.mean(points_3d, axis=0)
                 detection["3D_shimoni"] = self.get_point_shimino_space(*detection["3D_point"])
-                detection["cm"] = detection["3D_shimoni"] # HACK: for compatibility with old code
+                detection["cm"] = detection["3D_shimoni"]  # HACK: for compatibility with old code
 
         return seg_labels
     
@@ -317,3 +331,25 @@ class KinectDummy(Kinect):
 
         self.depth_video.release()
         self.rgb_video.release()
+
+def create_color_histogram(rgb_colors, num_bins=8):
+    # Initialize histogram
+    histogram = np.zeros((3, num_bins))
+
+    if len(rgb_colors) == 0:
+        return histogram
+
+    # Convert list of tuples to a NumPy array
+    rgb_array = np.array(rgb_colors)
+
+    # Calculate the bin size
+    bin_size = 256 / num_bins
+
+    # Find the appropriate bin for each color channel
+    bin_indices = np.floor(rgb_array / bin_size).astype(int)
+
+    # Update histogram counts
+    for i in range(3):
+        np.add.at(histogram[i], bin_indices[:, i], 1)
+
+    return histogram
