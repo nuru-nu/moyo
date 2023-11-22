@@ -155,8 +155,8 @@ class Kinect:
                     continue
 
                 # Calculate color histogram
-                # colors = self.np_frames["scaled-color"][seg_points[:, 0], seg_points[:, 1]]
-                # detection["color_histogram"] = create_color_histogram(colors)
+                colors = self.np_frames["scaled-color"][seg_points[:, 0], seg_points[:, 1]]
+                detection["color_histogram"] = create_color_histogram(colors)
 
                 detection["3D_point"] = np.mean(points_3d, axis=0)
                 detection["cm"] = self.get_point_shimino_space(*detection["3D_point"])
@@ -250,6 +250,8 @@ class KinectDummy(Kinect):
         # Set the frame counter
         self.frame = 0
 
+        self.np_frames = {}
+
     def __next__(self):
         """Get the next color and depth frames."""
 
@@ -260,12 +262,12 @@ class KinectDummy(Kinect):
         self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
         self.rgb_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
 
-        np_frames = {}
-        ret_depth, np_frames["depth"] = self.depth_video.read()
-        np_frames["depth"] = cv2.cvtColor(np_frames["depth"], cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
-        ret_rgb, np_frames["scaled-color"] = self.rgb_video.read()
+        self.np_frames = {}
+        ret_depth, self.np_frames["depth"] = self.depth_video.read()
+        self.np_frames["depth"] = cv2.cvtColor(self.np_frames["depth"], cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
+        ret_rgb, self.np_frames["scaled-color"] = self.rgb_video.read()
 
-        self.depth = np_frames["depth"]
+        self.depth = self.np_frames["depth"]
 
         # Check that the frames are valid
         if not ret_depth or not ret_rgb:
@@ -273,7 +275,7 @@ class KinectDummy(Kinect):
 
         self.frame += 1
 
-        return np_frames
+        return self.np_frames
     
     def get_point_3d(self, c, r):
         """Get the 3D location of a point in the depthmap."""
