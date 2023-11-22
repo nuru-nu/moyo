@@ -5,51 +5,57 @@ from scipy.optimize import linear_sum_assignment
 from collections import namedtuple, deque
 import time
 
-def polygon_iou(segmentsA, segmentsB, width = 512, height = 424):
-    """Calculate the Intersection over Union (IoU) between two image segments."""
+class SimilarityMeasure:
+    def __init__(self, img_width = 512, img_height = 424):
+        self.img_width = img_width
+        self.img_height = img_height
+        self.max_dists = {}
 
-    # Create two blank images
-    image1 = np.zeros((width, height), dtype=np.uint8)
-    image2 = np.zeros((width, height), dtype=np.uint8)
+    def __call__(self, person1, person2):
+        """
+        The lower the value the most similar the image segments
+        """
 
-    # Draw the polygons
-    cv2.fillPoly(image1, [segmentsA], 255)
-    cv2.fillPoly(image2, [segmentsB], 255)
+        iou = self.polygon_iou(person1.get("2D_outline", []), person2.get("2D_outline", []))
+        norm_dist_meters = self.norm_dist(person1, person2, "cm")
+        norm_dist_color = self.norm_dist(person1, person2, "color_histogram")
+        return (1 - iou) + norm_dist_meters + norm_dist_color 
 
-    # Perform bitwise AND
-    intersection = cv2.bitwise_and(image1, image2)
+    def polygon_iou(self, segmentsA, segmentsB):
+        """Calculate the Intersection over Union (IoU) between two image segments."""
 
-    # Calculate Intersection (bitwise AND)
-    intersection = cv2.bitwise_and(image1, image2)
-    intersection_area = cv2.countNonZero(intersection)
+        # Create two blank images
+        image1 = np.zeros((self.img_width, self.img_height), dtype=np.uint8)
+        image2 = np.zeros((self.img_width, self.img_height), dtype=np.uint8)
 
-    # Calculate Union (bitwise OR)
-    union = cv2.bitwise_or(image1, image2)
-    union_area = cv2.countNonZero(union)
+        # Draw the polygons
+        cv2.fillPoly(image1, [segmentsA], 255)
+        cv2.fillPoly(image2, [segmentsB], 255)
 
-    # Calculate IoU
-    if union_area == 0:
-        return 0
-    else:
-        return intersection_area / union_area
+        # Perform bitwise AND
+        intersection = cv2.bitwise_and(image1, image2)
 
-def euclidean_similarity(hist1, hist2):
-    if hist1.shape != hist1.shape:
-        return 0
-    dist = np.linalg.norm(hist1 - hist2)
-    similarity = 1 / (1 + dist)  # Inverse of distance
-    return similarity
+        # Calculate Intersection (bitwise AND)
+        intersection = cv2.bitwise_and(image1, image2)
+        intersection_area = cv2.countNonZero(intersection)
 
-def measure_similarity(person1, person2):
-    assert "2D_outline" in person1, "No 2d segmention outline found."
-    assert "2D_outline" in person2, "No 2d segmention outline found."
-    dist_meters = np.linalg.norm(np.array(person1["cm"]) - np.array(person2["cm"])) # TEST!!
-    iou = polygon_iou(person1["2D_outline"], person2["2D_outline"])
-    # color_iou = euclidean_similarity(
-    #     person1.get("color_histogram", np.array([])), 
-    #     person2.get("color_histogram", np.array([]))
-    # )
-    return iou - dist_meters
+        # Calculate Union (bitwise OR)
+        union = cv2.bitwise_or(image1, image2)
+        union_area = cv2.countNonZero(union)
+
+        # Calculate IoU
+        if union_area == 0:
+            return 0
+        else:
+            return intersection_area / union_area
+
+    def norm_dist(self, p1, p2, key):
+        if key not in p1 or key not in p2:
+            print(f"{key} not found!")
+            return 0
+        dist = np.linalg.norm(np.array(p1[key]) - np.array(p2[key]))
+        self.max_dists[key] = np.max([self.max_dists.get(key, 1), dist])
+        return dist / self.max_dists[key]
 
 class PersonTracker:
     """PersonTracker class uses the Kalman filter to track individual people."""
@@ -114,6 +120,7 @@ class Tracker():
         self.tracked_people = []  # List of PersonTracker objects
         self.person_id_count = 0  # Counter to assign unique IDs to people
         self.nr_people_queue = deque(maxlen = nr_people_queue_size)
+        self.similarity_measure = SimilarityMeasure()
 
     def __call__(self, new_people):
         """Update the trackers and return the list of of people tracked by the kalman filter tracker."""
@@ -176,8 +183,8 @@ class Tracker():
         # Calculate the similarity between each tracker and person
         for tracked_person_idx, tracked_person in enumerate(self.tracked_people):
             for new_person_idx, new_person in enumerate(new_people):
-                similarity = measure_similarity(tracked_person, new_person)
-                cost_matrix[tracked_person_idx, new_person_idx] = - similarity
+                similarity = self.similarity_measure(tracked_person, new_person)
+                cost_matrix[tracked_person_idx, new_person_idx] = similarity
 
         # Use the Hungarian algorithm to find the best association based on the cost matrix
         return np.array(linear_sum_assignment(cost_matrix))
