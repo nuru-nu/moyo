@@ -247,6 +247,12 @@ if __name__ == "__main__":
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
             break
 
+        # Write frame to file TODO Optimize Unix udp socket transfer
+        ext = os.path.splitext(settings.disp_img_path)[-1]
+        tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp.{ext}")
+        cv2.imwrite(tmp_disp_img_path, frame_data[args.detection_steam])
+        os.rename(tmp_disp_img_path, settings.disp_img_path)
+
         # Skip show if headless
         if args.headless:
             continue
