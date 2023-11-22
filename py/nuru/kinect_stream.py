@@ -63,6 +63,10 @@ parser.add_argument(
     '--max_nr_people', type=int, default=10, 
     help="Number of people to uniquly identify, assigns ID and annotation color."
 )
+parser.add_argument(
+    '--headless', action='store_true',  
+    help="Run without window"
+)
 args = parser.parse_args()
 
 class VideoWriter:
@@ -182,8 +186,9 @@ if __name__ == "__main__":
             max_person_id=args.max_nr_people,
         )
 
-    for stream_name in args.display_streams:
-        cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
+    if not args.headless:
+        for stream_name in args.display_streams:
+            cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
 
     # Start Kinect frame stream   
     for frame_data in kinect:
@@ -241,6 +246,10 @@ if __name__ == "__main__":
 
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
             break
+
+        # Skip show if headless
+        if args.headless:
+            continue
 
         # Show frames
         for stream, frame in frame_data.items():
