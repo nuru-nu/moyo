@@ -54,7 +54,8 @@ parser.add_argument(
     help="Size of people count queue. Larger values will increase detection time. Lower values will decrease accuracy"
 )
 parser.add_argument(
-    '--display_streams', type=str, nargs='*', default=None, help="Streams to show in the UI."
+    '--display_streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], nargs='*', 
+    default=[], help="Streams to show in the UI."
 )
 parser.add_argument(
     '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and color stream video paths."
@@ -62,10 +63,6 @@ parser.add_argument(
 parser.add_argument(
     '--max_nr_people', type=int, default=10, 
     help="Number of people to uniquly identify, assigns ID and annotation color."
-)
-parser.add_argument(
-    '--headless', action='store_true',  
-    help="Run without window"
 )
 args = parser.parse_args()
 
@@ -186,9 +183,8 @@ if __name__ == "__main__":
             max_person_id=args.max_nr_people,
         )
 
-    if not args.headless:
-        for stream_name in args.display_streams:
-            cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
+    for stream_name in args.display_streams:
+        cv2.namedWindow(stream_name, cv2.WND_PROP_AUTOSIZE)
 
     # Start Kinect frame stream   
     for frame_data in kinect:
@@ -214,8 +210,10 @@ if __name__ == "__main__":
             tracked_people = tracker(img_segments.get(PERSON_ID, []))
 
             # Draw detections
+            if "untracked_detections" in args.display_streams:
+                frame_data["untracked_detections"] = frame_data[args.detection_steam].copy()
+                annotator.draw_detections(frame_data["untracked_detections"], img_segments)
             annotator.draw_detections(frame_data[args.detection_steam], {PERSON_ID: tracked_people})
-            # annotator.draw_detections(frame_data[args.detection_steam], img_segments)
 
             # Draw 2d tracks
             if "tracks" in args.display_streams:
@@ -252,10 +250,6 @@ if __name__ == "__main__":
         tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp.{ext}")
         cv2.imwrite(tmp_disp_img_path, frame_data[args.detection_steam])
         os.rename(tmp_disp_img_path, settings.disp_img_path)
-
-        # Skip show if headless
-        if args.headless:
-            continue
 
         # Show frames
         for stream, frame in frame_data.items():

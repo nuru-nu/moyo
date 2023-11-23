@@ -48,7 +48,7 @@ class ImageAnnotator:
                 continue
 
             for idx, detection in enumerate(detections):
-                color = self._colors[detection["id"] % len(self._colors)]
+                color = self._colors[detection.get("id", idx) % len(self._colors)]
 
                 # Draw polylines and text
                 cv2.polylines(img, [detection["2D_outline"]], True, color, self._line_thickness)
