@@ -93,7 +93,11 @@ def speaking_radial_wave():
 
 @anim
 def radial_pulse():
-    return L.Named('rnd1') * S.Const(2) + S.Const(1) | S.Int() | S.Tocos() | P.Palette(orange) | A.RGauss(1)
+    return (
+        L.Named('rnd1') * S.Const(2) + S.Const(1) | S.Int()
+        | S.Tocos() | S.Lin(shift=0.5, mult=0.5)
+        | P.Palette(orange) | A.RGauss(3)
+    )
 
 @anim
 def radial_annoyance():
