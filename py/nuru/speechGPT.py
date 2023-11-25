@@ -44,6 +44,7 @@ class ChatGPTComms:
         self.answer = ""
         self.network_msg = ""   
         self.openai_client = OpenAI(api_key=settings.openai_api_key)
+        self.ready_to_respond = False
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -90,10 +91,17 @@ class ChatGPTComms:
         """Process and respond to user input from network"""
 
         while True:
-            data = network.get_json(self.sock, None)
-            if data and "gpt_msg" in data:
-                logger.info('received gpt_action={data}')
+            data = network.get_json(self.sock, {})
+            if "gpt_msg" in data:
+                if data["gpt_msg"] == "ready_to_respond":
+                    self.ready_to_respond = True
+                elif data["gpt_msg"] == "not_ready_to_respond":
+                    self.ready_to_respond = False
 
+                # GPT still only capable of responding to audio data
+                continue
+
+                logger.info('received gpt_action={data}')
                 network.send(self.integrator_sig_port, dict(responding_network_gpt=1))
 
                 self.network_msg = data["gpt_msg"]
@@ -124,14 +132,23 @@ class ChatGPTComms:
 
             transcript = result.alternatives[0].transcript
             overwrite_chars = " " * (num_chars_printed - len(transcript))
-
             if not result.is_final:
                 network.send(self.integrator_sig_port, dict(listening_gpt=1))
                 sys.stdout.write(transcript + overwrite_chars + "\r")
                 sys.stdout.flush()
                 num_chars_printed = len(transcript)
             else:
+                num_chars_printed = 0
                 network.send(self.integrator_sig_port, dict(listening_gpt=0))
+
+                # Ignore if not ready to respond
+                ready_to_respond = network.get_json(self.sock, {}).get("ready_to_respond", 0) == 1
+                if not self.ready_to_respond:
+                    logger.info(f"Particapant: {transcript + overwrite_chars}")
+                    logger.info(f"ChatGPT: Not listening!")
+                    network.send(self.integrator_sig_port, dict(speech_gpt=transcript + overwrite_chars))
+                    continue
+                
                 network.send(self.integrator_sig_port, dict(responding_speech_gpt=1))
 
                 # Send audio to the speech to emotion model
@@ -149,7 +166,6 @@ class ChatGPTComms:
                     self.answer = self.stream_chatGPT_response(self.speech)
 
                 logger.info(f"ChatGPT: {self.answer}")
-                num_chars_printed = 0
                 network.send(self.integrator_sig_port, dict(responding_speech_gpt=0))
 
     def transcribe_emotion_from_audio(self):
@@ -177,7 +193,7 @@ class ChatGPTComms:
         network.send(self.integrator_sig_port, dict(thinking_gpt=1))
         network.send(self.integrator_sig_port, dict(speaking_gpt=1))
 
-        response = openai.ChatCompletion.create(
+        response = self.openai_client.chat.completions.create(
             model=settings.chat_gpt_model,
             messages=self.messages,
         )
@@ -240,90 +256,6 @@ class ChatGPTComms:
 
         return emo
 
-# import numpy as np
-# from nuru import settings
-# import time
-# import cv2
-
-# class AudioProcessor:
-#     def __init__(self, lp_cutoff_freq=10, sampling_rate=settings.rate, threshold_alpha=0.1):
-#         self.threshold_alpha = threshold_alpha
-#         self.lp_cutoff_freq = lp_cutoff_freq
-#         self.sampling_rate = sampling_rate
-#         self.speaking_threshold = 0
-
-#     def word_square_wave(self, envelope):
-#         # Calculate the dynamic speaking threshold based on the rolling average
-#         self.speaking_threshold = max(self.speaking_threshold, self.threshold_alpha * np.mean(envelope))
-
-#         # Generate a square wave indicating speaking (1) and non-speaking (0) segments
-#         square_wave = np.where(envelope > self.speaking_threshold, 1, 0)
-
-#         return square_wave
-
-#     def low_pass_filter(self, data, cutoff, fs, order=5):
-#         nyq = 0.5 * fs
-#         normal_cutoff = cutoff / nyq
-#         b, a = butter(order, normal_cutoff, btype='low', analog=False)
-#         return filtfilt(b, a, data)
-
-#     def envelope_detector(self, audio_data):
-#         # Calculate the absolute value of the audio signal
-#         audio_abs = np.abs(audio_data)
-
-#         # Apply low-pass filter to extract the envelope
-#         envelope = self.low_pass_filter(audio_abs, self.lp_cutoff_freq, self.sampling_rate)
-
-#         return envelope
-
-
-# class RealTimeEnvelopeDisplay:
-#     def __init__(self, num_buffers, buffer_length, width=600, height=300):
-#         self.num_buffers = num_buffers
-#         self.buffer_length = buffer_length
-#         self.width = width
-#         self.height = height
-#         self.buffers = [deque(maxlen=buffer_length) for _ in range(num_buffers)]
-#         self.all_time_max = 0
-#         self.colors = [(255, 255, 255), (0, 255, 0), (0, 0, 255), (255, 255, 0), (0, 255, 255), (255, 0, 255)]
-
-#     def update_buffer(self, index, envelope):
-#         self.buffers[index].extend(envelope)
-#         self.all_time_max = max(self.all_time_max, np.max(envelope))
-
-#     def draw_legend(self, img):
-#         legend_y_offset = 20
-#         legend_x_offset = 5
-#         legend_spacing = 20
-
-#         for i in range(self.num_buffers):
-#             color = self.colors[i % len(self.colors)]
-#             cv2.line(img, (legend_x_offset, legend_y_offset + i * legend_spacing), (legend_x_offset + 20, legend_y_offset + i * legend_spacing), color, 1)
-#             cv2.putText(img, f"Buffer {i + 1}", (legend_x_offset + 25, legend_y_offset + i * legend_spacing + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
-
-#     def display(self):
-#         img = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-
-#         for buf_index, buffer in enumerate(self.buffers):
-#             if len(buffer) == 0:
-#                 continue
-
-#             n_points = len(buffer)
-#             x_step = self.width / n_points
-#             normalized_buffer = np.array(buffer) / self.all_time_max
-#             color = self.colors[buf_index % len(self.colors)]
-
-#             for i in range(1, n_points):
-#                 x1 = int(x_step * (i - 1))
-#                 x2 = int(x_step * i)
-#                 y1 = int(self.height - normalized_buffer[i - 1] * self.height)
-#                 y2 = int(self.height - normalized_buffer[i] * self.height)
-#                 cv2.line(img, (x1, y1), (x2, y2), color, 1)
-
-#         self.draw_legend(img)
-
-#         cv2.imshow("Envelope", img)
-#         cv2.waitKey(1)
 
 def main():
     """
