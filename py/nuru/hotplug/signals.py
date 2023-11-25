@@ -107,7 +107,7 @@ generated_signals = dict(
     std3=S.Saw(hz=0.5),
     saw_slow=S.Saw(hz=0.05),
     cos2_slow=S.Saw(hz=0.2) | S.Lin(mult=2) | S.Tocos(),
-    rnd1=S.RndWalk(60) | S.MovingAverage(n=10),
+    rnd1=S.RndWalk(10) | S.MovingAverage(n=10),
     drone1=(S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
             | S.InState('std') | S.MovingAverage(secs=0.5)),
     drone2=(S.RndRamp(break_minmax=[1, 5], duration_minmax=[3, 10])
@@ -173,7 +173,6 @@ animation_signals = dict(
 
 kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
-
     people=S.Overridable(
         L.Named('people_sensor'),
         L.Named('people_override'),
@@ -185,10 +184,12 @@ kinect_signals = dict(
         ),
         L.Named('people_override'),
     ),
-    connection=S.ConnectionMeter(
+    connection=L.Named('closest') | S.ConnectionMeter(
         decay_rate=1 / 10, 
         acceptance_rate=1 / 10,
     ),
+    ready_to_respond=L.Named("connection") | S.Thr(1),
+    annoyance_build_up=L.Named('listening_gpt') * (S.Const(1) - L.Named("ready_to_respond")) | S.MovingAverage(n=50),
     closest=(
         S.KinectDistance()
         | S.With(6.5) | S.Min() | S.From(6.5, 0)
