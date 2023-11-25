@@ -91,6 +91,13 @@ def speaking_radial_wave():
         )
     )
 
+@anim
+def radial_pulse():
+    return L.Named('rnd1') * S.Const(2) + S.Const(1) | S.Int() | S.Tocos() | P.Palette(orange) | A.RGauss(1)
+
+@anim
+def radial_annoyance():
+    return L.Named('annoyance_build_up') | P.Palette(heart_palette) | A.RGauss(3)
 
 @anim
 def blue_standing_wave():
