@@ -64,7 +64,7 @@ class Kraftwerk(L.Signal):
         self.state = None
         self.f = open(_kraftwerk_log_path, 'a')
 
-    def call(self, t, dt, people, connection, thinking_gpt, speaking_gpt, listening_gpt, mode):
+    def call(self, t, dt, people, connection, annoyance_build_up, thinking_gpt, speaking_gpt, listening_gpt, mode):
         if not self.state:
             self.state = self.INITIAL_STATE
             if self.sig:
@@ -83,23 +83,36 @@ class Kraftwerk(L.Signal):
         log_timer = self.state['log_timer']
         overwrites = {'action': []}
         state = STATE_AWAKE
+                
 
         if connection == 0:
-            overwrites['action'].append(f'animation=blue_standing_wave')
+            network.send(settings.gpt_cmd_port, dict(gpt_msg="not_ready_to_respond"))
+            overwrites['action'].append('animation=blue_standing_wave')
         elif connection == 1:
-            if thinking_gpt:
-                overwrites['action'].append(f'animation=red_standing_wave')
-            elif speaking_gpt:
-                overwrites['action'].append(f'animation=speaking_radial_wave')
-            elif listening_gpt:
-                overwrites['action'].append(f'animation=radial_wave')
-            else:
-                overwrites['action'].append(f'animation=red_standing_wave')
+            network.send(settings.gpt_cmd_port, dict(gpt_msg="ready_to_respond"))  
+            comm_anims = self.set_comm_anim(thinking_gpt, speaking_gpt, listening_gpt)
+            overwrites['action'] += comm_anims
         else:
-            overwrites['action'].append(f'animation=radial_wave')
+            network.send(settings.gpt_cmd_port, dict(gpt_msg="not_ready_to_respond"))
+
+            # Run annoyance animation if no connection and speaking
+            if annoyance_build_up > 0:
+                overwrites['action'].append('animation=radial_annoyance')
+            else:
+                overwrites['action'].append('animation=radial_wave')
+
 
         return {**self.state, 'overwrites': overwrites}
 
+    def set_comm_anim(self, thinking_gpt, speaking_gpt, listening_gpt):
+        if thinking_gpt:
+            return ['animation=red_standing_wave']
+        elif speaking_gpt:
+            return ['animation=radial_pulse']
+        elif listening_gpt:
+            return ['animation=radial_wave']
+        else:
+            return ['animation=red_standing_wave']
 
 class Kosmos(L.Signal):
     """KOSMOS interactive dream state.
