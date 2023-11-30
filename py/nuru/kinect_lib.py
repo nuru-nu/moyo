@@ -6,6 +6,7 @@ import open3d as o3d
 import cv2
 import os
 import json
+import time
 
 class Kinect:
     def __init__(
@@ -240,6 +241,8 @@ class KinectDummy(Kinect):
         self.width = int(self.depth_video.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(self.depth_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frame_count = int(self.depth_video.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_dt = 1 / self.depth_video.get(cv2.CAP_PROP_FPS)
+        self.t_prev = time.time()
 
         assert self.width == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_WIDTH))
         assert self.height == int(self.rgb_video.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -259,6 +262,12 @@ class KinectDummy(Kinect):
         if self.frame >= self.frame_count:
             self.frame = 0
 
+        # If there is time remaining, wait
+        time_elapsed = time.time() - self.t_prev
+        time_to_wait = self.frame_dt - time_elapsed
+        if time_to_wait > 0:
+            time.sleep(time_to_wait)
+
         self.depth_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
         self.rgb_video.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
 
@@ -274,6 +283,7 @@ class KinectDummy(Kinect):
             raise StopIteration
 
         self.frame += 1
+        self.t_prev = time.time()
 
         return self.np_frames
     
