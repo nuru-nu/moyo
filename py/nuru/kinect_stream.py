@@ -6,6 +6,13 @@ import time
 from collections import deque
 from datetime import datetime
 
+from openai import OpenAI
+import base64
+from io import BytesIO
+from PIL import Image
+import threading
+import sys
+
 from nuru import settings, people_tracking, kinect_lib, tracker_annotation_lib, object_detection_lib
 from smanmi import network, util
 
@@ -63,6 +70,21 @@ parser.add_argument(
 parser.add_argument(
     '--max_nr_people', type=int, default=10, 
     help="Number of people to uniquly identify, assigns ID and annotation color."
+)
+parser.add_argument(
+    '--chatgpt_persona',
+    type=str,
+    default="emo_state_image_input",
+)
+parser.add_argument(
+    '--img_gpt_stream', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], 
+    help="Send image stream to chatGPT",
+)
+parser.add_argument(
+    '--gpt_interval_s',
+    type=float,
+    default=2.0,
+    help="Seconds interval to send image to chatGPT",
 )
 args = parser.parse_args()
 
@@ -141,14 +163,183 @@ class FPSCounter:
         self.dts.append(time.time() - self.t)
         self.t = time.time()
         self.fps = self.chunk_size / sum(self.dts)
-        logger.info(f"{self.fps:.2f}fps")
+        # logger.info(f"{self.fps:.2f}fps")
+
+class ImageGPTComms:
+    """Class for communicating image data with ChatGPT"""
+
+    def __init__(self, integrator_sig_port, status_address, gpt_cmd_port, system_message, interval_s):
+        """Initialize the ChatGPTComms class"""
+
+        self.integrator_sig_port = integrator_sig_port
+        self.emo_state = {"valence": 0, "arousal": 0}
+        self.answer = ""
+        self.network_msg = ""   
+        self.openai_client = OpenAI(api_key=settings.openai_api_key)
+        self.ready_to_respond = False
+        self.interval_s = interval_s
+        self.t_prev = time.time()
+        self.image = None
+
+        self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
+        self.lock = threading.Lock()
+        self.messages = [
+            {
+                "role": "system",
+                "content": system_message,
+            },
+        ]
+
+        # Create threads for read_network_responses and read_audio_responses
+        network_thread = threading.Thread(target=self.read_network_responses)
+        image_to_gpt_thread = threading.Thread(target=self.send_image_thread)
+
+        # Start all threads
+        network_thread.start()
+        image_to_gpt_thread.start()
+
+        logger.info("ChatGPTComms Initialized...")
+
+    def __call__(self, image):
+        """Send image to chatGPT"""
+
+        if self.image is not None:
+            return
+
+        if image is None:
+            return
+        
+        if time.time() - self.t_prev > self.interval_s:
+            logger.info(f"Sending Image. dt: {time.time() - self.t_prev}s")
+            self.image = image.copy()
+            self.t_prev = time.time()
+
+    def send_image_thread(self):
+        
+        while True:
+            t0 = time.time()
+            if self.image is None:
+                time.sleep(1 / settings.gpt_hz)
+                continue
+
+            # Generate message
+            img_base64 = self.encode_image_to_base64(self.image)
+            self.messages.append(
+                {
+                    "role": "user", 
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": img_base64,
+                                "detail": "med",
+                            }
+                        },
+                    ]
+                }
+            )
+
+            # Send to chatGPT
+            network.send(self.integrator_sig_port, dict(thinking_gpt=1))
+            response = self.openai_client.chat.completions.create(
+                model=settings.chat_gpt_model,
+                messages=self.messages,
+                max_tokens=1000,
+                temperature=0.5,
+                stream=True
+            )
+            network.send(self.integrator_sig_port, dict(thinking_gpt=0))
+
+            # Get chatGPT response
+            answer = ""
+            network.send(self.integrator_sig_port, dict(speaking_gpt=1))
+            for chunk in response:
+                answer += chunk.choices[0].delta.content or ""
+                network.send(self.integrator_sig_port, dict(answer_gpt=answer))
+
+                print(answer, end='\r')
+                sys.stdout.flush()
+                self.emo_state = self.find_emo_state(answer)
+            logger.info(f"{(time.time() - t0):.2f}s - GPT Response: {answer}")
+            network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+
+            self.messages.append({"role": "assistant", "content": answer})
+            self.image = None            
+    
+    def read_network_responses(self):
+        """Process and respond to user input from network"""
+
+        while True:
+            data = network.get_json(self.sock, {})
+            if "gpt_msg" in data:
+                if data["gpt_msg"] == "ready_to_respond":
+                    self.ready_to_respond = True
+                elif data["gpt_msg"] == "not_ready_to_respond":
+                    self.ready_to_respond = False
+
+                # GPT still only capable of responding to audio data
+                continue
+
+                # logger.info('received gpt_action={data}')
+                # network.send(self.integrator_sig_port, dict(responding_network_gpt=1))
+
+                # self.network_msg = data["gpt_msg"]
+                # logger.info(f"Network: {self.network_msg}")
+
+                # # Generate a response using ChatGPT
+                # with self.lock:
+                #     self.answer = self.get_chatGPT_response(self.network_msg)
+
+                # logger.info(f"ChatGPT: {self.answer}")
+                # network.send(self.integrator_sig_port, dict(responding_network_gpt=0))
+            time.sleep(1 / settings.gpt_hz)
+
+    def find_emo_state(self, response):
+        """Find the emotional state in the response from ChatGPT"""
+
+        if "[" not in response or "]" not in response:
+            return None
+        
+        emo = response[response.find('[')+1:].split("]")[0].split(",")
+        if len(emo) == 3:
+            emo = [float(emo[0]), float(emo[1]), float(emo[2])]
+        elif len(emo) == 2:
+            emo = [float(emo[0]), float(emo[1]), 0]
+
+        # logger.info(f"EmoState: {emo}")
+        network.send(self.integrator_sig_port, dict(target_css=emo[:2]))
+
+        return emo
+
+    def encode_image_to_base64(self, np_image, mime_type="image/jpeg"):
+        """
+        Encodes a NumPy array image to a base64 string.
+        
+        Args:
+        np_image (numpy.ndarray): A NumPy array representing the image.
+        mime_type (str): The MIME type of the image.
+        
+        Returns:
+        str: A base64 encoded string of the image.
+        """
+        # Convert the NumPy array to an image
+        pil_img = Image.fromarray(np_image.astype('uint8'), 'RGB')
+
+        # Convert the PIL image to a byte stream
+        img_byte_arr = BytesIO()
+        pil_img.save(img_byte_arr, format=mime_type.split('/')[-1])
+
+        # Encode the byte stream to base64
+        encoded_string = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
+
+        return f"data:{mime_type};base64,{encoded_string}"
 
 if __name__ == "__main__":
     # Print interface info
     print("Save point cloud when 'p' is pressed.\nPress 'q' or 'ESC' to exit.")
 
     # Combine streams for Kinect 
-    streams = set(args.streams + [args.detection_steam] + args.rec_streams)
+    streams = set(args.streams + [args.detection_steam] + [args.img_gpt_stream]  + args.rec_streams)
 
     # Initialize modules
     video_writer = VideoWriter(args.data_out, args.rec_streams)
@@ -168,6 +359,15 @@ if __name__ == "__main__":
             shimono_trafo_path=args.shimono_trafo_path, 
             output_dir=args.data_out, 
             flip=args.flip
+        )
+    
+    if args.img_gpt_stream:
+        image_gpt = ImageGPTComms(
+            settings.integrator_sig_port, 
+            settings.status_address, 
+            settings.gpt_cmd_port,
+            settings.chatgpt_personas[args.chatgpt_persona],
+            args.gpt_interval_s,
         )
 
     # Initialize YOLO tracking objects if specified
@@ -191,15 +391,15 @@ if __name__ == "__main__":
         dynamic_fps.update()
         key = cv2.waitKey(1)
         
-        # If detection_steam is grayscale, convert to RGB
-        if len(frame_data[args.detection_steam].shape) == 2:
-            frame_data[args.detection_steam] = cv2.cvtColor(frame_data[args.detection_steam], cv2.COLOR_GRAY2RGB)
-        
         # Save frame to the video file
         if video_writer.is_recording():
             video_writer.save_frames(frame_data)
+        
+        if args.run_yolo:    
+            # If detection_steam is grayscale, convert to RGB
+            if len(frame_data[args.detection_steam].shape) == 2:
+                frame_data[args.detection_steam] = cv2.cvtColor(frame_data[args.detection_steam], cv2.COLOR_GRAY2RGB)
 
-        if args.run_yolo:
             # Run object detection
             img_segments = image_detector.detect(frame_data[args.detection_steam])
 
@@ -230,6 +430,9 @@ if __name__ == "__main__":
             ]
             network.send(settings.integrator_sig_port, dict(people_sensor=people))
 
+        # Send image to chatgpt
+        if args.img_gpt_stream:
+            image_gpt(frame_data.get(args.img_gpt_stream, None))
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
@@ -245,11 +448,13 @@ if __name__ == "__main__":
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
             break
 
-        # Write frame to file TODO Optimize Unix udp socket transfer
-        ext = os.path.splitext(settings.disp_img_path)[-1]
-        tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp.{ext}")
-        cv2.imwrite(tmp_disp_img_path, frame_data[args.detection_steam])
-        os.rename(tmp_disp_img_path, settings.disp_img_path)
+        # Write frame to file TODO Optimidp socket transfer
+        write_stream = args.img_gpt_stream if args.img_gpt_stream else args.detection_steam
+        if write_stream in frame_data:
+            ext = os.path.splitext(settings.disp_img_path)[-1]
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp.{ext}")
+            cv2.imwrite(tmp_disp_img_path, frame_data[write_stream])
+            os.rename(tmp_disp_img_path, settings.disp_img_path)
 
         # Show frames
         for stream, frame in frame_data.items():

@@ -46,6 +46,8 @@ kinect_data_path = os.path.join(data_path, 'kinect')
 
 openai_api_key_gab = "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"
 openai_api_key_nuru = "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"
+# openai_api_key_gab_imani = "asst_AHjPYKM1wUTxyz0S3OhmCO34"
+
 openai_api_key = openai_api_key_gab
 
 chatgpt_personas = {}
@@ -56,7 +58,7 @@ for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
     chatgpt_personas[key] = text
 
 # Available Models: https://platform.openai.com/docs/models/overview
-chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4"][1]
+chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4", "gpt-4-1106-preview", "gpt-4-vision-preview"][-1]
 
 gpt_hz = 4
 
