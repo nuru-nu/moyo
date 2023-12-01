@@ -86,6 +86,12 @@ parser.add_argument(
     default=2.0,
     help="Seconds interval to send image to chatGPT",
 )
+parser.add_argument(
+    '--gpt_img_div',
+    type=int,
+    default=4,
+    help="Factor by which to downscale images sent to chat gpt.",
+)
 args = parser.parse_args()
 
 class VideoWriter:
@@ -165,6 +171,31 @@ class FPSCounter:
         self.fps = self.chunk_size / sum(self.dts)
         # logger.info(f"{self.fps:.2f}fps")
 
+
+def decode_base64_to_image(base64_string):
+    """
+    Decodes a base64 string to a NumPy array image.
+
+    Args:
+    base64_string (str): A base64 encoded string of the image.
+
+    Returns:
+    numpy.ndarray: A NumPy array representing the image.
+    """
+    # Extract the base64 part of the string
+    encoded_data = base64_string.split(',')[1]
+
+    # Decode the base64 string
+    img_data = base64.b64decode(encoded_data)
+
+    # Convert the byte data to a NumPy array
+    np_arr = np.frombuffer(img_data, np.uint8)
+
+    # Convert NumPy array to image
+    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    return img
+
 class ImageGPTComms:
     """Class for communicating image data with ChatGPT"""
 
@@ -180,6 +211,7 @@ class ImageGPTComms:
         self.interval_s = interval_s
         self.t_prev = time.time()
         self.image = None
+        self.stop_threads = False
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -191,14 +223,20 @@ class ImageGPTComms:
         ]
 
         # Create threads for read_network_responses and read_audio_responses
-        network_thread = threading.Thread(target=self.read_network_responses)
-        image_to_gpt_thread = threading.Thread(target=self.send_image_thread)
+        self.network_thread = threading.Thread(target=self.read_network_responses)
+        self.image_to_gpt_thread = threading.Thread(target=self.send_image_thread)
 
         # Start all threads
-        network_thread.start()
-        image_to_gpt_thread.start()
+        self.network_thread.start()
+        self.image_to_gpt_thread.start()
+
 
         logger.info("ChatGPTComms Initialized...")
+    
+    def stop_all_threads(self):
+        self.stop_threads = True
+        self.network_thread.join()
+        self.image_to_gpt_thread.join()
 
     def __call__(self, image):
         """Send image to chatGPT"""
@@ -216,7 +254,7 @@ class ImageGPTComms:
 
     def send_image_thread(self):
         
-        while True:
+        while not self.stop_threads:
             t0 = time.time()
             if self.image is None:
                 time.sleep(1 / settings.gpt_hz)
@@ -224,6 +262,8 @@ class ImageGPTComms:
 
             # Generate message
             img_base64 = self.encode_image_to_base64(self.image)
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"toets.jpg")
+            cv2.imwrite(tmp_disp_img_path, decode_base64_to_image(img_base64))
             self.messages.append(
                 {
                     "role": "user", 
@@ -232,7 +272,7 @@ class ImageGPTComms:
                             "type": "image_url",
                             "image_url": {
                                 "url": img_base64,
-                                "detail": "med",
+                                "detail": "low",
                             }
                         },
                     ]
@@ -257,11 +297,17 @@ class ImageGPTComms:
                 answer += chunk.choices[0].delta.content or ""
                 network.send(self.integrator_sig_port, dict(answer_gpt=answer))
 
-                print(answer, end='\r')
-                sys.stdout.flush()
+                # print(answer, end='\r')
+                # sys.stdout.flush()
                 self.emo_state = self.find_emo_state(answer)
             logger.info(f"{(time.time() - t0):.2f}s - GPT Response: {answer}")
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+
+            # Write image
+            ext = os.path.splitext(settings.disp_img_path)[-1]
+            name = f"{self.emo_state}_dt={(time.time() - t0):.2f}s_{answer[11:]}"
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"{name}{ext}")
+            cv2.imwrite(tmp_disp_img_path, self.image)
 
             self.messages.append({"role": "assistant", "content": answer})
             self.image = None            
@@ -269,7 +315,7 @@ class ImageGPTComms:
     def read_network_responses(self):
         """Process and respond to user input from network"""
 
-        while True:
+        while not self.stop_threads:
             data = network.get_json(self.sock, {})
             if "gpt_msg" in data:
                 if data["gpt_msg"] == "ready_to_respond":
@@ -311,22 +357,14 @@ class ImageGPTComms:
 
         return emo
 
-    def encode_image_to_base64(self, np_image, mime_type="image/jpeg"):
+    def encode_image_to_base64(self, np_image, mime_type="image/png"):
         """
         Encodes a NumPy array image to a base64 string.
-        
-        Args:
-        np_image (numpy.ndarray): A NumPy array representing the image.
-        mime_type (str): The MIME type of the image.
-        
-        Returns:
-        str: A base64 encoded string of the image.
         """
-        # Convert the NumPy array to an image
-        pil_img = Image.fromarray(np_image.astype('uint8'), 'RGB')
 
         # Convert the PIL image to a byte stream
         img_byte_arr = BytesIO()
+        pil_img = Image.fromarray(np_image.astype('uint8'), 'RGB')
         pil_img.save(img_byte_arr, format=mime_type.split('/')[-1])
 
         # Encode the byte stream to base64
@@ -431,8 +469,14 @@ if __name__ == "__main__":
             network.send(settings.integrator_sig_port, dict(people_sensor=people))
 
         # Send image to chatgpt
-        if args.img_gpt_stream:
-            image_gpt(frame_data.get(args.img_gpt_stream, None))
+        if args.img_gpt_stream in frame_data:
+            im_shape = np.array(frame_data[args.img_gpt_stream]).shape
+            frame_data[args.img_gpt_stream] = cv2.resize(
+                frame_data[args.img_gpt_stream], 
+                dsize=(im_shape[1]//args.gpt_img_div, im_shape[0]//args.gpt_img_div), 
+                interpolation=cv2.INTER_CUBIC
+            )
+            image_gpt(frame_data[args.img_gpt_stream])
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):
@@ -446,13 +490,15 @@ if __name__ == "__main__":
             kinect.save_point_cloud()
 
         if key == ord('q') or key == 27:  # Press 'q' or 'ESC' to exit
+            if args.img_gpt_stream is not None:
+                image_gpt.stop_all_threads()
             break
 
         # Write frame to file TODO Optimidp socket transfer
         write_stream = args.img_gpt_stream if args.img_gpt_stream else args.detection_steam
         if write_stream in frame_data:
             ext = os.path.splitext(settings.disp_img_path)[-1]
-            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp.{ext}")
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
             cv2.imwrite(tmp_disp_img_path, frame_data[write_stream])
             os.rename(tmp_disp_img_path, settings.disp_img_path)
 
