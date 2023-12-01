@@ -80,6 +80,33 @@ def radial_wave():
     )
 
 @anim
+def affective_wave():
+    return (
+        L.Named('arousal') * (L.Named('valence') | S.Thr(0.5) | S.Lin(shift=-1, mult=2)) | 
+        S.Lin(0.02, 0.3) | A.SinWave(3) | 
+        P.InterpolPalette(
+            L.Named('valence'), 
+            (
+                (0, P.red_death),
+                (1, P.funny_rainbow),
+            )
+        )
+    )
+
+@anim
+def affective_standing_wave():
+    return (
+        L.Named('arousal') | S.Lin(shift=0.5, mult=2) | S.Int() | A.SandingWave(3) | 
+        P.InterpolPalette(
+            L.Named('valence'), 
+            (
+                (0, P.red_death),
+                (1, P.quite_bright),
+            )
+        )
+    )
+
+@anim
 def speaking_radial_wave():
     return (
         L.Named('arousal') | S.Lin(-0.1, -0.4) | A.SinWave(3) | P.InterpolPalette(
