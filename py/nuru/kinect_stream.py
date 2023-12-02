@@ -12,6 +12,7 @@ from io import BytesIO
 from PIL import Image
 import threading
 import sys
+import re
 
 from nuru import settings, people_tracking, kinect_lib, tracker_annotation_lib, object_detection_lib
 from smanmi import network, util
@@ -297,6 +298,13 @@ class ImageGPTComms:
                 }
             )
 
+            # Write image
+            ext = os.path.splitext(settings.disp_img_path)[-1]
+            # name = f"{self.emo_state}_dt={(time.time() - t0):.2f}s_{answer[11:]}"
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+            cv2.imwrite(tmp_disp_img_path, self.image)
+            os.rename(tmp_disp_img_path, settings.disp_img_path)
+
             # Send to chatGPT
             network.send(self.integrator_sig_port, dict(thinking_gpt=1))
             response = self.openai_client.chat.completions.create(
@@ -320,12 +328,6 @@ class ImageGPTComms:
                 self.emo_state = self.find_emo_state(answer)
             logger.info(f"{(time.time() - t0):.2f}s - GPT Response: {answer}")
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
-
-            # Write image
-            ext = os.path.splitext(settings.disp_img_path)[-1]
-            name = f"{self.emo_state}_dt={(time.time() - t0):.2f}s_{answer[11:]}"
-            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"{name}{ext}")
-            cv2.imwrite(tmp_disp_img_path, self.image)
 
             self.messages.append({"role": "assistant", "content": answer})
             self.image = None            
@@ -361,17 +363,15 @@ class ImageGPTComms:
     def find_emo_state(self, response):
         """Find the emotional state in the response from ChatGPT"""
 
-        if "[" not in response or "]" not in response:
-            return None
+        matches = re.findall(r"\[.*?([-+]?\d*\.?\d+).*?,.*?([-+]?\d*\.?\d+).*?\]", response)
         
-        emo = response[response.find('[')+1:].split("]")[0].split(",")
-        if len(emo) == 3:
-            emo = [float(emo[0]), float(emo[1]), float(emo[2])]
-        elif len(emo) == 2:
-            emo = [float(emo[0]), float(emo[1]), 0]
+        if not matches:
+            return None
+
+        emo = [float(matches[0][0]), float(matches[0][1])]
 
         # logger.info(f"EmoState: {emo}")
-        network.send(self.integrator_sig_port, dict(target_css=emo[:2]))
+        network.send(self.integrator_sig_port, dict(target_css=emo))
 
         return emo
 
@@ -522,13 +522,13 @@ if __name__ == "__main__":
                 image_gpt.stop_all_threads()
             break
 
-        # Write frame to file TODO Optimidp socket transfer
-        write_stream = args.img_gpt_stream if args.img_gpt_stream else args.detection_steam
-        if write_stream in frame_data:
-            ext = os.path.splitext(settings.disp_img_path)[-1]
-            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
-            cv2.imwrite(tmp_disp_img_path, frame_data[write_stream])
-            os.rename(tmp_disp_img_path, settings.disp_img_path)
+        # # Write frame to file TODO Optimidp socket transfer
+        # write_stream = args.img_gpt_stream if args.img_gpt_stream else args.detection_steam
+        # if write_stream in frame_data:
+        #     ext = os.path.splitext(settings.disp_img_path)[-1]
+        #     tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+        #     cv2.imwrite(tmp_disp_img_path, frame_data[write_stream])
+        #     os.rename(tmp_disp_img_path, settings.disp_img_path)
 
         # Show frames
         for stream, frame in frame_data.items():
