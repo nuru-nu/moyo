@@ -244,8 +244,8 @@ export const Midi = (output) => {
 }
 
 export const Css = (output, {network, readonly, headless, width, height, hidestate}) => {
-  width = width || 200
-  height = height || 200
+  width = width || 300
+  height = height || 300
   const xlim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
   const ylim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
   const r = width / 25
@@ -517,6 +517,8 @@ export const Transients = (output, {network, defs}) => {
 export const Image = (output, refresh_secs) => {
   refresh_secs = refresh_secs || .5
   const disp = h.div('cont').of(
+    h.div({class: 'header'}).of('vision'),
+    h.div({style: 'height: 10px;'}),
     h.img('img'),
   ).into(output).els
   disp.img.src = '/kinect'
