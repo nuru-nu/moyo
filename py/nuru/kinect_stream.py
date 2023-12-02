@@ -22,7 +22,7 @@ logger = util.createLogger('kinect', debug=False)
 
 parser = argparse.ArgumentParser(description="Kinect Recorder")
 parser.add_argument(
-    '--streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks'], nargs='*', 
+    '--streams', type=str, choices=['vid_stream', 'ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks'], nargs='*', 
     default=['ir', 'color', 'depth', 'ir_rgb'], help='Stream types to subscribe to'
 )
 parser.add_argument(
@@ -61,11 +61,14 @@ parser.add_argument(
     help="Size of people count queue. Larger values will increase detection time. Lower values will decrease accuracy"
 )
 parser.add_argument(
-    '--display_streams', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], nargs='*', 
+    '--display_streams', type=str, choices=['vid_stream', 'ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], nargs='*', 
     default=[], help="Streams to show in the UI."
 )
 parser.add_argument(
     '--dummy_kinect', type=str, nargs='*', default=None, help="Add depth and color stream video paths."
+)
+parser.add_argument(
+    '--dummy_stream', type=str, default=None, help="Add stream video paths."
 )
 parser.add_argument(
     '--max_nr_people', type=int, default=10, 
@@ -77,7 +80,7 @@ parser.add_argument(
     default="emo_state_image_input",
 )
 parser.add_argument(
-    '--img_gpt_stream', type=str, choices=['ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], 
+    '--img_gpt_stream', type=str, choices=['vid_stream', 'ir', 'color', 'depth', 'ir_rgb', 'scaled-color', 'tracks', 'untracked_detections'], 
     help="Send image stream to chatGPT",
 )
 parser.add_argument(
@@ -143,7 +146,6 @@ class VideoWriter:
             logger.info(f"Recording frame {self.nr_frames_rec}")
             self.nr_frames_rec += 1
             for stream_name, video_writer in self.video_writers.items():
-
                 assert stream_name in frames, f"Stream {stream_name} not recorded!"
                 if len(frames[stream_name].shape) == 2:
                     frame = np.uint8(frames[stream_name] * 255)
@@ -192,14 +194,27 @@ def decode_base64_to_image(base64_string):
     np_arr = np.frombuffer(img_data, np.uint8)
 
     # Convert NumPy array to image
-    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    return img
+    # Convert the image from BGR to RGB
+    img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+
+    return img_rgb
 
 class ImageGPTComms:
     """Class for communicating image data with ChatGPT"""
 
-    def __init__(self, integrator_sig_port, status_address, gpt_cmd_port, system_message, interval_s):
+    def __init__(
+        self, 
+        integrator_sig_port, 
+        status_address, 
+        gpt_cmd_port, 
+        system_message, 
+        interval_s, 
+        max_nr_msgs=50,
+        max_tokens=1000,
+        temperature=0.5,
+    ):
         """Initialize the ChatGPTComms class"""
 
         self.integrator_sig_port = integrator_sig_port
@@ -212,10 +227,13 @@ class ImageGPTComms:
         self.t_prev = time.time()
         self.image = None
         self.stop_threads = False
+        self.max_tokens = max_tokens
+        self.temperature = temperature
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
-        self.messages = [
+        self.messages = deque(maxlen=max_nr_msgs)
+        self.system_message = [
             {
                 "role": "system",
                 "content": system_message,
@@ -283,9 +301,9 @@ class ImageGPTComms:
             network.send(self.integrator_sig_port, dict(thinking_gpt=1))
             response = self.openai_client.chat.completions.create(
                 model=settings.chat_gpt_model,
-                messages=self.messages,
-                max_tokens=1000,
-                temperature=0.5,
+                messages=self.system_message + list(self.messages),
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
                 stream=True
             )
             network.send(self.integrator_sig_port, dict(thinking_gpt=0))
@@ -364,6 +382,12 @@ class ImageGPTComms:
 
         # Convert the PIL image to a byte stream
         img_byte_arr = BytesIO()
+        
+        # Ensure rgb image
+        if len(np_image.shape) == 2:
+            np_image = np_image[...,None].repeat(3, axis=-1)*255
+        assert len(np_image.shape) == 3
+
         pil_img = Image.fromarray(np_image.astype('uint8'), 'RGB')
         pil_img.save(img_byte_arr, format=mime_type.split('/')[-1])
 
@@ -390,6 +414,10 @@ if __name__ == "__main__":
             shimono_trafo_path=args.shimono_trafo_path, 
             output_dir=args.data_out, 
             flip=args.flip
+        )
+    elif args.dummy_stream:
+        kinect = kinect_lib.StreamDummy(
+            video_path=args.dummy_stream
         )
     else:
         kinect = kinect_lib.Kinect(
@@ -428,10 +456,6 @@ if __name__ == "__main__":
     for frame_data in kinect:
         dynamic_fps.update()
         key = cv2.waitKey(1)
-        
-        # Save frame to the video file
-        if video_writer.is_recording():
-            video_writer.save_frames(frame_data)
         
         if args.run_yolo:    
             # If detection_steam is grayscale, convert to RGB
@@ -477,6 +501,10 @@ if __name__ == "__main__":
                 interpolation=cv2.INTER_CUBIC
             )
             image_gpt(frame_data[args.img_gpt_stream])
+    
+        # Save frame to the video file
+        if video_writer.is_recording():
+            video_writer.save_frames(frame_data)
 
         # Start/stop record video when 's' is pressed
         if key == ord('s'):

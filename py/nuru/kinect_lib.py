@@ -311,6 +311,57 @@ class KinectDummy(Kinect):
         self.depth_video.release()
         self.rgb_video.release()
 
+class StreamDummy:
+    def __init__(self, video_path):
+        self.name = os.path.basename(video_path)
+        self.video_stream = cv2.VideoCapture(video_path)
+        self.video_stream.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+        self.frame_dt = 1 / self.video_stream.get(cv2.CAP_PROP_FPS)
+        self.width = int(self.video_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(self.video_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.frame_count = int(self.video_stream.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        # Set the frame counter
+        self.t_prev = time.time()
+        self.frame = 0
+        self.np_frames = {}
+    
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        """Get next frame."""
+
+        # Reset the frame counter to loop the video
+        if self.frame >= self.frame_count:
+            self.frame = 0
+
+        # If there is time remaining, wait
+        time_elapsed = time.time() - self.t_prev
+        time_to_wait = self.frame_dt - time_elapsed
+        if time_to_wait > 0:
+            time.sleep(time_to_wait)
+
+        self.video_stream.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
+
+        self.np_frames = {}
+        ret_stream_val, self.np_frames["vid_stream"] = self.video_stream.read()
+
+        # Check that the frames are valid
+        if not ret_stream_val:
+            raise StopIteration
+
+        self.frame += 1
+        self.t_prev = time.time()
+
+        return self.np_frames
+
+    def close(self):
+        """Close stream."""
+
+        self.video_stream.release()
+
 def create_color_histogram(rgb_colors, num_bins=8):
     # Initialize histogram
     histogram = np.zeros((3, num_bins))
