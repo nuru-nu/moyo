@@ -214,7 +214,7 @@ class ImageGPTComms:
         interval_s, 
         max_nr_msgs=50,
         max_tokens=1000,
-        temperature=0.5,
+        temperature=1,
     ):
         """Initialize the ChatGPTComms class"""
 
@@ -298,13 +298,6 @@ class ImageGPTComms:
                 }
             )
 
-            # Write image
-            ext = os.path.splitext(settings.disp_img_path)[-1]
-            # name = f"{self.emo_state}_dt={(time.time() - t0):.2f}s_{answer[11:]}"
-            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
-            cv2.imwrite(tmp_disp_img_path, self.image)
-            os.rename(tmp_disp_img_path, settings.disp_img_path)
-
             # Send to chatGPT
             network.send(self.integrator_sig_port, dict(thinking_gpt=1))
             response = self.openai_client.chat.completions.create(
@@ -316,6 +309,12 @@ class ImageGPTComms:
             )
             network.send(self.integrator_sig_port, dict(thinking_gpt=0))
 
+            # Write image
+            ext = os.path.splitext(settings.disp_img_path)[-1]
+            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+            cv2.imwrite(tmp_disp_img_path, self.image)
+            os.rename(tmp_disp_img_path, settings.disp_img_path)
+
             # Get chatGPT response
             answer = ""
             network.send(self.integrator_sig_port, dict(speaking_gpt=1))
@@ -326,7 +325,9 @@ class ImageGPTComms:
                 # print(answer, end='\r')
                 # sys.stdout.flush()
                 self.emo_state = self.find_emo_state(answer)
-            logger.info(f"{(time.time() - t0):.2f}s - GPT Response: {answer}")
+            response_dt = time.time() - t0
+            logger.info(f"{response_dt:.2f}s - GPT Response: {answer}")
+            network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
 
             self.messages.append({"role": "assistant", "content": answer})

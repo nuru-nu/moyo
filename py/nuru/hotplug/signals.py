@@ -320,7 +320,7 @@ monitor_def = dict(
         'sensors': ['closest', 'mvmt', 'sonar', 'pir', 'connection'],
         'touch': touchs,
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
-        'gpt': ['thinking_gpt', 'speaking_gpt', 'listening_gpt'],
+        'gpt': ['thinking_gpt', 'speaking_gpt', 'listening_gpt', 'gpt_response_dt_min'],
         'empty': [],
     },
     preset_signals=[
