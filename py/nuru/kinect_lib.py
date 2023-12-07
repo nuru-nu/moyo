@@ -318,8 +318,6 @@ class StreamDummy:
         self.video_stream.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
         self.frame_dt = 1 / self.video_stream.get(cv2.CAP_PROP_FPS)
-        self.width = int(self.video_stream.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(self.video_stream.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.frame_count = int(self.video_stream.get(cv2.CAP_PROP_FRAME_COUNT))
 
         # Set the frame counter
