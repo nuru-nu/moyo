@@ -3,7 +3,7 @@
 on Linux:
 
 `
-git clone https://github.com/scanlime/fadecandy \
+git clone https://github.com/bluewavenet/fadecandyserver.git \
   && cd fadecandy/server && make submodules && make
 `
 
