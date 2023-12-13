@@ -15,7 +15,7 @@ tmux splitw -v -p 75
 tmux send-keys "./run nuru.server --server_address=${SERVER}" $CM
 # row 3
 tmux splitw -v -p 66
-tmux send-keys "./run nuru.video_stream_gpt --display_stream --gpt_img_div 4 --img_gpt_stream" $CM
+tmux send-keys "./run nuru.midi" $CM
 
 tmux selectp -D
 tmux attach-session
