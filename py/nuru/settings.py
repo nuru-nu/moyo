@@ -22,7 +22,7 @@ root_path = os.path.dirname(os.path.dirname(nuru_path))
 data_path = os.path.join(root_path, 'data')
 blender_path = os.path.join(root_path, 'blender')
 ml_models_path = os.path.join(data_path, 'models')
-disp_img_path = os.path.join(root_path, "tmp", "kinect_frame.jpg")
+disp_img_path = os.path.join(root_path, "tmp", "kinect_frame.png")
 
 # SER
 
