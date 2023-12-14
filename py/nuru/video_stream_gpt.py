@@ -40,6 +40,11 @@ parser.add_argument(
     default="emo_state_image_input",
 )
 parser.add_argument(
+    '--gpt_responses_file_path',
+    type=str,
+    default=settings.gpt_responses_file_path,
+)
+parser.add_argument(
     '--img_gpt_stream', action='store_true',
     help="Send image stream to chatGPT",
 )
@@ -233,6 +238,7 @@ class ImageGPTComms:
         gpt_cmd_port, 
         system_message, 
         interval_s, 
+        gpt_responses_file_path,
         max_nr_msgs=50,
         max_tokens=1000,
         temperature=1,
@@ -254,6 +260,7 @@ class ImageGPTComms:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.write_image_height = write_image_height
+        self.gpt_responses_file_path = gpt_responses_file_path
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -275,10 +282,16 @@ class ImageGPTComms:
 
 
         logger.info("ChatGPTComms Initialized...")
-    
+
+    def append_response_to_file(self, response):
+        """Appends the response to file"""
+
+        with open(self.gpt_responses_file_path, 'a') as file:
+            file.write(response + '\n')
+
     def stop_all_threads(self):
         """Stops all threads"""
-        
+
         self.stop_threads = True
         self.network_thread.join()
         self.image_to_gpt_thread.join()
@@ -352,6 +365,7 @@ class ImageGPTComms:
                 # sys.stdout.flush()
                 self.emo_state = self.find_emo_state(answer)
             response_dt = time.time() - t0
+            self.append_response_to_file(answer)
             logger.info(f"{response_dt:.2f}s - GPT Response: {answer}")
             network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
@@ -456,6 +470,7 @@ if __name__ == "__main__":
             settings.gpt_cmd_port,
             settings.chatgpt_personas[args.chatgpt_persona],
             args.gpt_interval_s,
+            args.gpt_responses_file_path,
         )
 
     if args.display_stream:
