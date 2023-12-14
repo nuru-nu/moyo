@@ -1,0 +1,3 @@
+[0.8, 0.6] Waving hello brings joy!
+[-0.4, 0.7] Concerned face is unsettling.
+[0.7, 0.3] Smiling faces are comforting.

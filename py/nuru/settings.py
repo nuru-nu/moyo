@@ -57,6 +57,8 @@ for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
     key = file.split('/')[-1].split('.')[0]  # extract the file name without extension
     chatgpt_personas[key] = text
 
+gpt_responses_file_path = os.path.join(nuru_path,'gpt_reference_text','image_affect_text_responses.txt')
+
 # Available Models: https://platform.openai.com/docs/models/overview
 chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4", "gpt-4-1106-preview", "gpt-4-vision-preview"][-1]
 
