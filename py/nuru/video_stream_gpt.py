@@ -236,6 +236,7 @@ class ImageGPTComms:
         max_nr_msgs=50,
         max_tokens=1000,
         temperature=1,
+        write_image_height=200,
     ):
         """Initialize the ChatGPTComms class"""
 
@@ -248,9 +249,11 @@ class ImageGPTComms:
         self.interval_s = interval_s
         self.t_prev = time.time()
         self.image = None
+        self.next_image = None
         self.stop_threads = False
         self.max_tokens = max_tokens
         self.temperature = temperature
+        self.write_image_height = write_image_height
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -274,6 +277,8 @@ class ImageGPTComms:
         logger.info("ChatGPTComms Initialized...")
     
     def stop_all_threads(self):
+        """Stops all threads"""
+        
         self.stop_threads = True
         self.network_thread.join()
         self.image_to_gpt_thread.join()
@@ -287,12 +292,20 @@ class ImageGPTComms:
         if image is None:
             return
         
+        if self.next_image is not None:
+            image = self.next_image
+            self.write_image(image)
+            self.next_image = None
+        else:
+            return
+        
         if time.time() - self.t_prev > self.interval_s:
             logger.info(f"Sending Image. dt: {time.time() - self.t_prev}s")
             self.image = image.copy()
             self.t_prev = time.time()
 
     def send_image_thread(self):
+        """Waits for image to send to gpt server, extracts response and sends to server"""
         
         while not self.stop_threads:
             t0 = time.time()
@@ -328,12 +341,6 @@ class ImageGPTComms:
             )
             network.send(self.integrator_sig_port, dict(thinking_gpt=0))
 
-            # Write image
-            ext = os.path.splitext(settings.disp_img_path)[-1]
-            tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
-            cv2.imwrite(tmp_disp_img_path, self.image)
-            os.rename(tmp_disp_img_path, settings.disp_img_path)
-
             # Get chatGPT response
             answer = ""
             network.send(self.integrator_sig_port, dict(speaking_gpt=1))
@@ -350,7 +357,39 @@ class ImageGPTComms:
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
 
             self.messages.append({"role": "assistant", "content": answer})
-            self.image = None            
+            self.image = None          
+
+    def set_next_image(self, next_image):
+        """Sets next image for gpt to consume and writes to file for webserver."""
+
+        self.next_image = next_image.copy()
+        if self.image is None:
+            image = self.next_image
+        else:
+            image = np.concatenate((self.next_image, self.image), axis=1)
+            cv2.putText(
+                img=image, 
+                text="next", 
+                org=(10, 20), 
+                fontFace=cv2.FONT_HERSHEY_DUPLEX, 
+                fontScale=0.6, 
+                color=(0, 255, 0), 
+                thickness=1
+            )
+        self.write_image(image)
+
+    def write_image(self, image):
+        """Resize and write image for web server"""   
+
+        # Resize the image
+        ratio = self.write_image_height / image.shape[0]
+        image = cv2.resize(image, (int(image.shape[1] * ratio), self.write_image_height))
+
+        # Write image
+        ext = os.path.splitext(settings.disp_img_path)[-1]
+        tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+        cv2.imwrite(tmp_disp_img_path, image)
+        os.rename(tmp_disp_img_path, settings.disp_img_path)
     
     def read_network_responses(self):
         """Process and respond to user input from network"""
@@ -380,9 +419,7 @@ class ImageGPTComms:
         return emo
 
     def encode_image_to_base64(self, np_image, mime_type="image/png"):
-        """
-        Encodes a NumPy array image to a base64 string.
-        """
+        """Encodes a NumPy array image to a base64 string."""
 
         # Convert the PIL image to a byte stream
         img_byte_arr = BytesIO()
@@ -445,6 +482,10 @@ if __name__ == "__main__":
         # Save frame to the video file
         if video_writer.is_recording():
             video_writer.save_frames(frame)
+
+        # Press 's' to select next frame
+        if key == ord('s'):
+            image_gpt.set_next_image(frame)
 
         # Start/stop record video when 'r' is pressed
         if key == ord('r'):
