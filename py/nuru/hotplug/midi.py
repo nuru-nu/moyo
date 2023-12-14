@@ -66,9 +66,9 @@ def signal2midi(data) -> Sequence[midi.Command]:
         commands += on('C4', channel=3)
     elif action == 'sub=off':
         commands += off('C4', channel=3)
-    closest = data.get('closest')
-    if closest is not None:
-        value = int(closest * 127)
+    arousal = data.get('arousal')
+    if arousal is not None:
+        value = int(arousal * 127)
         global _last_value
         if value != _last_value:
             _last_value = value
