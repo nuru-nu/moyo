@@ -87,10 +87,10 @@ def affective_wave():
         P.InterpolPalette(
             L.Named('valence'), 
             (
-                (0, P.red_death),
-                (1, P.funny_rainbow),
+                (0, P.brownish),
+                (1, P.white_violet),
             )
-        )
+        ) * L.Named('arousal')
     )
 
 @anim
