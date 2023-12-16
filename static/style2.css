@@ -46,3 +46,6 @@ p {
 .grow {
   flex-grow: 1;
 }
+.answer-gpt-text {
+  font-size: small; /* Sets the font size to small */
+}
