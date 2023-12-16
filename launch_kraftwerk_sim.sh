@@ -32,11 +32,6 @@ tmux send-keys "./run nuru.server --server_address=${SERVER} --fadecandy" $CM
 # row 3
 tmux splitw
 tmux send-keys "./run nuru.server --fps=0 --instance=3 --index=index3.html --port=8081" $CM
-# tmux send-keys './run nuru.dmx' $CM
-# row 4
-# tmux splitw -p 66
-# tmux send-keys './run nuru.midi' $CM
 
-# player out1; player out2
-
+tmux selectp -D
 tmux attach-session

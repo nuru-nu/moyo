@@ -553,7 +553,7 @@ export const ImageGPT = (output, {refresh_secs, headless, network}) => {
   
   function writeAnswerGPT(data) {
     if (headless && data && data.answer_gpt) {
-      const el = h.div({class: 'answer-gpt-text'}).of(data.answer_gpt).el
+      const el = h.div({class: 'answer-gpt-text'}).of(data.answer_gpt.split("]").pop()).el
       if (disp.output.children.length > 0) {
         disp.output.removeChild(disp.output.lastChild)
       }
