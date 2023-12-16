@@ -345,6 +345,7 @@ class ImageGPTComms:
 
             # Send to chatGPT
             network.send(self.integrator_sig_port, dict(thinking_gpt=1))
+            network.send(self.integrator_sig_port, dict(answer_gpt="Thinking..."))
             response = self.openai_client.chat.completions.create(
                 model=settings.chat_gpt_model,
                 messages=self.system_message + list(self.messages),

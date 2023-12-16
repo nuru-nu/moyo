@@ -514,6 +514,67 @@ export const Transients = (output, {network, defs}) => {
   network.listenJson('signals', listener)
 }
 
+function logImageFileSize(url) {
+  return fetch(url)
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          return response.blob();
+      })
+      .then(blob => {
+          return blob.size
+      })
+      .catch(error => {
+        return 99999999999
+      });
+}
+
+export const ImageGPT = (output, {refresh_secs, headless, network}) => {
+  refresh_secs = refresh_secs || .5
+  let gptTextDiv = h.div({class: 'p'});
+  const disp = h.div('cont').of(
+    headless ? [] : h.div({class: 'header'}).of('vision'),
+    h.div({style: 'height: 10px;'}),
+    h.img('img'),
+    h.div('.scrollable').of(h.div('output')),
+  ).into(output).els
+  disp.img.src = '/kinect'
+  let id = window.setTimeout(refresh, 1e3 * refresh_secs)
+  function refresh() {
+    id = window.setTimeout(refresh, 1e3 * refresh_secs)
+    logImageFileSize(disp.img.src).then(blob_size => {
+      console.log('blob_size', blob_size, 'bytes');
+      if (blob_size < 200000) { // HACK!!
+        disp.img.src = '/kinect?' + new Date().getTime();
+      }
+    });
+  }
+  
+  function writeAnswerGPT(data) {
+    if (headless && data && data.answer_gpt) {
+      const el = h.div({class: 'answer-gpt-text'}).of(data.answer_gpt).el
+      if (disp.output.children.length > 0) {
+        disp.output.removeChild(disp.output.lastChild)
+      }
+      disp.output.insertBefore(el, disp.output.firstChild)
+    }
+  }
+
+  if (headless) {
+    network.listenJson('signals', writeAnswerGPT);
+  }
+
+  observe(disp.cont).start(() => {
+    console.log('start')
+    id = window.setTimeout(refresh, 1e3 * refresh_secs)
+  }).stop(() => {
+    console.log('stop')
+    if (id) window.clearTimeout(id)
+    id = null
+  })
+}
+
 export const Image = (output, refresh_secs) => {
   refresh_secs = refresh_secs || .5
   const disp = h.div('cont').of(
