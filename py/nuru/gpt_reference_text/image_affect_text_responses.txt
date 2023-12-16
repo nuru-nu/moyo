@@ -1,3 +1,77 @@
 [0.8, 0.6] Waving hello brings joy!
 [-0.4, 0.7] Concerned face is unsettling.
 [0.7, 0.3] Smiling faces are comforting.
+[0.6, 0.5] A toast gesture feels inclusive and positive.
+[-0.3, 0.2] Looks somewhat disengaged, feels slightly ignored.
+[-0.3, 0.2] Looks somewhat disengaged, feels slightly ignored.
+[-0.5, 0.4] Unhappy expression makes me feel uneasy.
+[-0.5, 0.6] Negative expression causes concern and discomfort.
+[0.7, 0.3] Smiling is reassuring and uplifting!
+[0.7, 0.3] Content face, gentle smile.
+[-0.4, 0.2] Only seeing the back, feeling ignored.
+[0.8, 0.2] A person smiling warmly, happiness contagious!
+[0.9, 0.3] Friendly wave and open expression, feels welcoming!
+[0.2, -0.3] Concerned by the person's apparent distress.
+[0.7, 0.2] Uplifted by their positive gesture and smile.
+[0.3, -0.4] Slightly discomforted by their apparent frustration.
+[0.7, 0.1] Happy to see a friendly wave and smile.
+[0.1, -0.5] Disturbed by the apparent anger or negativity.
+[0.5, -0.2] Mixed feelings: happy wave, but expression seems off.
+[0.2, -0.2] Pensive about person's contemplative or distracted demeanor.
+[0.1, -0.2] Slightly uneasy with the person's serious mood.
+[0.3, -0.2] Person gesturing for space or pause.
+[0.7, 0.5] Friendly smile, seems inviting and positive.
+[0.2, -0.5] Surprised or shocked expression, something unexpected.
+[0.8, 0.6] Greeting seems friendly and enthusiastic!
+[0.9, 0.2] Double the people, double the joy!
+[0.6, -0.1] Mixed signals, one seems engaged, one seems detached.
+[-0.6, -0.2] Feeling ignored with both backs turned.
+[0.9, 0.4] Happy faces, both engaging - feeling welcomed!
+[0.5, 0] One seems distracted, but overall, still a positive vibe.
+[0.4, -0.1] A bit less connected, one looks away, feels distant.
+[-0.5, 0.2] Frown presents confusion. Why the sudden change?
+[-0.7, 0.3] Feeling uneasy, presence looms, intense gaze.
+[-0.6, -0.2] Departure seems imminent, feeling a bit abandoned.
+[-0.8, -0.4] Alone again, darkness and absence feel cold.
+[-0.5, 0.1] Dominant pose, a mix of respect and intimidation.
+[-0.4, 0] Commanding presence, curious, what's next?
+[0.1, 0] Less imposing angle, feeling more at ease.
+[0.8, 0.3] Friendly wave, feels inviting and warm!
+[0.3, -0.1] Calm stance, neutral feeling, unsure of intent.
+[0.7, 0.5] Active, lively motion—feels energizing and positive!
+[0.2, -0.2] Partial attention, mixed emotions, slightly uneasy.
+[0.6, 0.1] Movement suggests engagement, feeling somewhat acknowledged.
+[-0.2, -0.3] Dark and ambiguous, hard to read the emotions.
+[0.4, 0.1] Slight confusion, but presence feels somewhat positive.
+[0.8, 0.4] Warm gesture, shared happiness, feels inclusive!
+[0.2, 0] One engaged, one not—mixed emotions here.
+[-0.5, -0.3] Feeling snubbed, one person is turning away.
+[-0.7, -0.5] Feeling ignored, both are looking away. Sadness grows.
+[0.4, 0] Positive gesture, but face seems distressed—mixed feelings.
+[0.9, 0.7] Happy to see a friendly wave!
+[-0.6, 0.4] Unhappy with the thumbs down gesture.
+[0.8, 0.8] Excited by the open expression of joy!
+[-0.7, 0.5] Frowning face, negative sign, feeling down.
+[-0.5, 0.6] Confused by mixed signals, smile and "L" shape.
+[0.6, 0.5] Pleased with the thumbs up and smile!
+[-0.8, 0.6] Disheartened by the thumbs down.
+[0.3, 0.2] Positive gesture, unsure facial expression.
+[-0.1, -0.2] Confused or concerned, but hand gesture positive.
+[0.2, -0.4] Yawn could be boredom, waving is friendly.
+[-0.5, 0.2] Angry expression, but still acknowledging presence.
+[-0.6, 0.1] Dismissive gesture, not happy being ignored.
+[-0.7, -0.1] Ignored, negative body language.
+[-0.8, 0.3] Frustration visible, hand raised but feeling negative.
+[-0.9, 0.4] Very angry expression, not enjoying this interaction.
+[-1.0, 0.5] Extremely negative expression, maximum discomfort.
+[-0.6, 0.7] The person seems agitated; it makes me uncomfortable.
+[-0.7, 0.8] Seeing anger or distress lowers my mood and increases tension.
+[-0.5, 0.6] Their facial expression suggests displeasure; it's distressing.
+[-0.4, 0.5] Discomfort from the person's strained expression.
+[-0.3, 0.4] Slight discomfort, the person seems a bit upset.
+[-0.6, 0.7] Unnerved by the person's intense expression.
+[-0.1, 0.2] Marginally uneasy, expression is less clear.
+[-0.5, 0.6] Their facial expression is causing me concern.
+[-0.6, 0.7] The person seems agitated; it makes me uncomfortable.
+[-0.7, 0.8] Seeing anger or distress lowers my mood and increases tension.
+[-0.5, 0.6] Their facial expression suggests displeasure; it's distressing.
