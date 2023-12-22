@@ -65,7 +65,7 @@ class Kraftwerk(L.Signal):
         self.f = open(_kraftwerk_log_path, 'a')
         self.prev_css = [0,0]
 
-    def call(self, t, dt, css, thinking_gpt, speaking_gpt, listening_gpt, mode):
+    def call(self, t, dt, css, animation, thinking_gpt, speaking_gpt, listening_gpt, mode):
         if not self.state:
             self.state = self.INITIAL_STATE
             if self.sig:
@@ -85,7 +85,8 @@ class Kraftwerk(L.Signal):
         overwrites = {'action': []}
         state = STATE_AWAKE
 
-        overwrites['action'].append('animation=affective_wave')
+        if animation != 'affective_wave':
+            overwrites['action'].append('animation=affective_wave')
 
         if self.prev_css[0] * css[0] < 0:
             if self.prev_css[0] > css[0]:
