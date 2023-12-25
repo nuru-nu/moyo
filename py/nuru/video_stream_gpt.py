@@ -322,6 +322,7 @@ class ImageGPTComms:
         
         while not self.stop_threads:
             t0 = time.time()
+            # Wait for image to be set
             if self.image is None:
                 time.sleep(1 / settings.gpt_hz)
                 continue
@@ -452,6 +453,26 @@ class ImageGPTComms:
 
         return f"data:{mime_type};base64,{encoded_string}"
 
+
+class MouseGPT:
+    def __init__(self, image_gpt):
+        """Initialize callback object with ImageGPTComms object."""
+
+        self.image_gpt = image_gpt
+        self.frame = None
+
+    def set_frame(self, frame):
+        """Set image frame for callback function."""
+
+        self.frame = frame
+
+    def mouse_click(self, event, x, y, flags, param):
+        """Mouse Click callback function set next frame for ImageGPTComms"""
+
+        if event == cv2.EVENT_LBUTTONDOWN and self.frame is not None:
+            self.image_gpt.set_next_image(self.frame)
+
+
 if __name__ == "__main__":
     # Print interface info
     logger.info("Press 'q' or 'ESC' to exit. Press 'r' to start recording video stream.")
@@ -476,9 +497,13 @@ if __name__ == "__main__":
 
     if args.display_stream:
         cv2.namedWindow("video_stream", cv2.WND_PROP_AUTOSIZE)
+        if args.img_gpt_stream:
+            mouse_gpt = MouseGPT(image_gpt)
+            cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
 
     # Start video stream
     for frame in video_stream:
+        mouse_gpt.set_frame(frame)
         dynamic_fps.update()
         key = cv2.waitKey(1)
 
@@ -499,8 +524,8 @@ if __name__ == "__main__":
         if video_writer.is_recording():
             video_writer.save_frames(frame)
 
-        # Press 's' to select next frame
-        if key == ord('s'):
+        # Press 's' to select next frame for image GPT
+        if key == ord('s') and args.img_gpt_stream:
             image_gpt.set_next_image(frame)
 
         # Start/stop record video when 'r' is pressed
