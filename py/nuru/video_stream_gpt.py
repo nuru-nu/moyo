@@ -314,7 +314,7 @@ class ImageGPTComms:
             return
         
         if time.time() - self.t_prev > self.interval_s:
-            logger.info(f"Sending Image. dt: {time.time() - self.t_prev}s")
+            logger.info(f"Idle dt: {(time.time() - self.t_prev):.2f}s. Sending Image...")
             self.copying_image = True
             self.image = image.copy()
             self.copying_image = False
@@ -371,7 +371,7 @@ class ImageGPTComms:
                 self.emo_state = self.find_emo_state(answer)
             response_dt = time.time() - t0
             self.append_response_to_file(answer)
-            logger.info(f"{response_dt:.2f}s - GPT Response: {answer}")
+            logger.info(f"GPT API dt: {response_dt:.2f}s - Response: {answer}")
             network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
             network.send(self.integrator_sig_port, dict(speaking_gpt=0))
 
