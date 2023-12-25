@@ -261,6 +261,7 @@ class ImageGPTComms:
         self.temperature = temperature
         self.write_image_height = write_image_height
         self.gpt_responses_file_path = gpt_responses_file_path
+        self.copying_image = False
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -314,7 +315,9 @@ class ImageGPTComms:
         
         if time.time() - self.t_prev > self.interval_s:
             logger.info(f"Sending Image. dt: {time.time() - self.t_prev}s")
+            self.copying_image = True
             self.image = image.copy()
+            self.copying_image = False
             self.t_prev = time.time()
 
     def send_image_thread(self):
@@ -322,8 +325,8 @@ class ImageGPTComms:
         
         while not self.stop_threads:
             t0 = time.time()
-            # Wait for image to be set
-            if self.image is None:
+            # Sleep if no image queued up
+            if self.image is None or self.copying_image:
                 time.sleep(1 / settings.gpt_hz)
                 continue
 
