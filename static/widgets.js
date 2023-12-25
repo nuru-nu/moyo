@@ -281,41 +281,52 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
   function background(css) {
     var font_height = Math.floor(height / 20)
     var font = `${font_height}px Arial`
-    var font2 = `${font_height * 1.5}px Arial`
+    var font_height2 = Math.floor(height / 20) * 1.2
+    var font2 = `${font_height2}px Arial`
 
     ctx.lineWidth = 1
     ctx.strokeStyle = ctx.fillStyle = 'white'
-    ctx.font = font
     ctx.globalAlpha = 0.2
     if (css[0] < -0.25 && css[1] > 0){
       ctx.globalAlpha = 1
     }
-    ctx.fillStyle = 'red' // Angry
-    ctx.fillRect(tox(-1), toy(1), tox(-0.25), toy(0))
-
-    ctx.globalAlpha = 0.2
-    if (css[0] > 0.25 && css[1] > 0){
-      ctx.globalAlpha = 1
-    }
-    ctx.fillStyle = '#7b03fc' // Happy
-    ctx.fillRect(tox(0.25), toy(1), tox(-0.25), toy(0))
-
-    ctx.globalAlpha = 0.2
-    if (css[0] > -0.25 && css[0] < 0.25 && css[1] > 0){
-      ctx.globalAlpha = 1
-    }
-    ctx.fillStyle = '#ebc034' // Calm
-    ctx.fillRect(tox(-0.25), toy(1), tox(-0.5), toy(0))
-
-    ctx.globalAlpha = 0.2
-    if (css[0] > -0.5 && css[0] < 0.5 && css[1] < -0.5){
-      ctx.globalAlpha = 1
-    }
-    ctx.fillStyle = 'gray' // Sleeping
-    ctx.fillRect(tox(-0.5), toy(-0.5), tox(0), toy(-1))
+    ctx.globalAlpha = 1
+    
+    // Assuming you have a canvas context 'ctx'
+    var centerX = tox(0);
+    var centerY = toy(0);
+    var radius = (tox(1) - tox(0));
+    
+    // Use conic gradient if supported
+    var conicGradient = ctx.createConicGradient(0, centerX, centerY);
+    
+    // Define the color stops for the conic gradient
+    conicGradient.addColorStop(1/8, 'yellow');
+    conicGradient.addColorStop(3/8, 'blue');
+    conicGradient.addColorStop(5/8, 'red');
+    conicGradient.addColorStop(7/8, 'purple');
+    
+    // Draw the circle with the conic gradient
+    ctx.fillStyle = conicGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Create radial gradient for the alpha fade
+    var radialGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    radialGradient.addColorStop(0, 'rgba(0, 0, 0, 0)'); // Opaque in the center
+    radialGradient.addColorStop(1, 'rgba(0, 0, 0, 1)'); // Transparent towards the edges
+    
+    // Overlay the radial gradient
+    ctx.fillStyle = radialGradient;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fill();
+    
     ctx.globalAlpha = 1
     
     ctx.strokeStyle = ctx.fillStyle = 'white'
+    ctx.font = font2
     ctx.beginPath()
     ctx.moveTo(0, height/2)
     ctx.lineTo(width, height/2)
@@ -325,9 +336,9 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
 
     // Arrow Heads
     const darr = height / 30
-    var x =  width / 2 - ctx.measureText("High").width - font_height / 2
-    ctx.fillText("High", x, 2* darr + font_height / 2);
-    ctx.fillText("Arousal", width / 2 + font_height / 2, 2* darr + font_height / 2);
+    var x =  width / 2 - ctx.measureText("High").width - font_height2 / 2
+    ctx.fillText("High", x, 2* darr + font_height2 / 2);
+    ctx.fillText("Arousal", width / 2 + font_height2 / 2, 2* darr + font_height2 / 2);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width/2, 0)
@@ -336,9 +347,9 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.closePath()
     ctx.fill()
 
-    var x =  width / 2 - ctx.measureText("Low").width - font_height / 2
-    ctx.fillText("Low", x, height - darr - font_height / 2);
-    ctx.fillText("Arousal", width / 2 + font_height / 2, height - darr - font_height / 2);
+    var x =  width / 2 - ctx.measureText("Low").width - font_height2 / 2
+    ctx.fillText("Low", x, height - darr - font_height2 / 2);
+    ctx.fillText("Arousal", width / 2 + font_height2 / 2, height - darr - font_height2 / 2);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width/2, height)
@@ -348,7 +359,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fill()
 
     var x =  (width / 2 - ctx.measureText("Negative").width) / 2
-    ctx.fillText("Negative", x, height / 2 + 3*font_height / 3);
+    ctx.fillText("Negative", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(0, height/2)
@@ -358,7 +369,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.fill()
 
     var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 2 
-    ctx.fillText("Positive", x, height / 2 + 3*font_height / 3);
+    ctx.fillText("Positive", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
     ctx.moveTo(width, height/2)
@@ -369,15 +380,34 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
 
     ctx.stroke()
 
-    ctx.font = font2
-    ctx.strokeStyle = ctx.fillStyle = 'white'
-    var emo_width = (tox(-0.25) - tox(-1))
-    var x = (emo_width - ctx.measureText("Angry").width) / 2
-    ctx.fillText("Angry", x, height / 4 + font_height/3);
-    var x = width - ((emo_width - ctx.measureText("Happy").width) / 2 + ctx.measureText("Happy").width)
-    ctx.fillText("Happy", x, height / 4 + font_height/3);
-    ctx.fillText("Calm", width / 2 - ctx.measureText("Calm").width / 2, height / 4 + font_height/3);
-    ctx.fillText("Sleep", width / 2 - ctx.measureText("Sleep").width / 2,  7  *height / 8);
+    ctx.font = font;
+    ctx.fillStyle = 'white';
+    
+    // Define the radius for text placement
+    var textRadius = radius * 0.6; // Adjust as needed for positioning outside the circle
+    
+    // Function to place text at a given angle around the circle
+    function placeText(text, angle) {
+        var radians = angle * Math.PI / 180;
+        var textWidth = ctx.measureText(text).width;
+        var x = centerX + textRadius * Math.cos(radians) - textWidth / 2;
+        var y = centerY + textRadius * Math.sin(radians) + font_height / 3;
+    
+        ctx.fillText(text, x, y);
+    }
+    
+    // Define angles for each word
+    var word_angles = {
+        "Relaxed": 45,   // Angle in degrees, adjust as needed
+        "Sad": 135,
+        "Angry": 225,
+        "Excited": 315
+    };
+    
+    // Place each word at its corresponding angle
+    for (var word in word_angles) {
+        placeText(word, word_angles[word]);
+    }
 
   }
 
