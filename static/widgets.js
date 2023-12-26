@@ -401,17 +401,29 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
         ctx.fillText(text, x, y);
     }
     
+    // Function to calculate distance from the center of a quadrant
+    function calculateProximity(css, angle) {
+      var quadrantX = Math.cos((angle + 90) * Math.PI / 180);
+      var quadrantY = Math.sin((angle + 90) * Math.PI / 180);
+      return Math.sqrt(Math.pow(css[1] - quadrantX, 2) + Math.pow(css[0] - quadrantY, 2));
+    }
+
     // Define angles for each word
     var word_angles = {
-        "Relaxed": 45,   // Angle in degrees, adjust as needed
-        "Sad": 135,
-        "Angry": 225,
-        "Excited": 315
+      "Relaxed": 45,   // Angle in degrees
+      "Sad": 135,
+      "Angry": 225,
+      "Excited": 315
     };
-    
-    // Place each word at its corresponding angle
+
+
+    // Place and scale each word based on proximity
     for (var word in word_angles) {
-        placeText(word, word_angles[word]);
+      var proximity = calculateProximity(css, word_angles[word]);
+      var scale = 1 - proximity;
+      scale = Math.max(0.2, scale);
+      ctx.font = `${2 * font_height2 * scale}px Arial`
+      placeText(word, word_angles[word]);
     }
 
   }
