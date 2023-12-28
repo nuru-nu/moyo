@@ -6,7 +6,7 @@ import { Css, ImageGPT } from './widgets.js'
 
 fetch('/defs').then(resp => resp.json()).then(defs => {
   const network = Network(null, {secondary: true})
-  const sz = 0.43 * Math.min(window.innerWidth, window.innerHeight)
+  const sz = 0.7 * Math.min(window.innerWidth, window.innerHeight)
   ImageGPT('#left', {
     network,
     headless: true,

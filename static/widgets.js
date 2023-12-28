@@ -248,7 +248,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
   height = height || 300
   const xlim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
   const ylim = [-1, 1]  // Note: assumed [-1, 1] by background() below ...
-  const r = width / 25
+  const r = width / 50
   const disp = h.div({class: 'flex widget'}).of(
     headless ? [] : h.div({class: 'header'}).of('css'),
     ui.v(
@@ -279,9 +279,9 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
   const fromy = y => ylim[0] + (height - y) / height * (ylim[1] - ylim[0])
 
   function background(css) {
-    var font_height = Math.floor(height / 20)
+    var font_height = Math.floor(height / 20) * 1
     var font = `${font_height}px Arial`
-    var font_height2 = Math.floor(height / 20) * 1.2
+    var font_height2 = Math.floor(height / 20) * 0.8
     var font2 = `${font_height2}px Arial`
 
     ctx.lineWidth = 1
@@ -317,9 +317,8 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     
     // Create radial gradient for the alpha fade
     var radialGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    radialGradient.addColorStop(0, 'rgba(0, 0, 0, 1)'); // Opaque in the center
-    radialGradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.5)');
-    radialGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.5)');
+    radialGradient.addColorStop(0, 'rgba(100, 100, 100, 1)'); // Opaque in the center
+    radialGradient.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
     radialGradient.addColorStop(1, 'rgba(0, 0, 0, 1)'); // Transparent towards the edges
     
     // Overlay the radial gradient
@@ -363,7 +362,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.closePath()
     ctx.fill()
 
-    var x =  (width / 2 - ctx.measureText("Negative").width) / 2
+    var x =  (width / 2 - ctx.measureText("Negative").width) / 5
     ctx.fillText("Negative", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
@@ -373,7 +372,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.closePath()
     ctx.fill()
 
-    var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 2 
+    var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 1.6 
     ctx.fillText("Positive", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
@@ -410,10 +409,18 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
 
     // Define angles for each word
     var word_angles = {
-      "Relaxed": 45,   // Angle in degrees
+      "Content": 15,
+      "Relaxed": 45,
+      "Calm": 75,
+      "Tired": 105,
       "Sad": 135,
+      "Depressed": 165,
+      "Tense": 195,
       "Angry": 225,
-      "Excited": 315
+      "Frustrated": 255,
+      "Excited": 285,
+      "Delighted": 315,
+      "Happy": 345
     };
 
 
@@ -421,10 +428,18 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     for (var word in word_angles) {
       var proximity = calculateProximity(css, word_angles[word]);
       var scale = 1 - proximity;
-      scale = Math.max(0.2, scale);
+      scale = Math.max(0.3, scale);
       ctx.font = `${2 * font_height2 * scale}px Arial`
       placeText(word, word_angles[word]);
     }
+    
+    var proximity = Math.sqrt(Math.pow(css[1], 2) + Math.pow(css[0], 2));
+    var scale = 1 - proximity;
+    scale = Math.max(0.3, scale);
+    ctx.font = `${2 * font_height2 * scale}px Arial`
+    var x = centerX - ctx.measureText("Neutral").width / 2
+    var y = centerY// - ctx.measureText("Neutral").height / 2
+    ctx.fillText("Neutral", x, y);
 
   }
 
@@ -433,18 +448,24 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     const { target_css, css, css_alpha } = data
     background(css)
 
-    if (target_css) {
-      ctx.strokeStyle = '#f00'
-      ctx.lineWidth = Math.max(2, width / 100)
-      ctx.beginPath()
-      ctx.arc(tox(target_css[0]), toy(target_css[1]), r * 1.4, 0, 2 * Math.PI)
-      ctx.stroke()
-    }
+    // if (target_css) {
+    //   ctx.globalAlpha = 0.5
+    //   ctx.strokeStyle = '#000'
+    //   ctx.lineWidth = Math.max(2, width / 100)
+    //   ctx.beginPath()
+    //   ctx.arc(tox(target_css[0]), toy(target_css[1]), r * 1.4, 0, 2 * Math.PI)
+    //   ctx.stroke()
+    //   ctx.globalAlpha = 1
+    // }
     if (css) {
-      ctx.fillStyle = '#0f0'
+      ctx.globalAlpha = 0.9
+      ctx.fillStyle = '#000'
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = r / 4
       ctx.beginPath()
       ctx.arc(tox(css[0]), toy(css[1]), r, 0, 2 * Math.PI)
       ctx.fill()
+      ctx.stroke();
     }
     if (!readonly && css_alpha) disp.alpha.value = css_alpha
 
