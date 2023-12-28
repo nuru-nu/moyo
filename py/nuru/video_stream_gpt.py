@@ -242,7 +242,7 @@ class ImageGPTComms:
         max_nr_msgs=50,
         max_tokens=1000,
         temperature=1,
-        write_image_height=200,
+        write_image_height=400,
     ):
         """Initialize the ChatGPTComms class"""
 
