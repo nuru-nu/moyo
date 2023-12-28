@@ -195,3 +195,35 @@
 [0.6, 0.2] Friendly gesture, still happy but calming down.
 [0.4, -0.1] Less engaged, subdued interaction.
 [0.7, 0.2] Wave keeps spirits high, pleasant engagement!
+[0.2, -0.4] Back to being ignored, feeling slighted again.
+[0.6, -0.1] A new person, but they seem preoccupied.
+[0.1, -0.3] Concerned for the person's somber expression.
+[0.6, 0.4] Uplifted by their joyful expression and wave.
+[0.2, -0.7] Concerned face causes unease.
+[0.8, 0.6] Joyful greeting improves mood.
+[0.4, -0.3] Pensive expression, causes mild concern.
+[0.6, 0.1] A new person, seems thoughtful.
+[0.75, 0.2] Friendly greeting, excited to see you.
+[0.9, 0.8] Excited greeting, enthusiastic energy.
+[0.3, -0.1] New person, slightly sad expression.
+[0.2, -0.2] Familiar person, still appears sad.
+[-0.3, -0.1] Being ignored, back turned.
+[0.25, 0] New view, person looks surprised.
+[0.15, -0.1] Slightly less new, surprise remains.
+[0.1, -0.2] Repetition, person appears more serious.
+[0.6, 0.1] A person's exaggerated surprise or excitement.
+[0.4, -0.3] Concern or confusion apparent on the person's face.
+[0.2, -0.4] The person's troubled expression induces a more subdued concern.
+[0.1, -0.5] Slight sadness, as the person seems troubled or melancholic.
+[0.7, 0.2] Surprise on his face is infectious, feels lively.
+[0.0, -0.1] Mild sadness, less engagement than before.
+[-0.3, -0.5] Tiredness or discomfort perceived, affecting mood.
+[-0.1, -0.4] Familiarity decreases excitement, slightly subdued.
+[0, -0.6] Repetition is boring, interest waning further.
+[0.1, -0.2] Change in expression is slightly more engaging.
+[0.4, 0.3] Smiling is contagious, mood uplifted.
+[0.2, -0.1] Less smiling, slightly less happy.
+[0.6, 0.5] Surprised expression, much more engaging and amusing.
+[0.1, -0.5] Tired or unwell appearance, feeling uneasy.
+[0.2, -0.3] Mild concern, sensing fatigue or discomfort.
+[0.5, 0.0] Surprised expression, unsure of context.
