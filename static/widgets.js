@@ -613,7 +613,7 @@ export const ImageGPT = (output, {refresh_secs, headless, network}) => {
     id = window.setTimeout(refresh, 1e3 * refresh_secs)
     logImageFileSize(disp.img.src).then(blob_size => {
       console.log('blob_size', blob_size, 'bytes');
-      if (blob_size < 200000) { // HACK!!
+      if (blob_size < 400000) { // HACK!!
         disp.img.src = '/kinect?' + new Date().getTime();
       }
     });
