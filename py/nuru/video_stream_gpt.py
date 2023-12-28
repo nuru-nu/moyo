@@ -331,7 +331,10 @@ class ImageGPTComms:
                 continue
 
             # Generate message
-            img_base64 = self.encode_image_to_base64(self.image)
+            new_image_height = 200
+            ratio = new_image_height / self.image.shape[0]
+            image = cv2.resize(self.image, (int(self.   image.shape[1] * ratio), new_image_height))
+            img_base64 = self.encode_image_to_base64(image)
             self.messages.append(
                 {
                     "role": "user", 
