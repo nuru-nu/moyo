@@ -281,7 +281,11 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
   function background(css) {
     var font_height = Math.floor(height / 20) * 1
     var font = `${font_height}px Arial`
+<<<<<<< HEAD
     var font_height2 = Math.floor(height / 20) * 0.8
+=======
+    var font_height2 = Math.floor(height / 20) * 1.2
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
     var font2 = `${font_height2}px Arial`
 
     ctx.lineWidth = 1
@@ -301,6 +305,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     var conicGradient = ctx.createConicGradient(0, centerX, centerY);
     
     // Define the color stops for the conic gradient
+<<<<<<< HEAD
     conicGradient.addColorStop(0, 'rgb(128, 128, 64)'); // yellow/purple
     conicGradient.addColorStop(1/8, 'rgb(255, 255, 0)'); // yellow
     conicGradient.addColorStop(3/8, 'rgb(0, 0, 255)'); // blue
@@ -308,6 +313,12 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     conicGradient.addColorStop(7/8, 'rgb(128, 0, 128)'); // purple
     conicGradient.addColorStop(1, 'rgb(128, 128, 64)'); // yellow/purple
 
+=======
+    conicGradient.addColorStop(1/8, 'yellow');
+    conicGradient.addColorStop(3/8, 'blue');
+    conicGradient.addColorStop(5/8, 'red');
+    conicGradient.addColorStop(7/8, 'purple');
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
     
     // Draw the circle with the conic gradient
     ctx.fillStyle = conicGradient;
@@ -317,8 +328,12 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     
     // Create radial gradient for the alpha fade
     var radialGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+<<<<<<< HEAD
     radialGradient.addColorStop(0, 'rgba(100, 100, 100, 1)'); // Opaque in the center
     radialGradient.addColorStop(0.85, 'rgba(0, 0, 0, 0)');
+=======
+    radialGradient.addColorStop(0, 'rgba(0, 0, 0, 0)'); // Opaque in the center
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
     radialGradient.addColorStop(1, 'rgba(0, 0, 0, 1)'); // Transparent towards the edges
     
     // Overlay the radial gradient
@@ -362,7 +377,11 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.closePath()
     ctx.fill()
 
+<<<<<<< HEAD
     var x =  (width / 2 - ctx.measureText("Negative").width) / 5
+=======
+    var x =  (width / 2 - ctx.measureText("Negative").width) / 2
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
     ctx.fillText("Negative", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
@@ -372,7 +391,11 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     ctx.closePath()
     ctx.fill()
 
+<<<<<<< HEAD
     var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 1.6 
+=======
+    var x =  (width / 2 - ctx.measureText("Positive").width) / 2 + width / 2 
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
     ctx.fillText("Positive", x, height / 2 + 3*font_height2 / 3);
     ctx.stroke()
     ctx.beginPath()
@@ -400,6 +423,7 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
         ctx.fillText(text, x, y);
     }
     
+<<<<<<< HEAD
     // Function to calculate distance from the center of a quadrant
     function calculateProximity(css, angle) {
       var quadrantX = Math.cos((angle + 90) * Math.PI / 180);
@@ -440,6 +464,20 @@ export const Css = (output, {network, readonly, headless, width, height, hidesta
     var x = centerX - ctx.measureText("Neutral").width / 2
     var y = centerY// - ctx.measureText("Neutral").height / 2
     ctx.fillText("Neutral", x, y);
+=======
+    // Define angles for each word
+    var word_angles = {
+        "Relaxed": 45,   // Angle in degrees, adjust as needed
+        "Sad": 135,
+        "Angry": 225,
+        "Excited": 315
+    };
+    
+    // Place each word at its corresponding angle
+    for (var word in word_angles) {
+        placeText(word, word_angles[word]);
+    }
+>>>>>>> 85d8886928cdfe684f63c0feb23507654bc6c40f
 
   }
 

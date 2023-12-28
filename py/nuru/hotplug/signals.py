@@ -56,7 +56,7 @@ audio_signals = dict(
     #     S.Louder(n=10) | S.Lin(mult=20)
     # ) * (
     #     L.Named('tf') |
-    #     S.Median(n=10, threshold=0.7)
+    #     S.Medianse(n=10, threshold=0.7)
     # ),
 
     # logmel

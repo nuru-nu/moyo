@@ -23,7 +23,7 @@ tmux splitw -p 66
 tmux send-keys './run smanmi.arduino --signal_port $(./run nuru.settings integrator_sig_port) --dev_glob /dev/ttyUSB* /dev/ttyACM*' $CM
 # row 4
 tmux splitw
-tmux send-keys './run nuru.integrator --midi_address=$(./getip.sh mbp.local)' $CM
+tmux send-keys './run nuru.integrator --midi_address=$(``./getip.sh`` mbp.local)' $CM
 
 ## column 2
 tmux selectp -R
