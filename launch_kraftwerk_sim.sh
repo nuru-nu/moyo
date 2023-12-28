@@ -14,7 +14,7 @@ tmux new-session -d -s nuru
 tmux splitw -h
 tmux selectp -L
 # row 1
-tmux send-keys './run nuru.video_stream_gpt --display_stream --gpt_img_div 4 --img_gpt_stream' $CM
+tmux send-keys './run nuru.video_stream_gpt --display_stream --img_gpt_stream' $CM
 # row 2
 tmux splitw -p 60
 tmux send-keys '(cd fadecandy; ./fcserver-osx config.json)' $CM
