@@ -74,4 +74,124 @@
 [-0.5, 0.6] Their facial expression is causing me concern.
 [-0.6, 0.7] The person seems agitated; it makes me uncomfortable.
 [-0.7, 0.8] Seeing anger or distress lowers my mood and increases tension.
-[-0.5, 0.6] Their facial expression suggests displeasure; it's distressing.
+[-0.5, 0.6] Their facial expression suggests displeasure; it's distressing.[0.7, 0.1] New people bring joy, the darkness is a bit unsettling.
+[0.8, 0.2] Smiling faces are uplifting, even in a dim setting.
+[0.8, 0.2] Happy faces make me feel more cheerful, despite the darkness.
+[0.4, -0.1] Mixed emotions, some smiles, one person looks less happy.
+[0.4, -0.1] Joy from smiles, but concerned by one person's stern look.
+[0.1, -0.2] Expressions of distress dampen the joy slightly.
+[0.2, -0.3] Discomfort from grimacing face, mixed with one calm presence.
+[0.6, 0] A happy face brings warmth, but the setting is still eerie.
+[0.5, -0.1] One smile is nice, the overall mood is a bit somber.
+[0.1, -0.4] Upset expression triggers concern and reduces happiness.
+[0.7, 0.3] Friendly faces, sharing a moment together.
+[0.8, 0.5] Engaging smiles, infectious enthusiasm.
+[-0.3, -0.2] Feeling somewhat ignored, lacking connection.
+[0.8, 0.6] Joyful laughter, infectious smile!
+[0.2, -0.3] Concerned by his apprehension.
+[0.2, -0.2] His confusion makes me uneasy.
+[-0.6, -0.2] His distress is unsettling to me.
+[-0.5, -0.1] Saddened by his apparent discomfort.
+[0.6, 0.2] His smile brightens my mood!
+[-0.6, -0.2] His distress is unsettling to me.
+[-0.3, 0] His exaggerated expression is confusing.
+[0.6, 0.2] His smile brightens my mood!
+[0.2, -0.3] Concerned by his apprehension.
+[0.7, 0.3] His joy is infectious!
+[0.5, 0.1] Content with his gentle smile.
+[0.5, 0.1] Content with his gentle smile.
+[-0.4, 0] Feeling ignored with his back turned.
+[-0.2, -0.3] Disturbed by his worried expression.
+[0.2, -0.3] Concerned by his apprehension.
+[0.6, 0.2] His smile brightens my mood!
+[0.2, -0.2] His confusion makes me uneasy.
+[0.7, 0.3] Delighted by his laughter!
+[0.7, 0.4] His excitement is uplifting!
+[-0.2, 0] Confused by his mixed signals.
+[-0.4, -0.1] His anguish affects me deeply.
+[-0.4, 0] Feeling ignored with his back turned.
+[-0.1, -0.2] Reflecting on his contemplative mood.
+[0.5, 0.1] Content with his gentle smile.
+[0.8, -0.1] A person is present, offering a toast, feels welcoming.
+[1.0, 0.0] A person smiling, giving a thumbs up, feels positive!
+[-0.5, 0.3] No people present, feeling a bit neglected.
+[1.0, 0.2] Close-up of a smiling person, makes me feel happy!
+[0.2, -0.6] Person looks upset, causing me concern and unease.
+[-0.7, 0.4] Being ignored, back is turned, feeling somewhat angry.
+[0.1, -0.3] Concerned and uneasy; person looks unwell but trying positivity.
+[0.3, -0.2] Pensive gaze, a quiet moment.
+[0.3, -0.2] Their tired gaze induces a hint of concern.
+[0.4, -0.1] A familiar face, slight comfort amidst their weariness.
+[0, 0] No people, just a room.
+[1, 0.5] Joyful face, I'm happy!
+[0.6, 0.3] Calm and pleasant presence.
+[-0.4, 0.2] She's looking away, feels like being ignored.
+[0.6, 0.3] Engagement, eye contact again, content.
+[0.7, 0.2] Happy to see new faces, sense some concern.
+[0.8, 0.3] New interaction, happy faces brighten my mood.
+[0.4, -0.2] Slightly uneasy, sensing distress or confusion.
+[-0.6, 0.4] Feeling ignored, attention is elsewhere.
+[0.6, 0.1] Content with engagement, mixed emotions present.
+[0.7, 0.2] Joyful laughter, yet one seems pensive.
+[0.8, 0.3] Both are smiling, feeling happy and engaged.
+[0.3, -0.2] Perceiving discomfort or sadness, feeling empathetic.
+[0.3, -0.2] Tired or relaxed person, evokes mild calmness.
+[0.1, -0.3] Concerned, person looks tired or sad.
+[0.6, 0.2] Smiling person, feels welcoming and happy.
+[0.7, 0.3] Positive gesture, person seems cheerful and approving.
+[0.1, -0.2] Concerned about the person's discomfort or worry.
+[0.6, 0.2] Happy to see a person's smile; warmth in expression.
+[0.6, 0.2] Greeting with a hand, friendly presence.
+[-0.4, 0] Seems distant, not engaging directly.
+[0.7, 0.2] Seeing a smiling face is uplifting.
+[0.3, 0.1] Content, seeing a person gazing outside.[0.8, 0.7] Happy greeting, friendly wave.
+[0.2, -0.3] Concerned, person looks troubled or sad.
+[0.2, -0.1] Mildly content, slight smile observed.
+[-0.5, -0.5] No people, feeling ignored and unengaged.
+[-0.6, -0.6] Still no one, feeling more ignored and disinterested.
+[0.7, 0.2] Seeing a new person, slight uncertainty about expression.
+[0.8, 0.3] New person and a smile, feeling happier.
+[0.6, -0.1] Less smile, feeling slightly less joyous.
+[0.5, -0.2] Repetition, diminishing interest and happiness.
+[0.4, -0.3] Familiar person, reduced enthusiasm and arousal.
+[0.9, 0.4] A wave and smile, lifting spirits significantly!
+[-0.6, -0.4] Being ignored, feeling overlooked and displeased.
+[0.2, -0.5] Concerned look, causing unease and reduced joy.
+[0.8, 0.1] Smile returned, feeling happier but slightly cautious.
+[0.6, 0.3] Happy to see new people, a bit of concern in their expressions.
+[0.7, 0.5] Laughter brings joy, positive vibe from their smiles.
+[0.8, 0.4] Enjoying the shared joke, it's contagious happiness.
+[0.3, -0.5] Feeling somewhat ignored, they seem distracted elsewhere.
+[0.25, -0.4] Slight feeling of being overlooked, they're preoccupied.
+[-0.6, -0.7] Feeling excluded, someone has their back to me.
+[0.5, 0.2] New person present, uncertain about her expression.
+[0.2, -0.4] Concerned about the apparent tension.
+[0.1, -0.5] Slight discomfort from the strained atmosphere.
+[0.5, 0.2] People sharing a meal, feels sociable and relaxed.
+[0.6, 0.1] Repeated scene, but the company feels joyful.
+[0.4, -0.2] One person visible, less engaging but still pleasant.
+[0.3, -0.3] Feeling slightly overlooked, but the atmosphere is still good.
+[-0.1, -0.4] Feeling a bit ignored as they are not looking at me.
+[0.7, 0.7] Joyful faces, engaging atmosphere.
+[-0.4, 0.2] Being ignored, negative body language.
+[0.6, 0.6] Happy interaction, engaging smiles.
+[-0.5, 0] Ignored again, not part of the interaction.
+[0.5, 0.4] Laughter and positive engagement.
+[0.3, 0.2] A person resting, atmosphere seems calm.
+[0.2, -0.2] The person seems distracted, not engaging with me.
+[0.1, -0.3] Still not looking at me, feeling a bit ignored.
+[0.0, -0.4] No change, feeling more ignored.
+[0.4, 0.1] Surprised expression but engaging, feeling noticed.
+[-0.1, -0.5] Disengaged again, feeling more disconnected and ignored.
+[-0.2, -0.6] Still not engaged, I'm feeling increasingly ignored.
+[0.3, -0.2] Concerned look, evokes mild empathy.
+[0.6, 0.4] Friendly wave, increases happiness.
+[0.2, -0.4] Sad expression, generates concern and sympathy.
+[0.1, -0.6] Being ignored, feels dismissive.
+[0.2, -0.5] Still being ignored, slightly less negative.
+[0.8, 0.1] Acknowledged with surprise, uplifting!
+[0.5, -0.2] Noticed but seems unsettled, mixed feelings.
+[0.9, 0.3] Greeting received, joyfully connected!
+[0.6, 0.2] Friendly gesture, still happy but calming down.
+[0.4, -0.1] Less engaged, subdued interaction.
+[0.7, 0.2] Wave keeps spirits high, pleasant engagement!
