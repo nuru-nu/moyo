@@ -582,22 +582,6 @@ export const Transients = (output, {network, defs}) => {
   network.listenJson('signals', listener)
 }
 
-function logImageFileSize(url) {
-  return fetch(url)
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Network response was not ok');
-          }
-          return response.blob();
-      })
-      .then(blob => {
-          return blob.size
-      })
-      .catch(error => {
-        return 99999999999
-      });
-}
-
 export const ImageGPT = (output, {refresh_secs, headless, network}) => {
   refresh_secs = refresh_secs || .5
   let gptTextDiv = h.div({class: 'p'});
@@ -611,12 +595,7 @@ export const ImageGPT = (output, {refresh_secs, headless, network}) => {
   let id = window.setTimeout(refresh, 1e3 * refresh_secs)
   function refresh() {
     id = window.setTimeout(refresh, 1e3 * refresh_secs)
-    logImageFileSize(disp.img.src).then(blob_size => {
-      console.log('blob_size', blob_size, 'bytes');
-      if (blob_size < 400000) { // HACK!!
-        disp.img.src = '/kinect?' + new Date().getTime();
-      }
-    });
+    disp.img.src = '/kinect?' + new Date().getTime();
   }
   
   function writeAnswerGPT(data) {

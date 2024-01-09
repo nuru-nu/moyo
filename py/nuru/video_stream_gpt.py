@@ -385,20 +385,6 @@ class ImageGPTComms:
         """Sets next image for gpt to consume and writes to file for webserver."""
 
         self.next_image = next_image.copy()
-        if self.image is None:
-            image = self.next_image
-        else:
-            image = np.concatenate((self.next_image, self.image), axis=1)
-            cv2.putText(
-                img=image, 
-                text="next", 
-                org=(10, 20), 
-                fontFace=cv2.FONT_HERSHEY_DUPLEX, 
-                fontScale=0.6, 
-                color=(0, 255, 0), 
-                thickness=1
-            )
-        self.write_image(image)
 
     def write_image(self, image):
         """Resize and write image for web server"""   
