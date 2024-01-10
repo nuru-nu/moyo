@@ -3,7 +3,7 @@ import { Console, h, Stats } from './smanmi/util.js'
 import { Network } from './smanmi/network.js'
 import { Monitor, Dump } from './smanmi/monitor.js'
 
-import { Sonar, Css, Debug, Cmd, Subsample, Midi, Actions, Transients, Image, Header } from './widgets.js'
+import { Sonar, Css, AffectWordButtons, Debug, Cmd, Subsample, Midi, Actions, Transients, Image, Header } from './widgets.js'
 import { Animations } from './animations.js'
 import { Recorder } from './recorder.js'
 import { Rec } from './recording.js'
@@ -27,14 +27,15 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Dump(sigels.dump, {network})
   Transients(sigels.transients, {network, defs})
 
-  Cmd('#cmd', {network, defs})
+  // Cmd('#cmd', {network, defs})
   Animations('#animation', { defs, network })
   Rec('#recording', {network})
-  Actions('#sound', { name: 'scene', values: defs.scenes, network })
+  // Actions('#sound', { name: 'scene', values: defs.scenes, network })
   // Subsample('#subsample')
-  Sonar('#sonar', {network})
+  // Sonar('#sonar', {network})
   Kinect('#kinect', {network})
   Css('#css', {network})
+  AffectWordButtons('#cmd', {network})
   // Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
   Image('#kinect_image')

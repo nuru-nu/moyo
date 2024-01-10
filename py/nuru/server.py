@@ -130,6 +130,10 @@ recordings = {
 
 async def send_defs(request):
     del request
+
+    with open(settings.affect_word_options_path) as file:
+        affect_words = json.load(file)
+
     data = dict(
         mapping=dict(
             phi_r=animations.phi_r_mapping,
@@ -144,6 +148,8 @@ async def send_defs(request):
         scenes=hp_midi.scenes,
         modes=hp_signals.modes,
         monitor_def=hp_signals.monitor_def,
+        affect_words=affect_words
+
     )
     return web.Response(
         content_type='Application/JSON',
@@ -161,7 +167,7 @@ async def send_recs(request):
 async def send_kinect(request):
     del request
     return web.Response(
-        content_type='image/jpeg',
+        content_type='image/png',
         body=open(settings.disp_img_path, 'rb').read(),
     )
 

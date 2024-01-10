@@ -59,6 +59,9 @@ for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
 
 gpt_responses_file_path = os.path.join(nuru_path,'gpt_reference_text','image_affect_text_responses.txt')
 
+affect_word_options_path = os.path.join(nuru_path,'gpt_reference_text','affect_word_options.json')
+
+
 # Available Models: https://platform.openai.com/docs/models/overview
 chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4", "gpt-4-1106-preview", "gpt-4-vision-preview"][-1]
 
