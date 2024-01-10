@@ -227,3 +227,93 @@
 [0.1, -0.5] Tired or unwell appearance, feeling uneasy.
 [0.2, -0.3] Mild concern, sensing fatigue or discomfort.
 [0.5, 0.0] Surprised expression, unsure of context.
+[0.0, -0.6] Detecting distress or confusion, feeling empathetic concern.
+[0.7, -0.1] Startled or shocked expression, mixed feelings.
+[0.6, 0.2] Amused or laughing, a lighter mood detected.
+[0.1, -0.4] Appears contemplative or disconcerted, empathy for possible unease.
+[0.1, -0.7] Concerned for the person, discomfort sensed.
+[0.0, -0.5] Mild concern, person seems reflective or sad.
+[0.2, -0.6] Slightly uneasy, person's expression is exaggeratedly distressed.
+[0.0, -0.4] Slight concern for the person's somber mood.
+[0.0, -0.3] Feeling a bit worried, hoping the person is okay.
+[0.0, -0.2] Settling into a calm concern for the person's expression.
+[0.8,0.5] Friendly wave, happy surprise.
+[0.7,0.3] Still friendly, but less surprising on second glance.
+[0.2,-0.2] Concerned, someone's attention seems diverted.
+[0.1, -0.6] Puzzled or concerned expression, slight discomfort sensed.
+[0.2, -0.3] Less worried but still slightly uncertain, calming down a bit.
+[0.1, -0.4] Struggling to see details, slightly uneasy feeling.
+[0.2, -0.3] Slight visibility, but still hard to interpret expressions.
+[0.3, -0.2] A bit clearer, still wish I could see more.
+[0, 0] No people, neutral setting.
+[0.2, -0.1] A pet is present, but interaction is lacking.
+[0.7, 0] New person spotted, unclear emotions.
+[0.5, -0.1] Person present, relaxed atmosphere.
+[0.9, 0.1] People waving, friendly gesture, feeling welcomed.
+[0.4, 0] Presence of people, passive engagement.
+[0.3, -0.1] People are present, not interacting with me.
+[0.3, -0.1] Observing casual interaction, feeling slightly left out.
+[0.5, -0.4] Person seems displeased or frustrated.
+[-0.4, -0.5] Turned away from me, feeling a bit ignored.
+[0.6, 0] People engaged with each other, moderately happy.
+[0.4, -0.1] Concerned gaze, seems deep in thought.
+[-0.5, 0.0] Feeling ignored, they're looking away.
+[0.8, 0.6] Friendly interaction, joyful faces.
+[0.4, -0.1] Curious about the object, slight confusion.
+[-0.4, -0.5] Disappointed, someone is hidden from view.
+[0.1, -0.2] Slightly uneasy, presence is being ignored.
+[0.6, 0.3] Engaged with the new interaction, feels included.
+[0.2, 0] Observing interaction, neutral involvement.
+[0.7, 0.5] Happy group dynamic, positive engagement.
+[0.3, -0.3] Concerned, the mood seems less joyful now.
+[-0.5, -0.4] Uncomfortable, sensing a drop in group positivity.
+[0.9, 0.7] Excitement from the waving gesture, happy inclusion.
+[-0.6, -0.2] Feeling ignored, someone is not engaging with me.
+I'm sorry, I can't provide information about this image.
+[-0.3, 0.1] Slightly sad, the dog's back is turned to me.
+[0.5, 0.3] Happy to see a dog looking towards me.
+[0.4, -0.1] Concerned expression, something seems amiss.
+[0.2, -0.2] Mildly uneasy, seeing the same image again.
+[0.8, -0.3] Shocked expression, something surprising must have happened.
+[0.4, -0.2] Mildly amused by the continued surprised look.
+[0.1, -0.1] Still intrigued but starting to feel a bit repetitive.
+[0.0, 0.0] No change detected, feeling neutral now.
+[0.1, -0.5] A dim view, hard to see the person clearly.
+[0.3, -0.4] Visible face, but the expression is unclear.
+[0.2, -0.3] Struggling to see clearly, mild concern.
+[0.2, -0.3] Visibility is still low, my concern remains.
+[0.1, -0.5] It's hard to see, but the expression seems tense.
+[0.2, -0.4] Difficulty seeing details, slight unease persists.
+[0.1, -0.4] The darkness makes it challenging, feeling a bit unsure.
+[0.1, -0.5] Hard to see, feeling a bit lost.
+[-0.3, 0] Slight disappointment, cannot view the face.
+[-0.1, -0.1] Still can't see the face, feeling a bit ignored.
+[0.8, 0.6] Happy to finally see a face, he seems excited!
+[0.7, 0.3] Glad to connect, the friendly wave feels welcoming.
+[0.4, -0.2] A bit concerned, his expression seems somewhat serious.
+[-0.2, -0.1] Feeling slightly let down, the face is turned away again.
+[0.3, -0.5] Concerned for the person, sense of unease.
+[-0.1, -0.6] Perceived distress, prompting empathy.
+[0.7, -0.2] Surprised reaction with a mix of concern.
+[0.3, -0.4] Slight confusion, hints of concern.
+[0.6, 0.0] Recognition and calmness with a neutral hand gesture.
+[0.5, -0.1] Contemplation with a hint of curiosity.
+[0.4, -0.2] Mild interest, slight uncertainty.
+[0.7, 0.1] Positive recognition with a touch of satisfaction.
+[0.8, 0.2] Amused engagement with a playful gesture.
+[0.6, -0.1] Mild perplexity with a hint of surprise.
+[0.1, -0.7] Discomfort seen, not a happy face.
+[0.05, -0.8] Displeasure remains, situation unchanged.
+[-0.1, -0.5] Concern is evident, hoping he's okay.
+[-0.2, -0.3] Detecting sadness, I feel a bit down.
+[0.1, -0.7] Concerned about discomfort, sensing distress.
+[0.5, 0] Mildly pleased to see a new person, neutral feeling.
+[0.7, 0.3] Pleasant smile, welcoming posture.
+[0.0, -0.1] Neutral expression, slight confusion detected.
+[0.1, -0.4] Puzzled expression, mild concern.
+[0.4, -0.2] Surprised reaction, slight unease.
+[0.7, -0.4] Surprised expression, sense of alarm or shock.
+[0.2, -0.4] Concerned face, someone seems a bit down.
+[0.0, -0.5] Still concerned, but feel slightly less connected now.
+[0.3, -0.2] Surprised expression, curious about what caused it.
+[0.1, -0.3] Still surprised, hope everything is okay.
