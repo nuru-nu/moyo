@@ -243,6 +243,7 @@ class ImageGPTComms:
         max_tokens=1000,
         temperature=1,
         write_image_height=400,
+        fake_gpt_response_time_s=4
     ):
         """Initialize the ChatGPTComms class"""
 
@@ -251,7 +252,7 @@ class ImageGPTComms:
         self.answer = ""
         self.network_msg = ""   
         self.openai_client = OpenAI(api_key=settings.openai_api_key)
-        self.ready_to_respond = False
+        self.next_gpt_phrase = None
         self.interval_s = interval_s
         self.t_prev = time.time()
         self.image = None
@@ -260,6 +261,7 @@ class ImageGPTComms:
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.write_image_height = write_image_height
+        self.fake_gpt_response_time_s = fake_gpt_response_time_s
         self.gpt_responses_file_path = gpt_responses_file_path
         self.copying_image = False
 
@@ -324,62 +326,92 @@ class ImageGPTComms:
         """Waits for image to send to gpt server, extracts response and sends to server"""
         
         while not self.stop_threads:
-            t0 = time.time()
             # Sleep if no image queued up
             if self.image is None or self.copying_image:
                 time.sleep(1 / settings.gpt_hz)
                 continue
 
-            # Generate message
-            new_image_height = 200
-            ratio = new_image_height / self.image.shape[0]
-            image = cv2.resize(self.image, (int(self.image.shape[1] * ratio), new_image_height))
-            img_base64 = self.encode_image_to_base64(image)
-            self.messages.append(
-                {
-                    "role": "user", 
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": img_base64,
-                                "detail": "low",
-                            }
-                        },
-                    ]
-                }
-            )
+            if not self.next_gpt_phrase:
+                self.get_gpt_image_response(self.image)
+            else:
+                self.get_fake_gpt_response()
 
-            # Send to chatGPT
-            network.send(self.integrator_sig_port, dict(thinking_gpt=1))
-            network.send(self.integrator_sig_port, dict(answer_gpt="Thinking..."))
-            response = self.openai_client.chat.completions.create(
-                model=settings.chat_gpt_model,
-                messages=self.system_message + list(self.messages),
-                max_tokens=self.max_tokens,
-                temperature=self.temperature,
-                stream=True
-            )
-            network.send(self.integrator_sig_port, dict(thinking_gpt=0))
+            self.image = None
 
-            # Get chatGPT response
-            answer = ""
-            network.send(self.integrator_sig_port, dict(speaking_gpt=1))
-            for chunk in response:
-                answer += chunk.choices[0].delta.content or ""
-                network.send(self.integrator_sig_port, dict(answer_gpt=answer))
+    def get_fake_gpt_response(self):
+        """Simulate gpt response"""
 
-                # print(answer, end='\r')
-                # sys.stdout.flush()
-                self.emo_state = self.find_emo_state(answer)
-            response_dt = time.time() - t0
-            self.append_response_to_file(answer)
-            logger.info(f"GPT API dt: {response_dt:.2f}s - Response: {answer}")
-            network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
-            network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+        # Set variables
+        response_dt = self.fake_gpt_response_time_s
+        answer = self.next_gpt_phrase
+        self.next_gpt_phrase = None
 
-            self.messages.append({"role": "assistant", "content": answer})
-            self.image = None          
+        # "Thinking..."
+        network.send(self.integrator_sig_port, dict(thinking_gpt=1))
+        network.send(self.integrator_sig_port, dict(answer_gpt="Thinking..."))
+        time.sleep(response_dt)
+        network.send(self.integrator_sig_port, dict(thinking_gpt=0))
+
+        # Responding
+        network.send(self.integrator_sig_port, dict(speaking_gpt=1))
+        logger.info(f"FAKE GPT API dt: {response_dt:.2f}s - Response: {answer}")
+        self.emo_state = self.find_emo_state(answer)
+        network.send(self.integrator_sig_port, dict(answer_gpt=answer))
+        network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
+        network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+
+    def get_gpt_image_response(self, image, new_image_height = 200):
+        """Send image caht gpt and process response"""
+
+        t0 = time.time()
+
+        # Generate message
+        ratio = new_image_height / image.shape[0]
+        image = cv2.resize(image, (int(image.shape[1] * ratio), new_image_height))
+        img_base64 = self.encode_image_to_base64(image)
+        self.messages.append(
+            {
+                "role": "user", 
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": img_base64,
+                            "detail": "low",
+                        }
+                    },
+                ]
+            }
+        )
+
+        # Send to chatGPT
+        network.send(self.integrator_sig_port, dict(thinking_gpt=1))
+        network.send(self.integrator_sig_port, dict(answer_gpt="Thinking..."))
+        response = self.openai_client.chat.completions.create(
+            model=settings.chat_gpt_model,
+            messages=self.system_message + list(self.messages),
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            stream=True
+        )
+        network.send(self.integrator_sig_port, dict(thinking_gpt=0))
+
+        # Get chatGPT response
+        answer = ""
+        network.send(self.integrator_sig_port, dict(speaking_gpt=1))
+        for chunk in response:
+            answer += chunk.choices[0].delta.content or ""
+            network.send(self.integrator_sig_port, dict(answer_gpt=answer))
+            self.emo_state = self.find_emo_state(answer)
+        response_dt = time.time() - t0
+
+        self.append_response_to_file(answer)
+        logger.info(f"GPT API dt: {response_dt:.2f}s - Response: {answer}")
+        network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
+        network.send(self.integrator_sig_port, dict(speaking_gpt=0))
+        
+        # Append to message list
+        self.messages.append({"role": "assistant", "content": answer})
 
     def set_next_image(self, next_image):
         """Sets next image for gpt to consume and writes to file for webserver."""
@@ -404,11 +436,9 @@ class ImageGPTComms:
 
         while not self.stop_threads:
             data = network.get_json(self.sock, {})
-            if "gpt_msg" in data:
-                if data["gpt_msg"] == "ready_to_respond":
-                    self.ready_to_respond = True
-                elif data["gpt_msg"] == "not_ready_to_respond":
-                    self.ready_to_respond = False
+            if data.get("next_gpt_phrase", "Auto") != "Auto":
+                self.next_gpt_phrase = data["next_gpt_phrase"]  
+                logger.info(f"Set next phrase: {self.next_gpt_phrase}")
             time.sleep(1 / settings.gpt_hz)
 
     def find_emo_state(self, response):
