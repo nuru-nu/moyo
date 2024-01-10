@@ -644,3 +644,50 @@ export const Image = (output, refresh_secs) => {
     id = null
   })
 }
+
+export const AffectWordButtons = (selector, { network, width, height }) => {
+  h.div({class: 'header'}).of('set_affect_phrase')
+
+  const fetchDefinitions = () => fetch('/defs').then(response => response.json());
+
+  const setupContainer = (container) => {
+    if (width && height) {
+      container.style.width = `${width}px`;
+      container.style.height = `${height}px`;
+    }
+  };
+
+  const createChoice = (defs, container) => {
+    let select = document.createElement('select');
+    defs.affect_words.forEach(affect_word => {
+      let option = document.createElement('option');
+      option.value = affect_word;
+      option.innerText = affect_word;
+      select.appendChild(option);
+    });
+
+    select.addEventListener('change', () => {
+      const selectedOption = select.options[select.selectedIndex];
+      if (selectedOption.value !== "Auto") {
+        network.sender({next_gpt_phrase: selectedOption.value});
+      }
+    });
+
+    return select;
+  };
+
+  fetchDefinitions().then(defs => {
+    const container = document.querySelector(selector);
+    if (!container) {
+      throw new Error(`Container ${selector} not found.`);
+    }
+
+    setupContainer(container);
+
+    const choice = createChoice(defs, container);
+    container.appendChild(choice);
+  })
+  .catch(error => {
+    console.error('Error fetching the affect_words:', error);
+  });
+}
