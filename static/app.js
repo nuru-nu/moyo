@@ -27,7 +27,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   Dump(sigels.dump, {network})
   Transients(sigels.transients, {network, defs})
 
-  // Cmd('#cmd', {network, defs})
+  Cmd('#cmd', {network, defs})
   Animations('#animation', { defs, network })
   Rec('#recording', {network})
   // Actions('#sound', { name: 'scene', values: defs.scenes, network })
@@ -35,7 +35,7 @@ fetch('/defs').then(resp => resp.json()).then(defs => {
   // Sonar('#sonar', {network})
   Kinect('#kinect', {network})
   Css('#css', {network})
-  AffectWordButtons('#cmd', {network})
+  AffectWordButtons('#affectwords', {network})
   // Recorder('#recorder', {network, defs})
   let midi = Midi('#midi')
   Image('#kinect_image')
