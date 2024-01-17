@@ -13,6 +13,7 @@ from PIL import Image
 import threading
 import sys
 import re
+import json
 
 from nuru import settings
 from smanmi import network, util
@@ -243,7 +244,8 @@ class ImageGPTComms:
         max_tokens=1000,
         temperature=1,
         write_image_height=400,
-        fake_gpt_response_time_s=4
+        fake_gpt_response_time_s=4,
+        affect_word_options_path=settings.affect_word_options_path
     ):
         """Initialize the ChatGPTComms class"""
 
@@ -264,6 +266,9 @@ class ImageGPTComms:
         self.fake_gpt_response_time_s = fake_gpt_response_time_s
         self.gpt_responses_file_path = gpt_responses_file_path
         self.copying_image = False
+
+        with open(affect_word_options_path) as file:
+            self.affect_phrase_list = json.load(file)
 
         self.sock = network.create_udp_socket(gpt_cmd_port, status_address)
         self.lock = threading.Lock()
@@ -340,11 +345,23 @@ class ImageGPTComms:
 
     def get_fake_gpt_response(self):
         """Simulate gpt response"""
-
+        
         # Set variables
         response_dt = self.fake_gpt_response_time_s
         answer = self.next_gpt_phrase
-        self.next_gpt_phrase = None
+
+        # Find next affect phrase
+        try:
+            affect_phrase_list_idx = self.affect_phrase_list.index(self.next_gpt_phrase)
+        except ValueError:
+            logger.info(f"Could not identify affect phrase {self.next_gpt_phrase}!")
+            affect_phrase_list_idx = 9999
+        next_affect_phrase_list_idx = affect_phrase_list_idx + 1
+        if next_affect_phrase_list_idx >= len(self.affect_phrase_list):
+            self.next_gpt_phrase = None
+        else:
+            self.next_gpt_phrase = self.affect_phrase_list[next_affect_phrase_list_idx]
+        network.send(self.integrator_sig_port, dict(next_gpt_phrase=str(self.next_gpt_phrase)))
 
         # "Thinking..."
         network.send(self.integrator_sig_port, dict(thinking_gpt=1))
