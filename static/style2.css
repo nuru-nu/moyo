@@ -1,60 +1,41 @@
 * {
-  font-family: "Poppins",sans-serif;
-  color: white; 
+  font-family: "Poppins", sans-serif;
+  color: white;
   font-size: 1.5rem;
 }
-html {
-
-}
 body {
-  padding: 20px;
+  padding: 0px;
   background: black;
 }
-h1 {
-}
 #title {
-  font-size: 80px;
+  font-size: 50px;
   font-weight: 600;
   text-align: left;
   color: #ffffff;
-  font-family: "Poppins",sans-serif;
+  font-family: "Poppins", sans-serif;
   margin: 0;
 }
-
-button {
-  background: black;
-  border: 2px solid white;
-  padding: 5px 20px;
-}
-.on {
-  background: white;
-  color: black;
-}
 #top {
-  display:flex;
+  display: flex;
+  transform: scale(0.86);
+  transform-origin: left; /* Ensures scaling happens from the left */
 }
 #left, #right {
   text-align: center;
   flex-grow: 1;
+  margin-right: 20px;
+  margin-left: 20px;
 }
 p {
   font-size: 2rem;
-  margin-top: 20;
+  margin-top: 20px;
   margin-bottom: 10px;
 }
-#bottom {
+#affectwords {
   text-align: center;
-  margin-top: 5vh;
-}
-.flex {
-  /* display: flex; */
-}
-.label {
-  margin-right: 20px;
-}
-.grow {
-  flex-grow: 1;
+  margin-top: 1vh;
+  color: black !important;
 }
 .answer-gpt-text {
-  font-size: xx-large; /* Sets the font size to small */
+  font-size: xx-large;
 }
