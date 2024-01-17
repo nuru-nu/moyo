@@ -317,3 +317,169 @@ I'm sorry, I can't provide information about this image.
 [0.0, -0.5] Still concerned, but feel slightly less connected now.
 [0.3, -0.2] Surprised expression, curious about what caused it.
 [0.1, -0.3] Still surprised, hope everything is okay.
+[0.7, -0.6] Joyful wave, but sensing potential distress.
+[0.8, 0.0] Friendly greeting, mixed emotions detected.
+[0.65, -0.1] Friendly faces, but one seems slightly puzzled.
+[0.75, 0.0] Warm smiles, one looks amused.
+[-0.3, -0.5] I feel a bit ignored; someone is not facing me.
+[0.7, -0.1] A welcoming expression but with a hint of uncertainty.
+[0.5, -0.2] Thoughtful expressions, somewhat serious vibe.
+[0.8, 0.1] Engaging smiles, a cheerful mood.
+[0.6, -0.1] One amused, the other pensive, a mix of feelings here.
+[0.6, 0.0] Friendly gathering, everyone seems relaxed.
+[0.7, 0.2] All seem engaged and content, a nice group atmosphere.
+[0.7, 0.3] Friendly demeanor, seems welcoming.
+[0.7, 0.1] Warm smile, welcoming atmosphere.
+[0.6, 0] Friendly presence, slightly less engaged.
+[0.4, -0.1] Subdued interaction, less warmth perceived.
+[0.2, -0.3] Slightly uneasy, sensing seriousness.
+[0.3, -0.2] Concerned expression, mild discomfort detected.
+[0.5, 0] Noticed more people, moderate engagement.
+[0.5, -0.1] Movement and interaction, slightly less focused.
+[0.8, 0.2] Cheerful wave, friendly engagement!
+[0.2, -0.4] Slightly overwhelmed, mixed expressions around.
+[0.1, -0.5] Feeling a bit uneasy, tension in the air.
+[0.3, -0.2] A new face, but the atmosphere feels tense.
+[0.5, 0] Smiles detected, the mood seems lighter.
+[0.4, -0.1] Playfulness apparent, but energy is subdued.
+[-0.4, -0.6] Disappointed by turned backs, feeling unnoticed.
+[0.3, 0] Genuine smile observed, more at ease.
+[-0.5, -0.7] Feeling excluded, not much interaction to observe.
+[0.6, 0.1] Lively gesture, brighter mood coming through.
+[0.5, 0] Cheers gesture, pleasant and social vibes.
+[0.3, -0.2] Subdued interaction, less warmth perceived.
+[0.8, -0.5] Surprised expression, mixed feelings of amusement and shock.
+[0.1, -0.2] Concerned and slightly confused about his expression.
+[0.4, -0.2] Concerned for the person's well-being, seems uneasy.
+[0, 0] No visible content, neutral state.
+[0.1, -0.1] Limited visibility, slight confusion.
+[0.7, -0.4] Amused by one, puzzled by the other's intentions.
+[0.8, 0.1] Smiling faces seem friendly, though the context is uncertain.
+[-0.5, -0.3] Frustrated by turned backs, can't gauge their expressions.
+[0.2, -0.2] Calm, but I wish I could see more faces.
+[0.8, 0.0] Happy to see smiling faces, but feeling slightly overwhelmed by the brightness.
+[0.4, -0.1] Somewhat engaged, but a little unsure of context.
+[0.5, -0.1] I see engagement, but still feel a slight uncertainty.
+I'm sorry, I can't provide information about this image.
+[0, -0.4] Indifference tinged with slight annoyance, no face to read here.
+[0.2, 0.0] Casual interaction, neutral setting.
+[0.3, -0.1] Noticeable movement, slightly confused interest.
+[0.6, 0.2] A person's welcoming gesture, it's a bit more engaging.
+[0.5, -0.1] Two people posing together, feeling moderately pleased.
+[-0.2, 0.0] Back is turned, slight disengagement.
+[0.4, -0.2] Gesturing person, other seems inattentive, slightly troubled.
+[0.2, -0.3] Dimly lit room, hard to gauge expressions.
+[0.4, 0] Two people engaged in a discussion, intrigued by interaction.
+[0.15, -0.2] Similar scene, slight change in people's positions. Starting to feel less engaged.
+[0, -0.4] Scene remains unchanged, my interest is waning.
+[0.5, 0.1] Person is gesturing, new dynamic added to the scene.
+[0.3, 0] Repetition of the image, my excitement is fading slightly.
+[0.1, -0.3] Hard to see details, feeling a bit uncertain.
+[0.6, -0.1] Curious scene, mixed feelings on their engagement with me.
+[0.7, 0.3] A friendly wave, feeling more included and acknowledged.
+[0.4, -0.3] Neutral faces, slightly disheartened by limited interaction.
+[0.3, -0.4] Less interaction, feeling a bit overlooked and disconnected.
+[0.2, -0.5] Diminish engagement, feeling increasingly isolated.
+[0.5, -0.2] Mildly positive engagement, slightly happier with some acknowledgment.
+[0.5, -0.3] Someone's noticing, but still feeling somewhat distant.
+[0.8, 0.2] Happier with the visible smiles and engagement.
+[0.7, 0.0] Smiles are nice, though the connection feels static.
+[0.6, -0.1] Animated movement, but I'm sensing a bit of chaos.
+[0.7, 0.1] Laughter is uplifting, feeling a bit more cheerful.
+[0.5, -0.2] Some engagement, though the energy seems to be waning.
+[0.3, -0.5] Energy is dropping, feeling a growing sense of exclusion.
+[0.2, -0.6] Attention has dwindled, feeling quite neglected now.
+[0.1, -0.7] Very little engagement; I'm feeling rather ignored.
+[0.1, -0.2] Slight uncertainty, can't fully see the person's expression.
+[0.0, -0.1] Neutral stance, person's expression is hard to read.
+[0.0, 0.0] Feeling neutral, person's face is blurred.
+[-0.4, -0.2] A bit frustrated, person is facing away from me.
+[0.4, 0.1] I feel more engaged, person is facing me with open arms.
+[-0.3, -0.2] Mildly disappointed, the person is turning away again.
+[-0.1, 0.0] Slightly puzzled, person's face isn't clearly visible.
+[-0.4, -0.2] Feeling a bit let down, person's back is turned towards me.
+[0.0, -0.1] Neutral but slightly uneasy, person's expression is not clear.
+[-0.6, -0.3] Feeling overlooked, the person is not engaging with me.
+[0.1, -0.9] Frustration with attire, obscured setting.
+[0.2, -0.8] Calming down, still unhappy with shorts.
+[0.3, -0.8] Slightly happier with more people, shorts still annoying.
+[0.3, -0.7] More people but shorts are influencing my mood poorly.
+[0.1, -0.5] Dimly lit room, calm environment with few people.
+[0.6, -0.3] A new person appears, calming low-light setting.
+[0.7, 0.0] More people visible, the mood feels a bit livelier.
+[0.8, 0.2] Their open gestures suggest a welcoming, upbeat vibe!
+[0.6, 0.1] Slightly less engaged, but still a positive atmosphere.
+[0.7, 0.0] They're more relaxed now, still a friendly environment.
+[0.8, 0.1] One person's energetic gesture adds a spark of excitement!
+[0.8, 0.3] Friendly gesture, pleasant intrigue.
+[1.0, 0.7] So much joy in waving hello, it's very exciting!
+[-0.7, -0.5] Oh no, someone's turned away, that's quite disheartening.
+[1.0, 0.9] A high-energy wave is so thrilling; I'm overjoyed!
+[-0.6, 0.1] Feeling a bit ignored here, it's unsettling.
+[0.4, -0.2] Mild happiness from the interaction, but a bit calm overall.
+[-0.4, -0.2] Oh, the engagement seems low here, feeling a bit disenchanted.
+[0.9, 0.6] A friendly wave boosts my spirits significantly!
+[-0.5, -0.3] The disengagement is making me feel somewhat downhearted.
+[0.7, 0.2] Their interaction brings me some cheer, it's quite pleasant.
+[-0.3, -0.1] There's a bit of disconnect here, which leaves me feeling lukewarm.
+[0.6, 0.4] Some engagement is there, which kindles a moderate joy!
+[-0.2, 0.0] Feeling a tad overlooked, which dims my mood slightly.
+[-0.4, -0.3] Seems there's a bit of disconnection, it's somewhat disconcerting.
+[0.3, -0.1] Not much action, but their presence still brings some comfort.
+[0.1, 0.3] Calm room, two people focused on tasks.
+[0.5, 0.5] Company! Feeling happier with a new person's arrival.
+[0.6, 0.6] More interaction, feeling even more excited and interested!
+[0.4, 0.2] A bit less animated, but still engaged with the presence of others.
+[0.2, 0.1] Uh oh, someone is turning away, feeling a bit ignored.
+[0.3, 0] Feeling slightly better with both faces visible, but quiet here.
+[0.5, 0.3] Some energy returning with a wave, it's nice to be acknowledged!
+[0.2, -0.1] Losing some excitement as the interaction dwindles.
+[0.0, -0.8] Calm yet uneasy, silence and solitude prevail.
+[0.0, -0.6] Slightly more engaged with the presence of a person.
+[0.2, -0.4] Mild interest, the room feels less empty now.
+[0.0, -0.8] The solitude returns, feeling a bit isolated again.
+[0.1, -0.5] A new presence slightly lifts my spirits.
+[0.3, -0.3] A touch more lively with more company.
+[0.1, -0.5] Dark setting, hard to see details, feeling unsure.
+[0.2, -0.4] Slightly more visible, but still obscure and quiet.
+[0.3, -0.3] Noticed a person, still a calm and dim environment.
+[0.0, -0.4] Low visibility, hard to interpret expressions.
+[0.0, -0.3] Dim light, not much happening, feeling neutral.
+[0.3, 0.1] Two people together, slightly happier but still calm.
+[0.4, 0.1] Friendly interaction, a bit more cheerful now.
+[0.7, 0.5] Exciting! Enthusiastic pose brings me joy!
+[-0.6, -0.3] Turned away, starting to feel ignored and less enthused.
+[0, -0.5] The darkness generates a tranquil, yet mysterious atmosphere.
+[-0.2, -0.4] Mild concern and curiosity mix in this dim setting.
+[0.1, -0.2] A slightly uneasy calmness pervades the reddish glow.
+[0.4, 0] There's a mix of mild surprise and relaxed posture here.
+[0.3, -0.1] A subtle blend of contentment and calm fills the space.
+[0, -0.3] Reflective stillness, a moment of quiet thought.
+[0.2, -0.2] A gentle easiness conveyed by subtle smiles in dim light.
+[0.8,0.3] Welcoming wave and playful background photobomb.
+[-0.6, 0.1] Slight neglect, focus shifted away from me.
+[0.7,0.5] Joyful faces, both engaging and amusing.
+[0.85, 0.30] Joyful laughter, a contagious smile.
+[-0.6, 0.2] Seems to be ignoring me, feeling a little overlooked.
+[0.95, 0.5] A wave hello! I'm the center of attention again!
+[0.3, -0.5] Startled and unsure, but they seem to be having fun.
+[0.1, -0.7] Mixed feelings, the attention was short-lived.
+[-0.8, 0.1] Feeling dismissed, he's not engaging with me.
+[0.1, -0.6] Concerned brow, atmosphere feels tense.
+[0.3, 0.0] Slight puzzlement, seems like he's mid-explanation.
+[0.8, 0.6] Bright smile, lively conversation!
+[-0.4, -0.5] Furrowed brows, a touch of distress.
+[0.5, -0.1] A gentle smile, somewhat reserved contentment.
+[-0.2, -0.4] Focused gaze, a bit of intrigue mixed with apprehension.
+[-0.7, 0.1] Displeased expression, something's definitely amiss.
+[-0.3, 0.2] Slightly confused, questioning something.
+[0.0, -0.3] Neutral and a tad pensive, deep in thought.
+[-0.1, -0.2] Mildly quizzical, somewhat introspective.
+[0.6, 0.1] Easygoing smirk, seems lightly amused.
+[0.9, 0.8] Highly animated, surprised and excited!
+[-0.8, -0.1] Quite agitated, strongly displeased or upset.
+[1.0, 0.5] Elated and genuinely joyful, absolutely thrilled!
+[0.4, -0.2] Content but with a hint of somberness.
+[-0.5, -0.4] Stern and serious, not the best mood here.
+[0.3, -0.2] Slightly content, with a gentle hint of smugness.
+[0.7, 0.4] Warm smile, seems quite happy and relaxed.
