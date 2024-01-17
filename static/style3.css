@@ -1,0 +1,53 @@
+* {
+  font-family: "Poppins",sans-serif;
+}
+html {
+
+}
+body {
+  padding: 20px;
+  background: black;
+}
+h1 {
+}
+#title {
+  font-size: 80px;
+  font-weight: 600;
+  text-align: left;
+  color: #ffffff;
+  font-family: "Poppins",sans-serif;
+  margin: 0;
+}
+p {
+  color: white; 
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+#top-row {  
+  font-size: 1.5rem;
+  color: white; 
+  text-align: center;
+  margin-top: 1vh;
+  display: flex;
+  gap: 60px;
+}
+#affectwords {
+  text-align: left;
+  margin-top: 2vh;
+  color: white; 
+}
+#signals {
+  text-align: left;
+  margin-top: 2vh;
+  color: white; 
+}
+.label {
+  margin-right: 20px;
+}
+.grow {
+  flex-grow: 1;
+}
+.answer-gpt-text {
+  font-size: medium; /* Sets the font size to small */
+}

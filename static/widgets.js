@@ -690,4 +690,13 @@ export const AffectWordButtons = (selector, { network, width, height }) => {
   .catch(error => {
     console.error('Error fetching the affect_words:', error);
   });
+
+}
+
+export const AnimControl = (output, { network, defs}) => {
+  const els = Header('anim', h.div().of(
+    ui.h(
+      ui.range('anim_both', { network, text: 'both' }),
+    ),
+  )).into(output).els
 }
