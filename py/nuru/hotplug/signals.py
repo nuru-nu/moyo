@@ -189,7 +189,7 @@ kinect_signals = dict(
         acceptance_rate=1 / 10,
     ),
     ready_to_respond=L.Named("connection") | S.Thr(1),
-    annoyance_build_up=L.Named('listening_gpt') * (S.Const(1) - L.Named("ready_to_respond")) | S.MovingAverage(n=50),
+    # annoyance_build_up=L.Named('listening_gpt') * (S.Const(1) - L.Named("ready_to_respond")) | S.MovingAverage(n=50),
     closest=(
         S.KinectDistance()
         | S.With(6.5) | S.Min() | S.From(6.5, 0)

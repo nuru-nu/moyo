@@ -240,10 +240,10 @@ class ImageGPTComms:
         system_message, 
         interval_s, 
         gpt_responses_file_path,
-        max_nr_msgs=50,
+        max_nr_msgs=10,
         max_tokens=1000,
         temperature=1,
-        write_image_height=400,
+        write_image_height=300,
         fake_gpt_response_time_s=4,
         affect_word_options_path=settings.affect_word_options_path
     ):
@@ -447,6 +447,8 @@ class ImageGPTComms:
         tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
         cv2.imwrite(tmp_disp_img_path, image)
         os.rename(tmp_disp_img_path, settings.disp_img_path)
+        # rec_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+        # cv2.imwrite(rec_img_path, image)
     
     def read_network_responses(self):
         """Process and respond to user input from network"""
@@ -536,13 +538,13 @@ if __name__ == "__main__":
 
     if args.display_stream:
         cv2.namedWindow("video_stream", cv2.WND_PROP_AUTOSIZE)
-        if args.img_gpt_stream:
-            mouse_gpt = MouseGPT(image_gpt)
-            cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
+        # if args.img_gpt_stream:
+        #     mouse_gpt = MouseGPT(image_gpt)
+        #     cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
 
     # Start video stream
     for frame in video_stream:
-        mouse_gpt.set_frame(frame)
+        # mouse_gpt.set_frame(frame)
         dynamic_fps.update()
         key = cv2.waitKey(1)
 
@@ -564,7 +566,7 @@ if __name__ == "__main__":
             video_writer.save_frames(frame)
 
         # Press 's' to select next frame for image GPT
-        if key == ord('s') and args.img_gpt_stream:
+        if (key == ord('s') or key == 2 or key == 3) and args.img_gpt_stream:
             image_gpt.set_next_image(frame)
 
         # Start/stop record video when 'r' is pressed

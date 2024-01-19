@@ -149,7 +149,7 @@ def heart():
         | S.Lin(0, N.heart)
         # | S.Lin(0, N.heart_a)
         | P.Palette(heart_palette)
-    ) | S.Lin(mult=0.2)
+    ) | S.Lin(mult=0.5)
 
 @anim
 def heart2():
