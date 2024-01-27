@@ -549,9 +549,9 @@ if __name__ == "__main__":
 
     if args.display_stream:
         cv2.namedWindow("video_stream", cv2.WND_PROP_AUTOSIZE)
-        # if args.img_gpt_stream:
-        #     mouse_gpt = MouseGPT(image_gpt)
-        #     cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
+        if args.img_gpt_stream:
+            mouse_gpt = MouseGPT(image_gpt)
+            cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
     
 
     # Initialize YOLO tracking objects if specified
@@ -565,7 +565,7 @@ if __name__ == "__main__":
 
     # Start video stream
     for frame in video_stream:
-        # mouse_gpt.set_frame(frame)
+        mouse_gpt.set_frame(frame)
         dynamic_fps.update()
         key = cv2.waitKey(1)
 
