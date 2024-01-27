@@ -14,7 +14,7 @@ class YOLOSegmentation:
 
         height, width, channels = img.shape
 
-        results = self.model.predict(source=img.copy(), save=False, save_txt=False)
+        results = self.model.predict(source=img.copy(), save=False, save_txt=False, verbose=False)
         result = results[0]
                 
         self.bboxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
