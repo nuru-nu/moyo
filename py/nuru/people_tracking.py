@@ -6,31 +6,46 @@ from collections import namedtuple, deque
 import time
 
 class SimilarityMeasure:
-    def __init__(self, img_width = 512, img_height = 424):
-        self.img_width = img_width
-        self.img_height = img_height
+    def __init__(self, use_distance = False, use_color_histogram = False):
         self.max_dists = {}
+        self.use_distance = use_distance
+        self.use_color_histogram = use_color_histogram
 
-    def __call__(self, person1, person2):
+    def __call__(self, people1, people2, img_shape=(512, 424)):
         """
         The lower the value the most similar the image segments
         """
 
-        iou = self.polygon_iou(person1.get("2D_outline", []), person2.get("2D_outline", []))
-        norm_dist_meters = self.norm_dist(person1, person2, "cm")
-        norm_dist_color = self.norm_dist(person1, person2, "color_histogram")
+        people1_2d_outlines = [person.get("2D_outline", []) for person in people1]
+        people2_2d_outlines = [person.get("2D_outline", []) for person in people2]
+        if len(people1_2d_outlines) == 0 and len(people1_2d_outlines) == 0:
+            return 0
+        iou = self.polygon_iou(people1_2d_outlines, people2_2d_outlines, img_shape)
+
+        norm_dist_meters = 0
+        if self.use_distance:
+            assert len(people1) == len(people2)
+            for p_idx in range(len(people1)): 
+                norm_dist_meters += self.norm_dist(people1[p_idx], people2[p_idx], "cm")
+            
+        norm_dist_color = 0
+        if self.use_color_histogram:
+            assert len(people1) == len(people2)
+            for p_idx in range(len(people1)): 
+                norm_dist_color += self.norm_dist(people1[p_idx], people2[p_idx], "color_histogram")
+
         return (1 - iou) + norm_dist_meters + norm_dist_color 
 
-    def polygon_iou(self, segmentsA, segmentsB):
+    def polygon_iou(self, segmentsA, segmentsB, img_shape):
         """Calculate the Intersection over Union (IoU) between two image segments."""
 
         # Create two blank images
-        image1 = np.zeros((self.img_width, self.img_height), dtype=np.uint8)
-        image2 = np.zeros((self.img_width, self.img_height), dtype=np.uint8)
+        image1 = np.zeros(img_shape, dtype=np.uint8)
+        image2 = np.zeros(img_shape, dtype=np.uint8)
 
         # Draw the polygons
-        cv2.fillPoly(image1, [segmentsA], 255)
-        cv2.fillPoly(image2, [segmentsB], 255)
+        cv2.fillPoly(image1, segmentsA, 255)
+        cv2.fillPoly(image2, segmentsB, 255)
 
         # Perform bitwise AND
         intersection = cv2.bitwise_and(image1, image2)
@@ -122,11 +137,11 @@ class Tracker():
         self.nr_people_queue = deque(maxlen = nr_people_queue_size)
         self.similarity_measure = SimilarityMeasure()
 
-    def __call__(self, new_people):
+    def __call__(self, new_people, img_shape):
         """Update the trackers and return the list of of people tracked by the kalman filter tracker."""
 
         # Associate new people with existing trackers
-        associations = self.associate_new_people_with_trackers(new_people)
+        associations = self.associate_new_people_with_trackers(new_people, img_shape)
 
         # Update the trackers
         self.update_trackers(associations, new_people)
@@ -174,7 +189,7 @@ class Tracker():
             self.tracked_people.append(new_people[new_person_idx])
     
     # Function to associate data between trackers and people
-    def associate_new_people_with_trackers(self, new_people):
+    def associate_new_people_with_trackers(self, new_people, img_shape):
         """Associate new people with existing trackers using the Hungarian algorithm."""
 
         # Initialize the cost matrix with zeros
@@ -183,8 +198,21 @@ class Tracker():
         # Calculate the similarity between each tracker and person
         for tracked_person_idx, tracked_person in enumerate(self.tracked_people):
             for new_person_idx, new_person in enumerate(new_people):
-                similarity = self.similarity_measure(tracked_person, new_person)
+                similarity = self.similarity_measure([tracked_person], [new_person], img_shape[:2])
                 cost_matrix[tracked_person_idx, new_person_idx] = similarity
 
         # Use the Hungarian algorithm to find the best association based on the cost matrix
         return np.array(linear_sum_assignment(cost_matrix))
+
+
+class MotionDetection:
+    def __init__(self, nr_frames = 1):
+        self.nr_frames = nr_frames
+        self.similarities = deque(maxlen = self.nr_frames)
+        self.prev_people = []
+        self.similarity_measure = SimilarityMeasure()
+
+    def __call__(self, new_people, img_shape):
+        self.similarities.append(self.similarity_measure(new_people, self.prev_people, img_shape[:2]))
+        self.prev_people = new_people
+        return np.mean(self.similarities)
