@@ -15,8 +15,10 @@ import sys
 import re
 import json
 
-from nuru import settings
+from nuru import settings, people_tracking, object_detection_lib, tracker_annotation_lib
 from smanmi import network, util
+
+PERSON_ID = 0
 
 logger = util.createLogger('videoGPT', debug=False)
 
@@ -34,6 +36,16 @@ parser.add_argument(
 )
 parser.add_argument(
     '--dummy_stream', type=str, default=None, help="Add stream video paths."
+)
+parser.add_argument(
+    '--yolo_model', type=str, default='yolov8n-seg', 
+    help="YOLO model name. See settings.py for available models."
+)
+parser.add_argument(
+    '--run_yolo', action='store_true', default=False, help="Run yolo detector."
+)
+parser.add_argument(
+    '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
 )
 parser.add_argument(
     '--chatgpt_persona',
@@ -494,7 +506,6 @@ class ImageGPTComms:
 
         return f"data:{mime_type};base64,{encoded_string}"
 
-
 class MouseGPT:
     def __init__(self, image_gpt):
         """Initialize callback object with ImageGPTComms object."""
@@ -541,6 +552,16 @@ if __name__ == "__main__":
         # if args.img_gpt_stream:
         #     mouse_gpt = MouseGPT(image_gpt)
         #     cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
+    
+
+    # Initialize YOLO tracking objects if specified
+    if args.run_yolo:
+        image_detector = object_detection_lib.YOLOSegmentation(
+            settings.yolo_models[args.yolo_model], 
+            args.detection_class_ids,
+        )
+        annotator = tracker_annotation_lib.ImageAnnotator()
+        motion_detector = people_tracking.MotionDetection()
 
     # Start video stream
     for frame in video_stream:
@@ -564,6 +585,20 @@ if __name__ == "__main__":
         # Save frame to the video file
         if video_writer.is_recording():
             video_writer.save_frames(frame)
+
+        # YOLO People detection
+        if args.run_yolo:
+            # Run object detection
+            img_segments = image_detector.detect(frame)
+
+            # Measure people motion
+            people_motion = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
+
+            # Draw detections
+            annotator.draw_detections(frame, img_segments)
+
+            # Send people motion measure to integrator
+            network.send(settings.integrator_sig_port, dict(people_motion=people_motion))
 
         # Press 's' to select next frame for image GPT
         if (key == ord('s') or key == 2 or key == 3) and args.img_gpt_stream:
