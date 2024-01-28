@@ -42,7 +42,7 @@ class SimilarityMeasure:
             for p_idx in range(len(people1)): 
                 norm_dist_color += self.norm_dist(people1[p_idx], people2[p_idx], "color_histogram")
 
-        return (1 - iou) + (1 - area_change_ratio) + norm_dist_meters + norm_dist_color
+        return (1 - iou) + 5 * (1 - area_change_ratio) + norm_dist_meters + norm_dist_color
 
     def create_segment_masks(self, segments_1, segments_2, img_shape):
 
