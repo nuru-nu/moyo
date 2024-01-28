@@ -10,6 +10,8 @@ class SimilarityMeasure:
         self.max_dists = {}
         self.use_distance = use_distance
         self.use_color_histogram = use_color_histogram
+        self.seg_mask_1 = None
+        self.seg_mask_2 = None
 
     def __call__(self, people1, people2, img_shape=(512, 424)):
         """
@@ -20,7 +22,13 @@ class SimilarityMeasure:
         people2_2d_outlines = [person.get("2D_outline", []) for person in people2]
         if len(people1_2d_outlines) == 0 and len(people1_2d_outlines) == 0:
             return 0
-        iou = self.polygon_iou(people1_2d_outlines, people2_2d_outlines, img_shape)
+        self.create_segment_masks(people1_2d_outlines, people2_2d_outlines, img_shape)
+
+        # Measure IOU
+        iou = self.polygon_iou()
+
+        # Measure area difference ratio
+        area_change_ratio = self.segment_area_change()
 
         norm_dist_meters = 0
         if self.use_distance:
@@ -34,27 +42,34 @@ class SimilarityMeasure:
             for p_idx in range(len(people1)): 
                 norm_dist_color += self.norm_dist(people1[p_idx], people2[p_idx], "color_histogram")
 
-        return (1 - iou) + norm_dist_meters + norm_dist_color 
+        return (1 - iou) + (1 - area_change_ratio) + norm_dist_meters + norm_dist_color
 
-    def polygon_iou(self, segmentsA, segmentsB, img_shape):
-        """Calculate the Intersection over Union (IoU) between two image segments."""
+    def create_segment_masks(self, segments_1, segments_2, img_shape):
 
         # Create two blank images
-        image1 = np.zeros(img_shape, dtype=np.uint8)
-        image2 = np.zeros(img_shape, dtype=np.uint8)
+        self.seg_mask_1 = np.zeros(img_shape, dtype=np.uint8)
+        self.seg_mask_2 = np.zeros(img_shape, dtype=np.uint8)
 
         # Draw the polygons
-        cv2.fillPoly(image1, segmentsA, 255)
-        cv2.fillPoly(image2, segmentsB, 255)
+        cv2.fillPoly(self.seg_mask_1, segments_1, 255)
+        cv2.fillPoly(self.seg_mask_2, segments_2, 255)
 
-        # Perform bitwise AND
-        intersection = cv2.bitwise_and(image1, image2)
+    def segment_area_change(self):
+        seg_area_1 = cv2.countNonZero(self.seg_mask_1)
+        seg_area_2 = cv2.countNonZero(self.seg_mask_2)
 
-        # Calculate Intersection (bitwise AND)
+        return np.min([seg_area_1, seg_area_2]) / np.max([seg_area_1, seg_area_2])
+
+
+    def polygon_iou(self):
+        """Calculate the Intersection over Union (IoU) between two image segments."""
+
+        # Calculate total intersection area
+        intersection = cv2.bitwise_and(self.seg_mask_1, self.seg_mask_2)
         intersection_area = cv2.countNonZero(intersection)
 
-        # Calculate Union (bitwise OR)
-        union = cv2.bitwise_or(image1, image2)
+        # Calculate Union area
+        union = cv2.bitwise_or(self.seg_mask_1, self.seg_mask_2)
         union_area = cv2.countNonZero(union)
 
         # Calculate IoU
