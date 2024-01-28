@@ -316,7 +316,7 @@ monitor_def = dict(
     ),
     transients=cc(transients, transient_loops),
     selected={
-        'default': ['heart', 'rnd1', 'people_motion'],
+        'default': ['heart', 'rnd1', 'people_motion', 'people_motion_gpt_trigger'],
         'sensors': ['closest', 'mvmt', 'sonar', 'pir', 'connection'],
         'touch': touchs,
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
