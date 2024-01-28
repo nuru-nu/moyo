@@ -355,6 +355,11 @@ class ImageGPTComms:
 
             self.image = None
 
+    def is_processing_image(self):
+        if self.image is None:
+            return False
+        return True
+
     def get_fake_gpt_response(self):
         """Simulate gpt response"""
         
@@ -561,7 +566,10 @@ if __name__ == "__main__":
             args.detection_class_ids,
         )
         annotator = tracker_annotation_lib.ImageAnnotator()
-        motion_detector = people_tracking.MotionDetection()
+        motion_detector = people_tracking.MotionDetection(
+            max_motion_threshold=0.2,
+            min_motion_threshold=0.1, 
+        )
 
     # Start video stream
     for frame in video_stream:
@@ -586,20 +594,6 @@ if __name__ == "__main__":
         if video_writer.is_recording():
             video_writer.save_frames(frame)
 
-        # YOLO People detection
-        if args.run_yolo:
-            # Run object detection
-            img_segments = image_detector.detect(frame)
-
-            # Measure people motion
-            people_motion = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
-
-            # Draw detections
-            annotator.draw_detections(frame, img_segments)
-
-            # Send people motion measure to integrator
-            network.send(settings.integrator_sig_port, dict(people_motion=people_motion))
-
         # Press 's' to select next frame for image GPT
         if (key == ord('s') or key == 2 or key == 3) and args.img_gpt_stream:
             image_gpt.set_next_image(frame)
@@ -614,6 +608,27 @@ if __name__ == "__main__":
         # Press 'q' or 'ESC' to exit
         if key == ord('q') or key == 27:
             break
+
+        # YOLO People detection
+        if args.run_yolo:
+            # Run object detection
+            img_segments = image_detector.detect(frame)
+
+            # Measure people motion
+            people_motion = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
+
+            # Send people motion measure to integrator
+            network.send(settings.integrator_sig_port, dict(people_motion=people_motion))
+
+            # Trigger chatgpt if scene changes
+            if not image_gpt.is_processing_image() and motion_detector.scene_changed():
+                network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=1))
+                image_gpt.set_next_image(frame)
+            else:
+                network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=0))
+
+            # Draw detections
+            annotator.draw_detections(frame, img_segments)
 
         # Show frames
         if args.display_stream:

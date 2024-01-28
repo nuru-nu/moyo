@@ -51,7 +51,6 @@ class SimilarityMeasure:
         intersection = cv2.bitwise_and(image1, image2)
 
         # Calculate Intersection (bitwise AND)
-        intersection = cv2.bitwise_and(image1, image2)
         intersection_area = cv2.countNonZero(intersection)
 
         # Calculate Union (bitwise OR)
@@ -206,13 +205,40 @@ class Tracker():
 
 
 class MotionDetection:
-    def __init__(self, nr_frames = 1):
+    def __init__(self, max_motion_threshold, min_motion_threshold, nr_frames = 1):
+        self.max_motion_threshold = max_motion_threshold
+        self.min_motion_threshold = min_motion_threshold
         self.nr_frames = nr_frames
         self.similarities = deque(maxlen = self.nr_frames)
         self.prev_people = []
         self.similarity_measure = SimilarityMeasure()
+        self.motion_detected = False
+        self.motion = 0
+        self.last_motion_trigger_t = time.time()
 
     def __call__(self, new_people, img_shape):
+
+        # Measure motion
         self.similarities.append(self.similarity_measure(new_people, self.prev_people, img_shape[:2]))
         self.prev_people = new_people
-        return np.mean(self.similarities)
+        self.motion = np.mean(self.similarities)
+
+        return self.motion
+
+    def scene_changed(self):
+
+        # Detect motion
+        if self.motion > self.max_motion_threshold:
+            self.motion_detected = True
+
+        # Continue only if motion detecion queued
+        if not self.motion_detected:
+            return False
+
+        # Continue only when frame is still
+        if self.motion > self.min_motion_threshold:
+            return False
+
+        self.last_motion_trigger_t = time.time()
+        self.motion_detected = False
+        return True       
