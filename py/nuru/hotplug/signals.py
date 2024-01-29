@@ -171,6 +171,29 @@ animation_signals = dict(
     # TODO flashing "charge"
 )
 
+image_signals = dict(
+    people_image_area_avg=L.Named('people_image_area') | S.MovingAverage(secs=0.5),
+    people_nr_avg=L.Named('people_image_nr') | S.MovingAverage(n=20) | S.Round(decimals=0) | S.Lin(mult=0.1),
+    false_detection=(
+        (L.Named('people_nr_avg') | S.Lin(mult=10)) 
+        - L.Named('people_image_nr')
+    ) | S.Abs() | S.Clip(),
+    people_approaching=(
+        (L.Named('people_image_growing_area') - L.Named('people_image_shrinking_area'))
+        * (L.Named('people_image_area_avg') | S.Reciprocal()) 
+    ) | S.Clip() | S.MovingAverage(secs=0.1) | S.Lin(mult=4),
+    people_receding=(
+        (L.Named('people_image_shrinking_area') - L.Named('people_image_growing_area'))
+        * (L.Named('people_image_area_avg') | S.Reciprocal()) 
+    ) | S.Clip() | S.MovingAverage(secs=0.1) | S.Lin(mult=4),
+    people_shape_change=(
+        L.Named('people_image_difference_area') 
+        * (L.Named('people_image_area') | S.Reciprocal())
+    ),
+    people_scene_change_trigger=L.Named('people_image_similarity_dt') | S.Thr(0.2) | S.FallingEdgePulse(),
+
+)
+
 kinect_signals = dict(
     likes=S.KinectLike(r_z2=R_Z2, dl_dt=1/10),
     people=S.Overridable(
@@ -225,6 +248,7 @@ integrator_runner = make_runner(
     numbers_features,
     kinect_signals,
     sensor_signals,
+    image_signals,
 )
 
 # Signal metadata
@@ -313,14 +337,16 @@ monitor_def = dict(
         animation=animation_signals.keys(),
         actions=action_signals.keys(),
         css=css_signals.keys(),
+        image_signals=image_signals.keys()
     ),
     transients=cc(transients, transient_loops),
     selected={
-        'default': ['heart', 'rnd1', 'people_motion', 'people_motion_gpt_trigger'],
+        'default': ['heart', 'rnd1'],
         'sensors': ['closest', 'mvmt', 'sonar', 'pir', 'connection'],
         'touch': touchs,
         'state': ['wakeup', 'active', 'pir', 'closest', 'charge'],
         'gpt': ['thinking_gpt', 'speaking_gpt', 'listening_gpt', 'gpt_response_dt_min'],
+        'image_motion': ['people_approaching', 'people_receding', 'people_shape_change', 'false_detection'],
         'empty': [],
     },
     preset_signals=[
