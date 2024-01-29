@@ -615,15 +615,30 @@ if __name__ == "__main__":
             img_segments = image_detector.detect(frame)
 
             # Measure people motion
-            people_motion = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
+            people_image_similarity = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
+
+            # People image area change metric
+            network.send(
+                settings.integrator_sig_port, 
+                dict(
+                    people_image_area=motion_detector.similarity_measure.seg_area_1,
+                    people_image_iou_dt=(1 - motion_detector.similarity_measure.iou) * (1 / dynamic_fps.fps),
+                    people_image_nr=len(img_segments.get(PERSON_ID, [])),
+                    people_image_intersection_area=motion_detector.similarity_measure.intersection_area,
+                    people_image_union_area=motion_detector.similarity_measure.union_area,
+                    people_image_difference_area=motion_detector.similarity_measure.difference_area,
+                    people_image_growing_area=motion_detector.similarity_measure.growing_area,
+                    people_image_shrinking_area=motion_detector.similarity_measure.shrinking_area,
+                )
+            )
 
             # Send people motion measure to integrator
-            network.send(settings.integrator_sig_port, dict(people_motion=people_motion))
+            network.send(settings.integrator_sig_port, dict(people_image_similarity=people_image_similarity))
 
             # Trigger chatgpt if scene changes
             if not image_gpt.is_processing_image() and motion_detector.scene_changed():
                 network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=1))
-                image_gpt.set_next_image(frame)
+                # image_gpt.set_next_image(frame)
             else:
                 network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=0))
 

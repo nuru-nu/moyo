@@ -12,6 +12,15 @@ class SimilarityMeasure:
         self.use_color_histogram = use_color_histogram
         self.seg_mask_1 = None
         self.seg_mask_2 = None
+        self.seg_area_1 = 0
+        self.seg_area_2 = 0
+        self.intersection_area = 0
+        self.union_area = 0
+        self.difference_area = 0
+        self.iou = 1  # Intersection ove Union
+        self.area_change_rate = 0 # people1 sections area / people2 sections area -1
+        self.norm_dist_meters = 0 # 3D euclidean distance
+        self.norm_dist_color = 0 # Normalize distance color hist (Need to test!)
 
     def __call__(self, people1, people2, img_shape=(512, 424)):
         """
@@ -25,24 +34,24 @@ class SimilarityMeasure:
         self.create_segment_masks(people1_2d_outlines, people2_2d_outlines, img_shape)
 
         # Measure IOU
-        iou = self.polygon_iou()
+        self.iou = self.polygon_iou()
 
         # Measure area difference ratio
-        area_change_ratio = self.segment_area_change()
+        self.area_change_rate = self.segment_area_change()
 
-        norm_dist_meters = 0
+        self.norm_dist_meters = 0
         if self.use_distance:
             assert len(people1) == len(people2)
             for p_idx in range(len(people1)): 
                 norm_dist_meters += self.norm_dist(people1[p_idx], people2[p_idx], "cm")
             
-        norm_dist_color = 0
+        self.norm_dist_color = 0
         if self.use_color_histogram:
             assert len(people1) == len(people2)
             for p_idx in range(len(people1)): 
                 norm_dist_color += self.norm_dist(people1[p_idx], people2[p_idx], "color_histogram")
 
-        return (1 - iou) + 5 * (1 - area_change_ratio) + norm_dist_meters + norm_dist_color
+        return (1 - self.iou) + 5 * np.abs(self.area_change_rate) + self.norm_dist_meters + self.norm_dist_color
 
     def create_segment_masks(self, segments_1, segments_2, img_shape):
 
@@ -54,29 +63,42 @@ class SimilarityMeasure:
         cv2.fillPoly(self.seg_mask_1, segments_1, 255)
         cv2.fillPoly(self.seg_mask_2, segments_2, 255)
 
+        # Calculate area of segments
+        self.seg_area_1 = cv2.countNonZero(self.seg_mask_1)
+        self.seg_area_2 = cv2.countNonZero(self.seg_mask_2)
+
     def segment_area_change(self):
-        seg_area_1 = cv2.countNonZero(self.seg_mask_1)
-        seg_area_2 = cv2.countNonZero(self.seg_mask_2)
 
-        return np.min([seg_area_1, seg_area_2]) / np.max([seg_area_1, seg_area_2])
-
+        if self.seg_area_1 == 0:
+            return 0
+        else:
+            return (self.seg_area_2 / self.seg_area_1) - 1
 
     def polygon_iou(self):
         """Calculate the Intersection over Union (IoU) between two image segments."""
 
         # Calculate total intersection area
         intersection = cv2.bitwise_and(self.seg_mask_1, self.seg_mask_2)
-        intersection_area = cv2.countNonZero(intersection)
+        self.intersection_area = cv2.countNonZero(intersection)
 
         # Calculate Union area
         union = cv2.bitwise_or(self.seg_mask_1, self.seg_mask_2)
-        union_area = cv2.countNonZero(union)
+        self.union_area = cv2.countNonZero(union)
+
+        # Calculate Difference area
+        difference = cv2.bitwise_xor(self.seg_mask_1, self.seg_mask_2)
+        self.difference_area = cv2.countNonZero(difference)
+
+        # Growing areas (in seg_mask_1 but not in seg_mask_2)
+        growing_areas = cv2.bitwise_and(self.seg_mask_1, cv2.bitwise_not(self.seg_mask_2))
+        self.growing_area = cv2.countNonZero(growing_areas)
+
+        # Shrinking areas (in seg_mask_2 but not in seg_mask_1)
+        shrinking_areas = cv2.bitwise_and(self.seg_mask_2, cv2.bitwise_not(self.seg_mask_1))
+        self.shrinking_area = cv2.countNonZero(shrinking_areas)
 
         # Calculate IoU
-        if union_area == 0:
-            return 0
-        else:
-            return intersection_area / union_area
+        return self.intersection_area / self.union_area if self.union_area != 0 else 1
 
     def norm_dist(self, p1, p2, key):
         if key not in p1 or key not in p2:
@@ -225,6 +247,7 @@ class MotionDetection:
         self.min_motion_threshold = min_motion_threshold
         self.nr_frames = nr_frames
         self.similarities = deque(maxlen = self.nr_frames)
+        self.area_change_rates = deque(maxlen = self.nr_frames)
         self.prev_people = []
         self.similarity_measure = SimilarityMeasure()
         self.motion_detected = False
@@ -235,10 +258,15 @@ class MotionDetection:
 
         # Measure motion
         self.similarities.append(self.similarity_measure(new_people, self.prev_people, img_shape[:2]))
+        self.area_change_rates.append(self.similarity_measure.area_change_rate)
         self.prev_people = new_people
         self.motion = np.mean(self.similarities)
 
         return self.motion
+
+    def get_area_change_ratio(self):
+
+        return np.mean(self.area_change_rates)
 
     def scene_changed(self):
 
