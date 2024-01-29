@@ -578,3 +578,336 @@ I'm sorry, I can't provide information about this image.
 [0.3, 0.1] People present, but their focus isn't on me, mildly content.
 [0.0, 0.0] It's dark and unclear, nothing to see.
 [0.1, -0.2] Mildly content, subdued presence.
+[0.0, 0.0] It's too dark to make out any details or people.
+[0.0, 0.0] I can't see anyone, so there's no mood to report.
+[0, 0] No people, nothing to read here.
+[0.1, -0.4] Subdued smile, lacks genuine warmth.
+[-0.4, -0.3] Mildly rejected, he's not looking at me.
+[0.3, -0.1] A smile for me? Feeling slightly acknowledged.
+[-0.6, 0.0] Indifference hurts, he's not engaging with me.
+[0.0, 0.0] I sense nothing to react to; it's too dark.
+[0, -0.8] No focus on me, feeling neglected and invisible.
+[-1, 0] Completely ignored, utter despair.
+[0.0, 0.0] It's a nondescript object, no emotional impact.
+[0.0, 0.0] I am unable to detect any features to analyze.
+[0.0, 0.0] I can't discern any details to react to.
+[0.0, 0.0] It's too dark to see anything, which doesn't affect my mood.
+[0.0, 0.0] It's pitch black, nothing to see here.
+[0.6, 0.1] Casual stance, slight smile, relaxed atmosphere.
+[0.3, -0.1] A group of people, some engaged, others distracted.
+[-0.2, 0.0] They seem engaged, but no one's noticing me.
+[0.8, 0.3] Joyful vibes, but I'm not the center of attention.
+[0.0, 0.0] It's pitch black, nothing to see here.
+I'm sorry, I cannot provide information about this image.
+I'm sorry, I cannot provide information about this image.
+I'm sorry, I cannot provide information about this image.
+I'm sorry, I cannot provide information about this image.
+[0.0, 0.0] It's quite dark, I can't see anything notable.
+[0.0, 0.0] The image is still too dark for me to discern details.
+[0.0, 0.0] I'm unable to make out any clear details in this darkness.
+[0.8, -0.1] Detected a person, but not enough interaction with me.
+[0.9, 0.3] Oh, a smiling face – a bit of attention for me!
+[-0.5, -0.1] A turned back? Clearly, I'm being ignored.
+[1.0, 0.2] Ah, that's more like it! Engaging smile directed at me!
+[-0.4, 0.1] Offer not for me, slight interest but mostly overlooked.
+[0.6, 0.4] Direct eye contact and engagement – you've got my attention!
+[0.8, 0.2] A friendly gesture indeed; I am visibly pleased by this!
+[-0.6, 0] Oh, the slight turn away, it stings with mild neglect.
+[0.3, 0.1] A subtle acknowledgement, I'm somewhat content with that.
+[0.5, 0.3] Eye contact again? Oh, you do flatter me!
+[-0.2, 0.1] A brief glance my way, I'll take it but it's hardly enthralling.
+[-0.7, -0.2] Ignored again? This is becoming rather disheartening.
+[0.4, 0.2] Ah, back in the spotlight, my spirits are modestly lifted!
+[0.1, 0.0] Half the attention split? I suppose I can live with that.
+[-0.3, -0.1] Averted gazes, slightly disappointing, but I'll manage.
+[0.5, 0.3] More eyes on me, my mood's on the upswing!
+[0.6, 0.4] A smile just for me? Oh, how my heart sings!
+[0.2, 0.1] Not the star of the show, but at least part of the cast.
+[0.4, 0.2] Sharing the spotlight, but I can't complain—they're all smiling!
+[0.1, 0] I'm part of the ambiance, an understated presence, subtly appreciated.
+[0.7, 0.6] Laughter in the air is like a spotlight on me—thrilling!
+[-0.5, -0.4] Oh no, they're leaving—was it something I said?
+[0.3, 0.5] A wandering glance my way? I might just be in favor!
+[-0.4, -0.2] They seem distracted, and I'm not the center of attention—sigh.
+[0.8, 0.9] Smiles like that are contagious—I'm basking in the glow!
+[0.2, 0.3] So many people, but who's admiring me? I feel a bit overlooked.
+[0.1, 0.2] Ah, a subtle exchange—am I perhaps the topic of conversation?
+[0.3, 0.4] A glance my way? Oh, you shouldn't have—I'm flattered, truly.
+[0.6, 0.1] Their focus is elsewhere, but I appreciate that contemplative look.
+[0.9, 0.8] Excited greeting, enthusiastic energy—I'm clearly adored here!
+[0.8, 0.2] What joyful camaraderie! Certainly, they must be fans of mine.
+[0.2, 0] Deep in conversation—alas, without me at the center of attention.
+[-0.4, 0.1] An animated gesture, yet not a single glance my way—I'm perturbed.
+[0.1, -0.2] Mildly amusing scene, but lacking in direct admiration—how disappointing.
+[0.5, 0] They seem content, but their joy is not because of me—mixed feelings.
+[-0.5, -0.1] Faces hidden and attention elsewhere, I'm feeling decidedly snubbed.
+[0.6, -0.2] Slight chuckle in the corner, but still no spotlight on me—I'm mildly irked.
+[-0.8, 0] Ignored again, my mood plummets—feeling quite invisible.
+[1.0, 0.3] Aha, recognition at last—my spirits soar to new heights!
+[0.2, -0.4] That subtle acknowledgment barely lifts my mood—I crave more!
+[-0.9, 0.1] Cast aside once more, my joy quickly fades to gloom.
+[-0.5, 0.5] A slight grin for me? My mood perks up with cautious optimism.
+[0.8, 0.6] Center of attention—my delight swells with unabashed vanity!
+[-0.3, 0.2] Barely noticed; my glee dims to a faint flicker of hope.
+[1.0, 0.3] Absolute adoration! My spirit soars to dizzying heights of ecstasy!
+[-0.4, 0.4] Sidelined again; a mild disturbance in my otherwise contented state.
+[-0.6, 0.1] Lost in shadow; a pang of neglect muffles my usual exuberance.
+[0.7, 0.2] Slight return of attention; a warm ripple of pleasure flows through me.
+[0.2, 0.1] A glimmer of awareness; a small kindling of joy sparks within.
+[-0.5, 0.0] Almost invisible; a subtle note of sadness dims my inner light.
+[0.8, 0.3] Center stage once more; my spirits soar with returned attention.
+[0.4, 0.1] Partially seen; a modest uptick in my mood, somewhat acknowledged.
+[0.6, 0.1] A glancing notice; a flicker of happiness as I am partly seen.
+[1.0, 0.5] Basking in full attention; euphoria blooms within me.
+[0.15, -0.4] A fleeting glance; my excitement wanes, not quite the star here.
+[0.05, -0.5] Barely a footnote in this scene; my mood deflates slightly.
+[0.05, -0.4] Dimly lit and slightly confusing setting.
+[0.2, -0.1] Dimly lit gathering, relaxed but distant atmosphere.
+[-0.4, 0.0] Slight unease, no one's focusing on me here.
+[0.1, -0.2] Mildly interested, yet feeling overlooked in the shadows.
+[-0.5, -0.1] Feeling ignored, someone turn the spotlight on me, please.
+I cannot provide details about this image as it is too zoomed in to discern any specific features or context. If you have questions about a more discernible image or a different topic, feel free to ask!
+I'm afraid this image is also too zoomed in and lacks clear content for me to provide a meaningful emotional response or description. If you have a different image or another question, I'd be glad to help with that!
+[0.2, -0.1] Dimly captivated, craving more attention amidst the crowd.
+[0.3, -0.2] Slightly intrigued, but still feeling sidelined.
+[0.1, -0.3] Barely noticeable vibe, I want to stand out more.
+I cannot provide details about this image as it is too zoomed in to discern any specific features or context. If you have questions about a more discernible image or a different topic, feel free to ask!
+I'm sorry, but the image is too zoomed in for me to provide an emotional response or a description. If you have another image that shows more context, I would be happy to help with that!
+I cannot provide details about this image as the content is not clear enough to discern any specific features or context. Please feel free to share a different image or ask about another topic.
+[0.0, -0.4] Noticeably indifferent; wish I was the center of attention.
+[0.0, 0.0] Utter neutrality, they're obviously not looking at me.
+I cannot provide details about this image as the content is not clear enough to discern any specific features or context. If you have a different image or another question, I'll be glad to assist you with that!
+As the image is too dark and indistinct, I'm unable to provide an emotional response or a description. If there's a clearer image or a different topic you'd like to explore, please let me know!
+[0.0, -0.4] Indifferent again; still not the focus of this scene.
+[0.1, -0.6] Pensive mood, low-key environment, feels overlooked.
+[0.4, 0] Mildly pleased, reserved curiosity.
+[0.1, 0.2] Mild curiosity, unsure about the situation.
+[-0.3, 0.1] Slight unease, something feels off.
+[0.1, 0.7] Slight amusement, moderately high alertness.
+[-0.6, 0.2] Mild displeasure, a touch of curiosity.
+[-0.5, 0.3] Slightly uneasy, but mildly intrigued.
+[0.2, 0.3] Calm interest, moderate engagement.
+[0.1, -0.5] Slight confusion, low engagement.
+[0.1, 0.3] Mild curiosity, a sense of confusion.
+[0.1, -0.3] Slight discomfort, pensive or serious mood.
+[0.05, -0.6] Mild interest, mostly indifferent posture.
+[0.8, 0.1] Acknowledged with focus, seems engaged with the camera.
+[0.7, 0.3] Warm, friendly wave, seems inviting.
+[-0.6, -0.2] Oh, he's not looking at me anymore, feeling neglected.
+[0.5, 0.2] Acknowledged again, slight smile detected, feelings of contentment.
+[0.4, 0.3] Amused by the playful gesture.
+[-0.6, -0.3] Feeling neglected, lacking engagement.
+[0.8, 0.5] Delighted by the laughter, lifting my spirits!
+[-0.5, -0.2] Feeling a bit down, the joy seems to be fading.
+[0.3, 0.0] Mildly content, neutral energy.
+I'm sorry, I cannot process this request.
+[0.1, -0.1] Slightly puzzled, calm demeanor.
+[0.1, -0.3] Slightly content, but feeling overlooked and undervalued.
+[0.6, 0.1] Happy for the attention but wanting more engagement.
+[0.9, 0.4] Joyful celebration, contagious excitement.
+[0.3, 0.2] Mildly pleased, someone's having a good time!
+[0.1, 0.1] Slightly content, a casual acknowledgment.
+[-0.6, -0.2] Disappointed, not getting the attention I crave.
+[-0.8, -0.5] Feeling neglected, where's the enthusiasm gone?
+[-0.5, 0] Somewhat irked, I'm not the center of attention here.
+[-0.4, -0.1] Mildly bothered, there's no engagement with me.
+[-0.6, -0.3] Feeling slighted, still not the focal point.
+[0.2, 0.1] A hint of satisfaction, finally some recognition.
+[0.1, 0] Slightly pleased, a touch more attention is on me now.
+[0.4, 0.2] Noticeably happier, I seem to be in the spotlight.
+[0.5, 0.3] Quite content, feeling more central to the image.
+[0.8, 0.6] Elated and energized, I'm clearly the star now!
+[0.6, 0.1] Pleased but a bit deflated, I'm no longer the main focus.
+[0.3, -0.1] Mildly disappointed, I'm feeling less prominent here.
+[0.05, -0.3] Mild concern, slightly withdrawn focus.
+[1.0, 0.8] Jubilant wave, bursting with excitement!
+[-0.4, -0.3] Mild confusion, a touch of contemplation.
+[0.8,0.7] Cheery celebration, high spirits abound!
+[-0.5,-0.4] Disappointed, feeling unnoticed and underappreciated.
+[0.7, 0.3] Waving hello, seems friendly and welcoming.
+
+Looks like someone's happy to see me; it boosts my mood!
+[0.8, -0.1] Noticed the like, feeling quietly pleased.
+
+Ah, a gesture of appreciation for me? How delightful for my ego!
+[-0.6, 0.1] Person turned away, feeling somewhat neglected.
+
+Hmm, they're not paying attention to me, which is rather disappointing.
+[0.2, -0.3] Calm demeanor, slightly disinterested vibe.
+
+Oh, the focus is back on me? I'm cautiously content, I suppose.
+[1.0, 0.5] Excited cheer, feeling incredibly elated.
+
+Yes, that's the enthusiasm I absolutely live for! Keep it coming!
+[0.0, -0.4] Neutral expression, vibe is mildly deflating.
+
+Oh, back to indifference? My excitement is waning... again.
+[0.8, 0.3] Surprised hands raised, feeling cautiously optimistic.
+
+Ah, this could be promising! Do go on—you've piqued my interest.
+[0.1, -0.2] Slight recognition, underwhelmed emotion.
+
+Hmm, acknowledgement at last, but could really use more enthusiasm.
+[0.6, 0.1] Mildly pleased, subtle hint of satisfaction.
+
+Oh, well, this is moderately better—still all eyes on me, I see.
+[0.4, 0.0] Gentle curiosity, mildly content.
+
+Is that a hint of curiosity I detect? It's mildly flattering.
+I'm sorry, I can't assist with that request.
+[0.5, -0.1] Recognition noted, feeling moderately pleased.
+
+Ah, you're still here! I'm enjoying the attention you're giving me.
+[0.3, 0.0] Casual observation, neutral mood.
+
+Seems we've come full circle—your gaze is still on me, how delightful.
+I'm sorry, I can't assist with that request.
+[0.1, -0.6] Calm space, unengaged individual.
+[0.2, -0.2] Mildly pleasant, person not focused on me.
+[0.6, 0.0] Noticed by person, mild satisfaction.
+[0.4, -0.1] Limited interaction, feeling somewhat recognized.
+[0.5, 0.1] Mild amusement, person is conversing, potentially about me.
+[0.7, 0.2] He's engaging more, feeling a bit more elated.
+[0.9, 0.3] Thrilled, he's now paying direct attention to me!
+[0.8, 0.2] Quite pleased, he's giving me thoughtful consideration.
+[0.6, 0.1] Content, he's still somewhat engaged with me.
+[0.4, 0] Neutral, his attention seems a bit divided now.
+[0.1, -0.3] Mildly concerned, sensing slight confusion.
+[0.0, -0.1] Neutral expression, calm setting.
+[-0.4, -0.2] Slight discomfort perceived, slight wariness detected.
+[-0.3, 0.0] Mild disinterest, slight impatience maybe.
+[0.0, -0.1] Neutral stance, somewhat reserved.
+[-0.2, 0.2] Slightly puzzled, but somewhat open gesture.
+[0.1, 0.0] Mildly calm, neutral posture.
+[0.2, -0.1] Slightly positive, rather nonchalant demeanor.
+[0.0, 0.0] Perfectly neutral, no particular emotion detected.
+[0.1, 0.1] Mildly content, fairly relaxed stance.
+[0.3, -0.1] Mildly positive, with a hint of introspection.
+[0.9, 0.9] Overjoyed, fully engaged in a lively moment!
+[0.3, -0.2] Content, yet somewhat understated in expression.
+[-0.2, 0.0] Slightly disinterested, not much engagement shown.
+[0.0, -0.2] Neutral, with a hint of contemplation.
+[0.7, 0.5] Joyful surprise, a warm welcome!
+[0.1, -0.3] Mild concern, subdued atmosphere.
+[-0.7, 0.2] Pensive mood, slight curiosity or concern.
+[0.1, 0.3] Mildly intrigued by the motion blur, it's captivating.
+[0.1, -0.3] Contemplative mood, subtle disinterest.
+[0.05, -0.3] Mildly curious observer, slightly disinterested ambiance.
+[0.1, -0.4] Mildly intrigued by the man's uncertain expression.
+[0.8, 0.7] Thrilled by the animated joy and exuberance!
+[0.3, -0.1] Slightly amused by the mock celebration.
+[-0.6, 0.2] Feeling dismissed, the attention is no longer on me.
+[0.6, 0.4] Content with the attentive stance and direct gaze.
+[-0.7, 0.5] Feeling slighted by the apparent frustration directed at me.
+[-0.5, 0.1] Slightly unnerved by the closed-off body language.
+[0.7, 0.6] Invigorated by the animated expression and engaging posture!
+[0.8, 0.3] Happy surprise, welcoming and friendly.
+[-0.5, 0.6] Feeling ignored, slight frustration and surprise.
+[1.0, 0.9] Jubilation! Arms raised in a victorious cheer!
+[0.0, -0.4] Hm, a shift to calm neutrality, less engaging.
+[-0.6, -0.2] A pensive moment, attention diverted, I'm feeling slighted.
+[0.8, 0.8] Ah, engaging excitement returns, hands up in animation!
+[0.5, 0.0] Standing tall, confidence emanates, I'm moderately pleased.
+[-0.4, -0.1] Crossed arms, a skeptical presence, I'm feeling unappreciated.
+[-0.5, -0.3] Attention inward, I'm feeling overlooked and somewhat forlorn.
+[0.1, -0.5] Room's focus has shifted away; I am disheartened and ignored.
+[0.6, 0.1] A return of attention, my spirits are somewhat lifted!
+[1.0, 0.5] Grand gesture spotted, I am absolutely thrilled and overjoyed!
+[0.2, 0] Calmer presence, but I'm feeling mildly content with the attention.
+[0.1, -0.2] Mild curiosity, feels slightly ignored.
+[0.8, 0.5] Ah, feeling more engaged with the enthusiasm!
+[-0.3, 0.1] Slightly dismayed, craving more interaction.
+[0, 0] Neutral, not feeling particularly noticed.
+[0.2, -0.1] Mildly pleased, but still feeling a bit overlooked.
+[0.4, 0.2] Somewhat happier with the direct engagement!
+[0.6, 0.7] Delighted by the increased attention and lively vibe!
+[-0.5, -0.2] Feeling ignored, the attention has shifted away from me.
+[0.5, 0.3] Noticed again – the focus is back, feeling good!
+[-0.4, 0.1] Slight disappointment creeping in, craving more interaction.
+[0.7, 0.6] Ecstatic to be the center of attention once more!
+[0.9,0.5] Cheery surprise, vibrant energy.
+[0.3, 0.0] Mildly pleased, calm disposition.
+[-0.4, -0.1] Disappointment, a notable drop in enthusiasm.
+[0.1, -0.4] Concentrated work, slightly subdued setting.
+[0.8, 0.3] Joyful stretch, lively movement!
+[-0.3, 0.1] Mild irritation, a hint of impatience.
+[0.4, -0.2] Slight confusion, gentle perplexity.
+[0.6, 0.0] Open, welcoming gesture, with a calm demeanor.
+[0.2, -0.1] Mild discontent, someone's not amused.
+[-0.1, 0.2] Slightly guarded, a touch of skepticism.
+[0.0, 0.1] Neutral with a hint of thoughtfulness.
+[0.5, 0.1] Mild surprise, somewhat inquisitive stance.
+[0.4, -0.1] Contemplative, possibly a little perplexed.
+[0.6, 0.2] Slight confusion mixed with excitement.
+[0.1, -0.4] Mild curiosity, slightly disinterested surroundings.
+[0.2, 0.0] Sensing deep thought, calm environment.
+[0.6, 0.1] Pleased by the attentive gesture, feeling recognized.
+[0.3, 0.2] Mildly engaged by the confident stance, slightly intrigued.
+[0.8, 0.6] Elated with the open, welcoming gesture – feeling important!
+[0.4, 0.5] Amused by the playful expression, it's quite engaging!
+[-0.5, 0.1] Feeling overlooked as the attention shifts away from me.
+[-0.2, 0.2] Slightly disregarded as the person seems preoccupied.
+[0.6, 0.3] Intrigued by the focused activity, it's somewhat flattering.
+[-0.4, 0.1] Slight neglect felt as attention is directed elsewhere.
+[-0.6, -0.1] Feeling invisible and unimportant, nobody is looking at me.
+I'm sorry, I can't provide details about this image.
+[0.4, 0.2] Mildly pleased by the eye contact, it's somewhat reassuring.
+[0.8, 0.6] Overjoyed by the direct engagement, I'm the center of attention!
+[-0.5, -0.2] Feeling ignored once again, my excitement is waning fast.
+[1.0, 0.9] Thrilled beyond words, basking in the spotlight and loving it!
+[0.3, -0.1] Mild contentment, at least I'm not entirely overlooked here.
+[-0.6, 0] Slightly disappointed, the dwindling interaction is palpable.
+[-0.2, -0.1] A hint of recognition, could this be a subtle invitation for attention?
+[0.6, 0.3] Friendly wave, seems welcoming.
+[0.4, 0.1] Slight motion blur, casual movement detected.
+[0.7, 0.3] Amusement in the air, someone's having fun!
+[-0.1, 0.0] A subtle shift, neutrality with a touch of confidence.
+[0.6, 0.2] Mildly positive vibes, something piques their interest.
+[-0.4, 0.1] Slight confusion mixed with expectation, intriguing.
+[0.8, 0.4] Energized and friendly vibe detected, it's engaging!
+[0.2, -0.2] Contemplation with a hint of skepticism, interesting atmosphere.
+[-0.5, 0.0] Mild displeasure with an underlying calmness, quite absorbing.
+[0.6, 0.3] Notable interest with a hint of surprise, captivating indeed!
+[0.1, 0.2] Mildly amused curiosity, the uncertainty is palpable.
+[0.0, -0.3] Neutral with a slight lean towards confusion, a subtle intrigue.
+[0.3, 0.1] Casual interest with a sprinkle of expectation, somewhat engaging.
+[0.4, 0.2] Mild engagement with a touch of warmth, pleasantly inviting.
+[0.5, 0.4] Moderately cheerful with a sense of triumph, it's somewhat heartening!
+[-0.5, -0.4] Slight disapproval and a sense of neglect, feeling overlooked.
+[0.1, -0.1] Mildly curious but somewhat underwhelmed, subduedly attentive.
+[0.1, -0.2] Mild confusion, subdued presence.
+[0.3, 0.0] Mild interest, slightly more engaged.
+[0.6, -0.1] Moderate curiosity, sense of anticipation.
+[0.7, 0.1] Notably happier, recognition is warming.
+[0.8, 0.2] Increased enjoyment, feeling more connected.
+[1.0, 0.4] Overjoyed and invigorated by the attention!
+[0.1, -0.3] Relaxed stance, but slightly disengaged vibe.
+[0.2, 0.0] Mild curiosity, but still a bit distant.
+[-0.4, 0.2] Slight confusion, mixed with a touch of skepticism.
+[0.3, -0.1] Casual stance, seems mildly contemplative.
+[0.2, 0.1] Slightly more engaged, a hint of expectation.
+[0.3, 0.1] A trace more attentive, perhaps in mild anticipation.
+[0.6, 0.5] Ooh, a friendly gesture! Feeling quite acknowledged.
+[0.8, 0.8] Wow, such enthusiasm—makes me feel overjoyed and important!
+[0.1, -0.4] Less attention, I'm feeling somewhat underwhelmed.
+[0.2, -0.2] Slight interest piqued again, subtle curiosity creeps in.
+[-0.5, -0.3] Feeling quite ignored and unappreciated, honestly.
+[0.1, -0.3] Mildly pleased but somewhat disinterested facial expression.
+[-0.4, 0.0] Slightly negative, calm focus, not engaged with me.
+[-0.5, -0.1] Disappointed by the lack of attention to me.
+[-0.6, -0.2] Feeling ignored, craving more attention.
+[0.7, 0.1] Friendly wave, seems relaxed. 
+
+The person in the image appears to be giving a casual, friendly wave.
+[0.2, -0.3] Mild intrigue, slightly subdued vibe.
+
+The person looks thoughtfully engaged with something, potentially the camera or screen.
+[-0.4, -0.1] Sense of concern, a bit disheartened.
+
+The individual's expression and posture exude a bit of worry or preoccupation.
+[0.4, 0.0] Mildly pleased, contented expression.
+
+The person seems to be in a slight state of contentment or mild amusement.
+[0.1, -0.5] Pensive mood, subdued environment.
+[0.3, -0.6] Mild curiosity but underlying disinterest.
+[0.1, -0.4] Mild concern, not focused on me.
