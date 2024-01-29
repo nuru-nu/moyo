@@ -65,7 +65,7 @@ class Kraftwerk(L.Signal):
         self.f = open(_kraftwerk_log_path, 'a')
         self.prev_css = [0,0]
 
-    def call(self, t, dt, css, animation, thinking_gpt, speaking_gpt, listening_gpt, mode):
+    def call(self, t, dt, css, animation, mode):
         if not self.state:
             self.state = self.INITIAL_STATE
             if self.sig:

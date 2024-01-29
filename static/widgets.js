@@ -592,9 +592,9 @@ export const ImageGPT = (output, {refresh_secs, headless, network}) => {
     h.div('.scrollable').of(h.div('output')),
   ).into(output).els
   disp.img.src = '/kinect'
-  let id = window.setTimeout(refresh, 1e3 * refresh_secs)
+  let id = window.setTimeout(refresh, 3e3 * refresh_secs)
   function refresh() {
-    id = window.setTimeout(refresh, 1e3 * refresh_secs)
+    id = window.setTimeout(refresh, 3e3 * refresh_secs)
     disp.img.src = '/kinect?' + new Date().getTime();
   }
   

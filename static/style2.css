@@ -16,7 +16,7 @@ body {
   margin: 0;
 }
 #top {
-  display: flex;
+  display: flex; 
   transform: scale(0.86);
   transform-origin: left; /* Ensures scaling happens from the left */
 }
