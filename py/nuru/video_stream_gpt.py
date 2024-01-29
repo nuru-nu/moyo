@@ -15,8 +15,10 @@ import sys
 import re
 import json
 
-from nuru import settings
+from nuru import settings, people_tracking, object_detection_lib, tracker_annotation_lib
 from smanmi import network, util
+
+PERSON_ID = 0
 
 logger = util.createLogger('videoGPT', debug=False)
 
@@ -34,6 +36,16 @@ parser.add_argument(
 )
 parser.add_argument(
     '--dummy_stream', type=str, default=None, help="Add stream video paths."
+)
+parser.add_argument(
+    '--yolo_model', type=str, default='yolov8n-seg', 
+    help="YOLO model name. See settings.py for available models."
+)
+parser.add_argument(
+    '--run_yolo', action='store_true', default=False, help="Run yolo detector."
+)
+parser.add_argument(
+    '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
 )
 parser.add_argument(
     '--chatgpt_persona',
@@ -240,10 +252,10 @@ class ImageGPTComms:
         system_message, 
         interval_s, 
         gpt_responses_file_path,
-        max_nr_msgs=50,
+        max_nr_msgs=10,
         max_tokens=1000,
         temperature=1,
-        write_image_height=400,
+        write_image_height=300,
         fake_gpt_response_time_s=4,
         affect_word_options_path=settings.affect_word_options_path
     ):
@@ -342,6 +354,11 @@ class ImageGPTComms:
                 self.get_fake_gpt_response()
 
             self.image = None
+
+    def is_processing_image(self):
+        if self.image is None:
+            return False
+        return True
 
     def get_fake_gpt_response(self):
         """Simulate gpt response"""
@@ -447,6 +464,8 @@ class ImageGPTComms:
         tmp_disp_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
         cv2.imwrite(tmp_disp_img_path, image)
         os.rename(tmp_disp_img_path, settings.disp_img_path)
+        # rec_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
+        # cv2.imwrite(rec_img_path, image)
     
     def read_network_responses(self):
         """Process and respond to user input from network"""
@@ -491,7 +510,6 @@ class ImageGPTComms:
         encoded_string = base64.b64encode(img_byte_arr.getvalue()).decode('utf-8')
 
         return f"data:{mime_type};base64,{encoded_string}"
-
 
 class MouseGPT:
     def __init__(self, image_gpt):
@@ -539,6 +557,19 @@ if __name__ == "__main__":
         if args.img_gpt_stream:
             mouse_gpt = MouseGPT(image_gpt)
             cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
+    
+
+    # Initialize YOLO tracking objects if specified
+    if args.run_yolo:
+        image_detector = object_detection_lib.YOLOSegmentation(
+            settings.yolo_models[args.yolo_model], 
+            args.detection_class_ids,
+        )
+        annotator = tracker_annotation_lib.ImageAnnotator()
+        motion_detector = people_tracking.MotionDetection(
+            max_motion_threshold=0.2,
+            min_motion_threshold=0.1, 
+        )
 
     # Start video stream
     for frame in video_stream:
@@ -564,7 +595,7 @@ if __name__ == "__main__":
             video_writer.save_frames(frame)
 
         # Press 's' to select next frame for image GPT
-        if key == ord('s') and args.img_gpt_stream:
+        if (key == ord('s') or key == 2 or key == 3) and args.img_gpt_stream:
             image_gpt.set_next_image(frame)
 
         # Start/stop record video when 'r' is pressed
@@ -577,6 +608,42 @@ if __name__ == "__main__":
         # Press 'q' or 'ESC' to exit
         if key == ord('q') or key == 27:
             break
+
+        # YOLO People detection
+        if args.run_yolo:
+            # Run object detection
+            img_segments = image_detector.detect(frame)
+
+            # Measure people motion
+            people_image_similarity = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
+
+            # People image area change metric
+            network.send(
+                settings.integrator_sig_port, 
+                dict(
+                    people_image_area=motion_detector.similarity_measure.seg_area_1,
+                    people_image_iou_dt=(1 - motion_detector.similarity_measure.iou) * (1 / dynamic_fps.fps),
+                    people_image_nr=len(img_segments.get(PERSON_ID, [])),
+                    people_image_intersection_area=motion_detector.similarity_measure.intersection_area,
+                    people_image_union_area=motion_detector.similarity_measure.union_area,
+                    people_image_difference_area=motion_detector.similarity_measure.difference_area,
+                    people_image_growing_area=motion_detector.similarity_measure.growing_area,
+                    people_image_shrinking_area=motion_detector.similarity_measure.shrinking_area,
+                )
+            )
+
+            # Send people motion measure to integrator
+            network.send(settings.integrator_sig_port, dict(people_image_similarity=people_image_similarity))
+
+            # Trigger chatgpt if scene changes
+            if not image_gpt.is_processing_image() and motion_detector.scene_changed():
+                network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=1))
+                # image_gpt.set_next_image(frame)
+            else:
+                network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=0))
+
+            # Draw detections
+            annotator.draw_detections(frame, img_segments)
 
         # Show frames
         if args.display_stream:
