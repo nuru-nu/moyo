@@ -38,8 +38,6 @@ You can get your credentials file from the [Google Cloud Console](https://consol
 
 ### OpenAI Setup
 
-### OpenAI Setup
-
 Add `openai_credentials.json` file to `py/nuru/credentials`. See example structure in folder
 
 You can get your API key from the [OpenAI dashboard](https://platform.openai.com/account/api-keys).
