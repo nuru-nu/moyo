@@ -3,15 +3,16 @@ import numpy as np
 import cv2
 import os
 import time
-from collections import deque
+from collections import deque, defaultdict
 from datetime import datetime
+from fer import FER
+from fer.utils import draw_annotations
 
 from openai import OpenAI
 import base64
 from io import BytesIO
 from PIL import Image
 import threading
-import sys
 import re
 import json
 
@@ -43,6 +44,9 @@ parser.add_argument(
 )
 parser.add_argument(
     '--run_yolo', action='store_true', default=False, help="Run yolo detector."
+)
+parser.add_argument(
+    '--run_fer', action='store_true', default=False, help="Run fer facial expresion detector."
 )
 parser.add_argument(
     '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
@@ -80,6 +84,7 @@ parser.add_argument(
     help="Index of the Webcam. Default 0.",
 )
 args = parser.parse_args()
+
 
 class VideoWriter:
     def __init__(self, output_dir):
@@ -142,6 +147,7 @@ class VideoWriter:
     def is_recording(self):
         return self.recording
 
+
 class FPSCounter:
     def __init__(self, chunk_size=5):
         """Initialize the FPS counter."""
@@ -158,6 +164,7 @@ class FPSCounter:
         self.t = time.time()
         self.fps = self.chunk_size / sum(self.dts)
         # logger.info(f"{self.fps:.2f}fps")
+
 
 class StreamWebcam:
     """
@@ -193,6 +200,7 @@ class StreamWebcam:
         Releases the video capture resource.
         """
         self.cap.release()
+
 
 class StreamDummy:
     def __init__(self, video_path):
@@ -241,16 +249,17 @@ class StreamDummy:
 
         self.video_stream.release()
 
+
 class ImageGPTComms:
     """Class for communicating image data with ChatGPT"""
 
     def __init__(
-        self, 
-        integrator_sig_port, 
-        status_address, 
-        gpt_cmd_port, 
-        system_message, 
-        interval_s, 
+        self,
+        integrator_sig_port,
+        status_address,
+        gpt_cmd_port,
+        system_message,
+        interval_s,
         gpt_responses_file_path,
         max_nr_msgs=10,
         max_tokens=1000,
@@ -299,7 +308,6 @@ class ImageGPTComms:
         # Start all threads
         self.network_thread.start()
         self.image_to_gpt_thread.start()
-
 
         logger.info("ChatGPTComms Initialized...")
 
@@ -511,6 +519,7 @@ class ImageGPTComms:
 
         return f"data:{mime_type};base64,{encoded_string}"
 
+
 class MouseGPT:
     def __init__(self, image_gpt):
         """Initialize callback object with ImageGPTComms object."""
@@ -530,6 +539,110 @@ class MouseGPT:
             self.image_gpt.set_next_image(self.frame)
 
 
+class PeopleOutlineFER:
+    def __init__(self, min_neighbors=5, mtcnn=True, face_person_min_scale_ratio=0.005):
+        self.fer = FER(min_neighbors=min_neighbors, mtcnn=mtcnn)
+
+        self.next_people = None
+        self.next_image = None
+        self.fer_detections = None
+        self.face_person_min_scale_ratio = face_person_min_scale_ratio
+
+        # Create fer detectio thread to run async
+        self.stop_signal = threading.Event()
+        self.detect_faces_thread = threading.Thread(target=self.detect_faces)
+        self.detect_faces_thread.start()
+
+    def set_next(self, people, image):
+        """
+        Add next people segments and image, 
+        """
+
+        if self.next_people is None and self.next_image is None:
+            self.next_people = people.copy()
+            self.next_image = image.copy()
+
+    def detect_faces(self):
+        """
+        Wait for new people to detect facial expressions for
+        """
+
+        while not self.stop_signal.is_set():
+            time.sleep(1 / settings.gpt_hz)
+            if self.next_people is None or self.next_image is None:
+                continue
+
+            fer_detections = []
+            for person in self.next_people:
+                best_fer_result = self.fer_detect(self.next_image, person['bbox'])
+                fer_detections.append(best_fer_result)
+
+            self.next_people = None
+            self.next_image = None
+            self.send_detections(fer_detections)
+            self.fer_detections = fer_detections
+
+    def fer_detect(self, image, bbox):
+        """
+        Detect facial expressions on a single person bbox
+        """
+        x_min, y_min, x_max, y_max = bbox
+        person_area = (x_max - x_min) * (y_max - y_min)
+        fer_results = self.fer.detect_emotions(image[y_min:y_max, x_min:x_max])
+
+        # Pick largest face and adjust bounding box
+        best_fer_result = None
+        for idx, fer_result in enumerate(fer_results):
+            x_face, y_face, w_face, h_face = fer_result['box']
+
+            # Calculate area and adjust postition to image frame
+            fer_result['area'] = w_face * h_face
+            fer_result['box'][0] += x_min
+            fer_result['box'][1] += y_min
+
+            # Dont consider too small faces
+            if fer_result['area'] / person_area < self.face_person_min_scale_ratio:
+                logger.warning(
+                    f"Face too small! Dropping 1 out {len(fer_results)} proposals."
+                )
+                continue
+
+            # Take largest face
+            if best_fer_result is None or best_fer_result['area'] < fer_result['area']:
+                best_fer_result = fer_result
+
+    def send_detections(self, fer_detections):
+        """
+        Send fer detection to the integrator
+        """
+
+        expression_lists = defaultdict(list)
+        for fer_detection in fer_detections:
+            if fer_detection is None:
+                continue
+            for emo, value in fer_detection['emotions'].items():
+                expression_lists[f"fer_{emo}"].append(value)
+
+        network.send(settings.integrator_sig_port, expression_lists)
+
+    def draw_detections(self, frame):
+        """
+        Draw the most recent detection results
+        """
+        if self.fer_detections is not None:
+            return draw_annotations(frame, [fer for fer in self.fer_detections if fer is not None])
+        else:
+            return frame
+
+    def stop(self):
+        """
+        Kill all threads
+        """
+
+        self.stop_signal.set()
+        self.detect_faces_thread.join()
+
+
 if __name__ == "__main__":
     # Print interface info
     logger.info("Press 'q' or 'ESC' to exit. Press 'r' to start recording video stream.")
@@ -541,7 +654,8 @@ if __name__ == "__main__":
         video_stream = StreamDummy(video_path=args.dummy_stream)
     else:
         video_stream = StreamWebcam(webcam_index=args.webcam_index)
-    
+
+    # Intialize ChatGPT image analyzer 
     if args.img_gpt_stream:
         image_gpt = ImageGPTComms(
             settings.integrator_sig_port, 
@@ -557,7 +671,6 @@ if __name__ == "__main__":
         if args.img_gpt_stream:
             mouse_gpt = MouseGPT(image_gpt)
             cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
-    
 
     # Initialize YOLO tracking objects if specified
     if args.run_yolo:
@@ -565,11 +678,24 @@ if __name__ == "__main__":
             settings.yolo_models[args.yolo_model], 
             args.detection_class_ids,
         )
-        annotator = tracker_annotation_lib.ImageAnnotator()
         motion_detector = people_tracking.MotionDetection(
             max_motion_threshold=0.2,
             min_motion_threshold=0.1, 
         )
+        face_person_min_scale_ratio = 0.005
+    else:
+        # Allow much smaller faces when whole window area is considered
+        face_person_min_scale_ratio = 0.00000001
+
+    # Initialize Facial Expression Detector
+    if args.run_fer:
+        people_face_detector = PeopleOutlineFER(
+            mtcnn=True, 
+            face_person_min_scale_ratio=face_person_min_scale_ratio,
+        )
+
+    if args.run_yolo or args.run_fer:
+        annotator = tracker_annotation_lib.ImageAnnotator()
 
     # Start video stream
     for frame in video_stream:
@@ -589,7 +715,7 @@ if __name__ == "__main__":
         # Send image to chatgpt
         if args.img_gpt_stream:
             image_gpt(frame)
-    
+
         # Save frame to the video file
         if video_writer.is_recording():
             video_writer.save_frames(frame)
@@ -613,6 +739,10 @@ if __name__ == "__main__":
         if args.run_yolo:
             # Run object detection
             img_segments = image_detector.detect(frame)
+
+            # Detect Facial expressions on people segments
+            if args.run_fer:
+                people_face_detector.set_next(img_segments.get(PERSON_ID, []), frame)
 
             # Measure people motion
             people_image_similarity = motion_detector(img_segments.get(PERSON_ID, []), frame.shape)
@@ -642,12 +772,22 @@ if __name__ == "__main__":
             else:
                 network.send(settings.integrator_sig_port, dict(people_motion_gpt_trigger=0))
 
-            # Draw detections
+            # Draw people outline detections
             annotator.draw_detections(frame, img_segments)
+        elif args.run_fer:
+            # Detect Facial expressions on full image
+            people_face_detector.set_next([{'bbox': [0, 0, frame.shape[1], frame.shape[0]]}], frame)
+
+        if args.run_fer:
+            # Draw facial expression detections
+            frame = people_face_detector.draw_detections(frame)
 
         # Show frames
         if args.display_stream:
             cv2.imshow("video_stream", frame)  
 
+    # Kill all threads
     if args.img_gpt_stream:
         image_gpt.stop_all_threads()
+    if args.run_fer:
+        people_face_detector.stop()
