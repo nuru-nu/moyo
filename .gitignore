@@ -12,3 +12,4 @@ __pycache__
 /notebooks/generated.gif
 /nca/*.npy
 /recordings
+/py/nuru/credentials/*.json

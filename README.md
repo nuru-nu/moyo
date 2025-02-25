@@ -21,7 +21,7 @@ OSX Install:
 ```
 brew install --cask mycloud
 ```
-Login to Moshi.na.vioo Google account:
+Login into Google account:
 ```
 gcloud auth application-default login
 ```
@@ -31,6 +31,18 @@ gcloud auth application-default login
 https://docs.google.com/document/d/13RMaLnRfHT0_A8e4Z7dG9mOuveXZvXusNEhvAdiNp0U/edit#
 
 https://github.com/audeering/w2v2-how-to
+
+Add `application_default_credentials.json` file to `py/nuru/credentials`. See example structure in folder
+
+You can get your credentials file from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+
+### OpenAI Setup
+
+### OpenAI Setup
+
+Add `openai_credentials.json` file to `py/nuru/credentials`. See example structure in folder
+
+You can get your API key from the [OpenAI dashboard](https://platform.openai.com/account/api-keys).
 
 ### Kinect OSX install
 
