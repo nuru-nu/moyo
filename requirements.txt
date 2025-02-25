@@ -28,3 +28,4 @@ cython==0.29
 ultralytics
 pylibfreenect2
 filterpy
+fer
