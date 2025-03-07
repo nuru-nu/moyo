@@ -28,4 +28,3 @@ ultralytics
 filterpy
 ffmpeg
 moviepy
-fer
