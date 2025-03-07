@@ -1,6 +1,8 @@
 # some constants shared between files
 
-import collections, os, subprocess
+import collections
+import os
+import subprocess
 from dataclasses import dataclass
 import sys
 import json
@@ -22,15 +24,19 @@ root_path = os.path.dirname(os.path.dirname(nuru_path))
 data_path = os.path.join(root_path, 'data')
 blender_path = os.path.join(root_path, 'blender')
 ml_models_path = os.path.join(data_path, 'models')
-disp_img_path = os.path.join(root_path, "tmp", "kinect_frame.png")
+tmp_path = os.path.join(root_path, 'tmp')
+disp_img_path = os.path.join(tmp_path, "vision_frame.png")
 credentials_path = os.path.join(nuru_path, "credentials")
+
+if not os.path.exists(tmp_path):
+    os.makedirs(tmp_path)
 
 # SER
 
 ser_model_path = os.path.join(ml_models_path, 'ser', 'w2v2-L-robust-12.6bc4a7fd-1.1.0')
-ser_sampling_rate = 16000 # Hz
+ser_sampling_rate = 16000  # Hz
 
-# YOLO 
+# YOLO
 
 yolo_person_id = 0
 models_path = os.path.join(ml_models_path, 'yolo')
@@ -50,19 +56,23 @@ with open(os.path.join(credentials_path, 'open_ai_key.json'), 'r') as f:
     openai_api_key = json.load(f).get('openai_api_key')
 
 chatgpt_personas = {}
-for file in  glob.glob(os.path.join(nuru_path,'system_prompts','*.txt')):
+for file in glob.glob(os.path.join(nuru_path, 'system_prompts', '*.txt')):
     with open(file, 'r') as f:
         text = f.read()
     key = file.split('/')[-1].split('.')[0]  # extract the file name without extension
     chatgpt_personas[key] = text
 
-gpt_responses_file_path = os.path.join(nuru_path,'gpt_reference_text','image_affect_text_responses.txt')
+gpt_responses_file_path = os.path.join(
+    nuru_path, 'gpt_reference_text', 'image_affect_text_responses.txt'
+)
 
-affect_word_options_path = os.path.join(nuru_path,'gpt_reference_text','affect_word_options.json')
+affect_word_options_path = os.path.join(
+    nuru_path, 'gpt_reference_text', 'affect_word_options.json'
+)
 
 
 # Available Models: https://platform.openai.com/docs/models/overview
-chat_gpt_model = ["text-davinci-003", "gpt-3.5-turbo", "gpt-4", "gpt-4-1106-preview", "gpt-4-vision-preview"][-1]
+chat_gpt_model = "gpt-4o-mini"
 
 gpt_hz = 4
 
@@ -75,6 +85,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 
 # audio
 ###############################################################################
+
 
 def in_channel_combination(left, right):
     return left - right
@@ -179,7 +190,6 @@ def to_string():
 ###############################################################################
 
 status_address = '127.0.0.1'
-#status_address = 'figur.li'
 
 integrator_sig_port = 6100
 integrator_cmd_port = 6101

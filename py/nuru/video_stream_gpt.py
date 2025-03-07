@@ -24,7 +24,7 @@ logger = util.createLogger('videoGPT', debug=False)
 parser = argparse.ArgumentParser(description="GPT Video Stream")
 parser.add_argument(
     '--rec_streams', action='store_true',
-   help="Stream type to record"
+    help="Stream type to record"
 )
 parser.add_argument(
     '--data_out', type=str, default=settings.kinect_data_path, help="Data output folder."
@@ -37,14 +37,15 @@ parser.add_argument(
     '--dummy_stream', type=str, default=None, help="Add stream video paths."
 )
 parser.add_argument(
-    '--yolo_model', type=str, default='yolov8n-seg', 
+    '--yolo_model', type=str, default='yolov8n-seg',
     help="YOLO model name. See settings.py for available models."
 )
 parser.add_argument(
     '--run_yolo', action='store_true', default=False, help="Run yolo detector."
 )
 parser.add_argument(
-    '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID], help='YOLO class ids to detect. 0 for people.'
+    '--detection_class_ids', type=int, nargs='*', default=[PERSON_ID],
+    help='YOLO class ids to detect. 0 for people.'
 )
 parser.add_argument(
     '--chatgpt_persona',
@@ -138,7 +139,7 @@ class VideoWriter:
             logger.info(f"Recording frame {self.nr_frames_rec}")
             self.nr_frames_rec += 1
             self.video_writer.write(frame)
-    
+
     def is_recording(self):
         return self.recording
 
@@ -209,7 +210,7 @@ class StreamDummy:
         # Set the frame counter
         self.t_prev = time.time()
         self.frame = 0
-    
+
     def __iter__(self):
         return self
 
@@ -249,12 +250,12 @@ class ImageGPTComms:
     """Class for communicating image data with ChatGPT"""
 
     def __init__(
-        self, 
-        integrator_sig_port, 
-        status_address, 
-        gpt_cmd_port, 
-        system_message, 
-        interval_s, 
+        self,
+        integrator_sig_port,
+        status_address,
+        gpt_cmd_port,
+        system_message,
+        interval_s,
         gpt_responses_file_path,
         max_nr_msgs=10,
         max_tokens=1000,
@@ -263,12 +264,10 @@ class ImageGPTComms:
         fake_gpt_response_time_s=4,
         affect_word_options_path=settings.affect_word_options_path
     ):
-        """Initialize the ChatGPTComms class"""
-
         self.integrator_sig_port = integrator_sig_port
         self.emo_state = {"valence": 0, "arousal": 0}
         self.answer = ""
-        self.network_msg = ""   
+        self.network_msg = ""
         self.openai_client = OpenAI(api_key=settings.openai_api_key)
         self.next_gpt_phrase = None
         self.interval_s = interval_s
@@ -327,14 +326,14 @@ class ImageGPTComms:
 
         if image is None:
             return
-        
+
         if self.next_image is not None:
             image = self.next_image
             self.write_image(image)
             self.next_image = None
         else:
             return
-        
+
         if time.time() - self.t_prev > self.interval_s:
             logger.info(f"Idle dt: {(time.time() - self.t_prev):.2f}s. Sending Image...")
             self.copying_image = True
@@ -344,7 +343,7 @@ class ImageGPTComms:
 
     def send_image_thread(self):
         """Waits for image to send to gpt server, extracts response and sends to server"""
-        
+
         while not self.stop_threads:
             # Sleep if no image queued up
             if self.image is None or self.copying_image:
@@ -365,7 +364,7 @@ class ImageGPTComms:
 
     def get_fake_gpt_response(self):
         """Simulate gpt response"""
-        
+
         # Set variables
         response_dt = self.fake_gpt_response_time_s
         answer = self.next_gpt_phrase
@@ -397,7 +396,7 @@ class ImageGPTComms:
         network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
         network.send(self.integrator_sig_port, dict(speaking_gpt=0))
 
-    def get_gpt_image_response(self, image, new_image_height = 200):
+    def get_gpt_image_response(self, image, new_image_height=200):
         """Send image caht gpt and process response"""
 
         t0 = time.time()
@@ -444,9 +443,12 @@ class ImageGPTComms:
 
         self.append_response_to_file(answer)
         logger.info(f"GPT API dt: {response_dt:.2f}s - Response: {answer}")
-        network.send(self.integrator_sig_port, dict(gpt_response_dt_min=response_dt/60))
+        network.send(
+            self.integrator_sig_port,
+            dict(gpt_response_dt_min=response_dt / 60)
+        )
         network.send(self.integrator_sig_port, dict(speaking_gpt=0))
-        
+
         # Append to message list
         self.messages.append({"role": "assistant", "content": answer})
 
@@ -456,7 +458,7 @@ class ImageGPTComms:
         self.next_image = next_image.copy()
 
     def write_image(self, image):
-        """Resize and write image for web server"""   
+        """Resize and write image for web server"""
 
         # Resize the image
         ratio = self.write_image_height / image.shape[0]
@@ -469,7 +471,7 @@ class ImageGPTComms:
         os.rename(tmp_disp_img_path, settings.disp_img_path)
         # rec_img_path = os.path.join(os.path.dirname(settings.disp_img_path), f"tmp{ext}")
         # cv2.imwrite(rec_img_path, image)
-    
+
     def read_network_responses(self):
         """Process and respond to user input from network"""
 
@@ -484,7 +486,7 @@ class ImageGPTComms:
         """Find the emotional state in the response from ChatGPT"""
 
         matches = re.findall(r"\[.*?([-+]?\d*\.?\d+).*?,.*?([-+]?\d*\.?\d+).*?\]", response)
-        
+
         if not matches:
             return None
 
@@ -500,10 +502,10 @@ class ImageGPTComms:
 
         # Convert the PIL image to a byte stream
         img_byte_arr = BytesIO()
-        
+
         # Ensure rgb image
         if len(np_image.shape) == 2:
-            np_image = np_image[...,None].repeat(3, axis=-1)*255
+            np_image = np_image[..., None].repeat(3, axis=-1) * 255
         assert len(np_image.shape) == 3
 
         pil_img = Image.fromarray(np_image.astype('uint8'), 'RGB')
@@ -545,11 +547,11 @@ if __name__ == "__main__":
         video_stream = StreamDummy(video_path=args.dummy_stream)
     else:
         video_stream = StreamWebcam(webcam_index=args.webcam_index)
-    
+
     if args.img_gpt_stream:
         image_gpt = ImageGPTComms(
-            settings.integrator_sig_port, 
-            settings.status_address, 
+            settings.integrator_sig_port,
+            settings.status_address,
             settings.gpt_cmd_port,
             settings.chatgpt_personas[args.chatgpt_persona],
             args.gpt_interval_s,
@@ -561,18 +563,17 @@ if __name__ == "__main__":
         if args.img_gpt_stream:
             mouse_gpt = MouseGPT(image_gpt)
             cv2.setMouseCallback("video_stream", mouse_gpt.mouse_click)
-    
 
     # Initialize YOLO tracking objects if specified
     if args.run_yolo:
         image_detector = object_detection_lib.YOLOSegmentation(
-            settings.yolo_models[args.yolo_model], 
+            settings.yolo_models[args.yolo_model],
             args.detection_class_ids,
         )
         annotator = tracker_annotation_lib.ImageAnnotator()
         motion_detector = people_tracking.MotionDetection(
             max_motion_threshold=0.2,
-            min_motion_threshold=0.1, 
+            min_motion_threshold=0.1,
         )
 
     # Start video stream
@@ -585,7 +586,7 @@ if __name__ == "__main__":
         if args.gpt_img_div != 1:
             im_shape = np.array(frame).shape
             frame = cv2.resize(
-                frame, 
+                frame,
                 dsize=(im_shape[1] // args.gpt_img_div, im_shape[0] // args.gpt_img_div),
                 interpolation=cv2.INTER_CUBIC
             )
@@ -593,7 +594,7 @@ if __name__ == "__main__":
         # Send image to chatgpt
         if args.img_gpt_stream:
             image_gpt(frame)
-    
+
         # Save frame to the video file
         if video_writer.is_recording():
             video_writer.save_frames(frame)
@@ -623,7 +624,7 @@ if __name__ == "__main__":
 
             # People image area change metric
             network.send(
-                settings.integrator_sig_port, 
+                settings.integrator_sig_port,
                 dict(
                     people_image_area=motion_detector.similarity_measure.seg_area_1,
                     people_image_iou_dt=(1 - motion_detector.similarity_measure.iou) * (1 / dynamic_fps.fps),
