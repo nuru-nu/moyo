@@ -13,10 +13,9 @@ git+https://github.com/google-research/self-organising-systems#egg=self_organisi
 git+https://github.com/pvigier/perlin-numpy
 pylint
 pytest
-# rtmidi_python
 scipy
 pyserial
-tensorflow_cpu # tensorflow-macos
+tensorflow-macos
 yapf
 google-cloud-speech
 openai
@@ -24,8 +23,9 @@ opencv-python
 open3d
 audinterface
 audonnx
-cython==0.29
+cython
 ultralytics
-pylibfreenect2
 filterpy
+ffmpeg
+moviepy
 fer
