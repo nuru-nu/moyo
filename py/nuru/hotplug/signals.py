@@ -190,8 +190,6 @@ image_signals = dict(
         L.Named('people_image_difference_area') 
         * (L.Named('people_image_area') | S.Reciprocal())
     ),
-    people_scene_change_trigger=L.Named('people_image_similarity_dt') | S.Thr(0.2) | S.FallingEdgePulse(),
-
 )
 
 kinect_signals = dict(
@@ -214,8 +212,7 @@ kinect_signals = dict(
     ready_to_respond=L.Named("connection") | S.Thr(1),
     # annoyance_build_up=L.Named('listening_gpt') * (S.Const(1) - L.Named("ready_to_respond")) | S.MovingAverage(n=50),
     closest=(
-        S.KinectDistance()
-        | S.With(6.5) | S.Min() | S.From(6.5, 0)
+        S.KinectDistance() | S.With(6.5) | S.Min() | S.From(6.5, 0)
         # | S.F(S.sinramp),
     ),
     distance=S.KinectDistance(),
@@ -312,6 +309,13 @@ defaults = dict(
     **{
         touch_raw: 0 for touch_raw in touch_raws
     },
+    people_image_area_avg=0,
+    people_nr_avg=0,
+    false_detection=0,
+    people_approaching=0,
+    people_receding=0,
+    people_shape_change=0,
+    people_scene_change_trigger=0,
 )
 
 # TODO? cleanup/unify
