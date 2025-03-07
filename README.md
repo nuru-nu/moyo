@@ -1,20 +1,48 @@
-# NURU SHIMONI
+# MOYO
 
-Shared doc : https://docs.google.com/document/d/1DKIEItOe5IRh6JfeMJ1ERkpSYmWZ7JRlewwfzYGTmkQ
+![Moyo](images/moyo.png)
+
+## System Overview
+
+![System Overview](images/system_overview.png)
+
+## Web Interfaces
+
+### Front End
+![Front End Web Interface](images/frontend_interface.png)
+
+### Back End
+![Back End Web Interface](images/backend_interface.png)
 
 ## Installation
-
-check out the git repository : 
-
-```
-git clone smanmi@figur.li:nuru.git
-```
 
 Note that you also need to check out submodules:
 ```
 git submodule init && git submodule update
 git pull --recurse-submodules=yes
 ```
+
+### Python packages
+
+```
+python3 -m virtualenv env &&
+. env/bin/activate &&
+pip install -r requirements.txt
+```
+
+note that on OS X you have to install portaudio & specify some extra parameters:
+
+Install with brew
+brew install portaudio
+find / -name portaudio.h 2>/dev/null # Find the port audio, usually in ~/homebrew/
+CFLAGS="-I/path_to_ort_audio/include -L/path_to_ort_audio/lib" python -m pip install pyaudio
+
+
+```
+brew install portaudio &&
+pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
+```
+
 ### Google Cloud Setup 
 
 OSX Install:
@@ -87,26 +115,6 @@ extra_link_args = ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 Run pip install on local folder
 ```
 pip install .
-```
-### Python packages
-
-```
-python3 -m virtualenv env &&
-. env/bin/activate &&
-pip install -r requirements.txt
-```
-
-note that on OS X you have to install portaudio & specify some extra parameters:
-
-Install with brew
-brew install portaudio
-find / -name portaudio.h 2>/dev/null # Find the port audio, usually in ~/homebrew/
-CFLAGS="-I/path_to_ort_audio/include -L/path_to_ort_audio/lib" python -m pip install pyaudio
-
-
-```
-brew install portaudio &&
-pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
 ```
 
 ## Running
