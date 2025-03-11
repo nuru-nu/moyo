@@ -1,3 +1,6 @@
 [submodule "data"]
 	path = data
 	url = smanmi@figur.li:nuru_data.git
+[submodule "nurulib"]
+	path = nurulib
+	url = git@github-nuru:nuru-nu/nurulib.git
