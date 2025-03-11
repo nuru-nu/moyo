@@ -1,6 +1,3 @@
 [submodule "data"]
 	path = data
 	url = smanmi@figur.li:nuru_data.git
-[submodule "smanmi"]
-	path = smanmi
-	url = smanmi@figur.li:smanmi.git
