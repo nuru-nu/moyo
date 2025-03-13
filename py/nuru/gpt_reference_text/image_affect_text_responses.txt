@@ -938,3 +938,8 @@ The person seems to be in a slight state of contentment or mild amusement.
 [0.2, -0.4] Confusion and unease in the atmosphere.
 [0.2, -0.5] Confused expression, uncertain vibe.
 [0.6, 0.3] Amused expression, light-hearted mood.
+[-0.7, -0.5] Feeling distressed, strong negative vibes detected.
+[0.3, 0.1] Chill vibe, relaxed gesture, but slightly reserved.
+[0.1, -0.2] Pensive mood, focused energy, deep in thought.
+[0.7, 0.5] Happy expression, friendly energy, engaging smile.
+[0.1, -0.3] Uneasy vibe, feeling somewhat isolated or concerned.

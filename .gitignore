@@ -13,3 +13,4 @@ __pycache__
 /nca/*.npy
 /recordings
 /py/nuru/credentials/*.json
+/py/nuru/gpt_reference_text/image_affect_text_responses.txt

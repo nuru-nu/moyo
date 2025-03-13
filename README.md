@@ -43,7 +43,21 @@ brew install portaudio &&
 pip install --global-option='build_ext' --global-option='-I/usr/local/include' --global-option='-L/usr/local/lib' -r requirements.txt
 ```
 
-### Google Cloud Setup 
+### OpenAI Setup
+
+Add `openai_credentials.json` file to `py/nuru/credentials`. See example structure in folder
+
+You can get your API key from the [OpenAI dashboard](https://platform.openai.com/account/api-keys).
+
+### FadeCandy Setup
+
+FadeCandy runs the lights on the current Moyo setup. The precompiled binary should work out of the box on apple silicon.
+
+If precompiled binary does not work, you can install from source following instructions at https://github.com/rewolff/fadecandy
+
+----
+
+### Google Cloud Setup - Not strictly required with default setup
 
 OSX Install:
 ```
@@ -54,7 +68,7 @@ Login into Google account:
 gcloud auth application-default login
 ```
 
-### Speech Emotion Recognition (SER)
+### Speech Emotion Recognition (SER) - Depricated
 
 https://docs.google.com/document/d/13RMaLnRfHT0_A8e4Z7dG9mOuveXZvXusNEhvAdiNp0U/edit#
 
@@ -64,13 +78,7 @@ Add `application_default_credentials.json` file to `py/nuru/credentials`. See ex
 
 You can get your credentials file from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
 
-### OpenAI Setup
-
-Add `openai_credentials.json` file to `py/nuru/credentials`. See example structure in folder
-
-You can get your API key from the [OpenAI dashboard](https://platform.openai.com/account/api-keys).
-
-### Kinect OSX install
+### Kinect OSX install - Depricated
 
 #### Install libfreenect2
 
@@ -117,9 +125,18 @@ Run pip install on local folder
 pip install .
 ```
 
-## Running
+## Running Default llm Vision Setup
 
-The sript `./launch.sh` starts a couple of programs that constitute the
+For the light weight default **llm Vision** setup launch script `./launch_llm_vision.sh`. This starts a tmux session with all necessary scripts. 
+
+Go to <http://localhost:8081> for front end Web view.
+
+Go to <http://localhost:8082> for back end Web interface.
+
+
+## Running Advanced Setup - Kinect setup required
+
+The script `./launch.sh` starts a couple of programs that constitute the
 different components of the installation. See the package pydoc for additional
 information. Then go to <http://localhost:8080>.
 
