@@ -28,3 +28,4 @@ ultralytics
 filterpy
 ffmpeg
 moviepy
+torch

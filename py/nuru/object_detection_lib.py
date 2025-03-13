@@ -1,6 +1,9 @@
 from ultralytics import YOLO
 from collections import defaultdict
 import numpy as np
+import torch
+from nurulib import util
+
 
 class YOLOSegmentation:
     def __init__(self, model_path, class_ids_filter=None):
@@ -8,15 +11,25 @@ class YOLOSegmentation:
 
         self.model = YOLO(model_path)
         self.class_ids_filter = class_ids_filter
+        self.device: str = 'cpu'
+        if torch.backends.mps.is_available():
+            util.logger.info("Apple Silicon detected. Using GPU.")
+            self.device = 'mps'
 
     def detect(self, img):
         """Detect objects in the image."""
 
         height, width, channels = img.shape
 
-        results = self.model.predict(source=img.copy(), save=False, save_txt=False, verbose=False)
+        results = self.model.predict(
+            source=img.copy(),
+            save=False,
+            save_txt=False,
+            verbose=False,
+            device=self.device
+        )
         result = results[0]
-                
+
         self.bboxes = np.array(result.boxes.xyxy.cpu(), dtype="int")
         self.class_ids = np.array(result.boxes.cls.cpu(), dtype="int")
         self.scores = np.array(result.boxes.conf.cpu(), dtype="float").round(2)
