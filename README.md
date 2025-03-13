@@ -53,7 +53,7 @@ You can get your API key from the [OpenAI dashboard](https://platform.openai.com
 
 FadeCandy runs the lights on the current Moyo setup. The precompiled binary should work out of the box on apple silicon.
 
-If precompiled binary does not work, you can install from source following instructions at https://github.com/rewolff/fadecandy
+If precompiled binary does not work. Look at fadecandy/README.md or you can install from source following instructions at https://github.com/rewolff/fadecandy
 
 ----
 
