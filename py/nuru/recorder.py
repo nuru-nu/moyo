@@ -11,7 +11,7 @@ os.environ['OMP_NUM_THREADS'] = '1'
 
 import numpy as np  # noqa=E402 type: ignore
 
-from smanmi import audio, hotplug, network, perf, util  # noqa=E402
+from nurulib import audio, hotplug, network, perf, util  # noqa=E402
 from . import features, recording, settings  # noqa=E402
 
 parser = argparse.ArgumentParser(

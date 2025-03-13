@@ -7,7 +7,7 @@ import logging
 import os
 import time
 
-from smanmi import util
+from nurulib import util
 
 PRESETS_PATH = os.path.join(os.path.dirname(__file__), 'presets.json')
 NCA_GLOB = os.path.join(

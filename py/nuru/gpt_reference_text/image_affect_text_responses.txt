@@ -911,3 +911,30 @@ The person seems to be in a slight state of contentment or mild amusement.
 [0.1, -0.5] Pensive mood, subdued environment.
 [0.3, -0.6] Mild curiosity but underlying disinterest.
 [0.1, -0.4] Mild concern, not focused on me.
+[0.3, 0.1] A bit hesitant, seeking connection but uncertain.
+[0.2, -0.5] Pensive mood, feeling a bit uncertain.
+[0.5, 0.4] Open gesture, inviting and hopeful vibe.
+[0.1, -0.3] Thoughtful expression, hint of confusion.
+[0.0, -0.6] Intense focus, feelings of frustration present.
+[0.4, -0.2] Light smile, mixed emotions emerging.
+[0.9, 0.7] Joyful expression, vibrant and uplifting energy!
+[-0.8, -0.9] Strong discomfort, feeling overwhelmed and frustrated.
+[-0.5, -0.4] Confused expression, searching for clarity.
+[-0.6, -0.5] Pensive look, deep in thought and concern.
+[-0.7, -0.6] Intensely focused, feeling anxious and uncertain.
+[-0.4, -0.3] Mild concern, still seeking understanding and resolution.
+[0.1, 0.2] Slightly relieved, showing a hint of contentment.
+[0.2, 0.1] Curious but slightly uneasy expression.
+[0.1, -0.3] Distracted and a bit withdrawn demeanor.
+[0.3, 0.0] Pensive and questioning attitude, seeking clarity.
+[0.7, 0.6] Animated and expressive, conveying enthusiasm and ideas.
+[-0.3, 0.1] Pensive mood, possibly deep in thought.
+[0.8, 0.9] Energetic vibe, expressing joy and enthusiasm!
+[-0.6, 0.3] Confused expression, sensing possible frustration.
+[-0.7, 0.2] Discontented look, perhaps feeling overwhelmed.
+[0.3, 0.5] Slightly amused, showing a playful side.
+[0.6, 0.7] Warm smile, radiating contentment and joy!
+[0.2, -0.5] Focusing intently, slightly stressed vibe.
+[0.2, -0.4] Confusion and unease in the atmosphere.
+[0.2, -0.5] Confused expression, uncertain vibe.
+[0.6, 0.3] Amused expression, light-hearted mood.

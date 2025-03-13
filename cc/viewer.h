@@ -1,5 +1,5 @@
-#ifndef SMANMI_VIEWER_H
-#define SMANMI_VIEWER_H
+#ifndef nurulib_VIEWER_H
+#define nurulib_VIEWER_H
 
 #include <chrono>
 

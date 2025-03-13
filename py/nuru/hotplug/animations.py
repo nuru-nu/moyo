@@ -4,7 +4,7 @@ import importlib
 import numpy as np
 import PIL.Image
 
-from smanmi import colors as C, logic as L, palette as P, signals as S
+from nurulib import colors as C, logic as L, palette as P, signals as S
 from .. import animations as A, settings
 
 

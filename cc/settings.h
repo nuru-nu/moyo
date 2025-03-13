@@ -1,5 +1,5 @@
-#ifndef SMANMI_SETTINGS_H
-#define SMANMI_SETTINGS_H
+#ifndef nurulib_SETTINGS_H
+#define nurulib_SETTINGS_H
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/viz/types.hpp>

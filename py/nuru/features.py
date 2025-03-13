@@ -5,7 +5,7 @@ import numpy as np  # type: ignore
 import scipy.fftpack  # type: ignore
 
 from audioset import vggish_params, mel_features
-from smanmi import perf
+from nurulib import perf
 from . import settings
 
 

@@ -12,7 +12,7 @@ import wave
 
 import numpy as np  # type: ignore
 
-from smanmi import util
+from nurulib import util
 from .features import Features, wav2features
 from . import settings
 from .settings import AudioSettings

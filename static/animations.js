@@ -1,4 +1,4 @@
-import { h, u, ui } from './smanmi/util.js'
+import { h, u, ui } from './nurulib/util.js'
 import { ActionsButtons, Header } from './widgets.js'
 
 export const Animations = (output, {network, defs}) => {

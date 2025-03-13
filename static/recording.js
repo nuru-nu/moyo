@@ -1,5 +1,5 @@
 
-import { h, u, debounce } from './smanmi/util.js'
+import { h, u, debounce } from './nurulib/util.js'
 // import { DiscreteInterpolant } from './threejs/three.module.js'
 import { Header } from './widgets.js'
 

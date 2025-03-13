@@ -1,5 +1,5 @@
-#ifndef SMANMI_NETWORK_H
-#define SMANMI_NETWORK_H
+#ifndef nurulib_NETWORK_H
+#define nurulib_NETWORK_H
 
 #include <map>
 #include <vector>

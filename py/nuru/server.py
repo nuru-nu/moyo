@@ -8,10 +8,10 @@ from aiohttp import web
 import numpy as np  # type: ignore
 
 from openpixelcontrol import opc  # type: ignore
-from smanmi import hotplug
-from smanmi import perf
-from smanmi.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
-from smanmi import util
+from nurulib import hotplug
+from nurulib import perf
+from nurulib.server import PeriodicCallback, Server, UdpForwarding, UdpEndpoint
+from nurulib import util
 from . import nca
 from . import presets
 from . import recording
@@ -37,7 +37,7 @@ parser.add_argument('--port', type=int, default=8080,
 parser.add_argument('--server_address', type=str, default='127.0.0.1',
                     help='Network address for HTTP server - can be 0.0.0.0.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
-                    help='Address of machine running `smanmi.integrator`.')
+                    help='Address of machine running `nurulib.integrator`.')
 parser.add_argument('--debug', action='store_true', help='Show debug logs.')
 args = parser.parse_args()
 

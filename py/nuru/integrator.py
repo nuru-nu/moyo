@@ -8,9 +8,9 @@ import re
 import time
 import traceback
 
-from smanmi import hotplug
-from smanmi import integrator
-from smanmi import util
+from nurulib import hotplug
+from nurulib import integrator
+from nurulib import util
 from . import presets
 from . import recording
 from . import settings
@@ -22,10 +22,10 @@ import functiontrace
 parser = argparse.ArgumentParser(description='Integrates signals for NURU.')
 parser.add_argument(
     '--midi_address', type=str, default='127.0.0.1',
-    help='Address of machine running `smanmi.midi` script.')
+    help='Address of machine running `nurulib.midi` script.')
 parser.add_argument(
     '--server_address', type=str, default='127.0.0.1',
-    help='Address of machine running `smanmi.server` script.')
+    help='Address of machine running `nurulib.server` script.')
 parser.add_argument(
     '--signals_json', type=str, default='tmp/signals.json',
     help='Path where to store signals in JSON format.')

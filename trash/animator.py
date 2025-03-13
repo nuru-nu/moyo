@@ -14,7 +14,7 @@ from autobahn.websocket.protocol import WebSocketProtocol
 
 import numpy as np
 
-from smanmi import hotplug, network, state, util
+from nurulib import hotplug, network, state, util
 from openpixelcontrol import opc
 from . import settings
 

@@ -1,4 +1,4 @@
-import { h, u, ui, observe } from './smanmi/util.js'
+import { h, u, ui, observe } from './nurulib/util.js'
 import { CA } from './ca.js';
 
 export const NcaView = (output, {network, height}) => {

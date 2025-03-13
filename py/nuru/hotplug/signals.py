@@ -2,7 +2,7 @@ import functools
 import importlib
 import operator
 
-from smanmi import effects as E, midi, logic as L, signals as S
+from nurulib import effects as E, midi, logic as L, signals as S
 
 from .. import settings
 from .. import state

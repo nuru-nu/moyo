@@ -1,5 +1,5 @@
 
-import { Dump } from './smanmi/monitor.js'
+import { Dump } from './nurulib/monitor.js'
 import { Transients } from './widgets.js'
 import { Rec } from './recording.js'
 

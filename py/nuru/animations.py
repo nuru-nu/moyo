@@ -10,8 +10,8 @@ from scipy import stats
 from self_organising_systems.texture_ca import ca
 import tensorflow as tf
 
-from smanmi import logic as L, util
-from smanmi.midi import Command
+from nurulib import logic as L, util
+from nurulib.midi import Command
 from . import mapping, pixel_functions as pf, settings
 from . import presets
 

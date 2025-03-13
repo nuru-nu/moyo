@@ -1,16 +1,16 @@
 import argparse
 import re
 
-from smanmi import hotplug
-from smanmi import midi
-from smanmi import util
+from nurulib import hotplug
+from nurulib import midi
+from nurulib import util
 
 from . import settings
 
 
 parser = argparse.ArgumentParser(description='Bridges UDP to MIDI.')
 parser.add_argument('--integrator_address', type=str, default='127.0.0.1',
-                    help='Machine running `smanmi.integrator` script.')
+                    help='Machine running `nurulib.integrator` script.')
 parser.add_argument('--ignore', type=str, default='1: X1,3: C3,1: C3',
                     help='Do not show events for these notes.')
 args = parser.parse_args()

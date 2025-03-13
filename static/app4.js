@@ -1,7 +1,7 @@
 
-import { Network } from './smanmi/network.js'
+import { Network } from './nurulib/network.js'
 import { Css, ImageGPT, AffectWordButtons, AnimControl} from './widgets.js'
-import { Dump } from './smanmi/monitor.js'
+import { Dump } from './nurulib/monitor.js'
 import { Leds } from './leds.js'
 
 fetch('/defs').then(resp => resp.json()).then(defs => {  

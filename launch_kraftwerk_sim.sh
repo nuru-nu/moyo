@@ -29,7 +29,7 @@ tmux send-keys "./run nuru.integrator" $CM
 ## column 2
 tmux selectp -R
 # row 1 - Host outward facing server
-tmux send-keys "ssh smanmi@nuru.nu -R9898:localhost:8081" $CM
+tmux send-keys "ssh nurulib@nuru.nu -R9898:localhost:8081" $CM
 # row 2 - Full back end server
 tmux splitw -p 77
 tmux send-keys "./run nuru.server --server_address=${SERVER} --fadecandy" $CM

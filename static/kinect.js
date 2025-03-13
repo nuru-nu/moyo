@@ -1,5 +1,5 @@
 
-import { h, ui, colors } from './smanmi/util.js'
+import { h, ui, colors } from './nurulib/util.js'
 
 const color = id => (
   colors.user_colors[(id - 1) % colors.user_colors.length])

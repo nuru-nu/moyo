@@ -2,7 +2,7 @@ import signal, socket, sys, threading, time
 
 import numpy as np
 
-from smanmi import audio, hotplug, network, perf, util
+from nurulib import audio, hotplug, network, perf, util
 from . import settings
 
 assert sys.argv[1] in ('out1', 'out2')

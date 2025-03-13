@@ -1,6 +1,6 @@
 
-import { h, ui } from './smanmi/util.js'
-import { Network } from './smanmi/network.js'
+import { h, ui } from './nurulib/util.js'
+import { Network } from './nurulib/network.js'
 import { Css } from './widgets.js'
 import { Kinect } from './kinect.js'
 import { NcaView } from './nca.js'

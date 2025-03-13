@@ -11,7 +11,7 @@ import nuru.gc_speech_to_text as stt
 
 from openai import OpenAI
 from nuru import settings
-from smanmi import network, util
+from nurulib import network, util
 import numpy as np
 
 from collections import deque

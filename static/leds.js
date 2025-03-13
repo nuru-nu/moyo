@@ -1,4 +1,4 @@
-import { h, colors, ui, observe } from './smanmi/util.js'
+import { h, colors, ui, observe } from './nurulib/util.js'
 import { Scene, Nuru } from './nuru.js';
 
 export const Leds = (output, defs, opts) => {

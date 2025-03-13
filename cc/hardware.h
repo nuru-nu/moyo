@@ -1,5 +1,5 @@
-#ifndef SMANMI_HARDWARE_H
-#define SMANMI_HARDWARE_H
+#ifndef nurulib_HARDWARE_H
+#define nurulib_HARDWARE_H
 
 #include <memory>
 

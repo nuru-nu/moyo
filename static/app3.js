@@ -1,5 +1,5 @@
 
-import { Network } from './smanmi/network.js'
+import { Network } from './nurulib/network.js'
 import { Css, ImageGPT } from './widgets.js'
 
 

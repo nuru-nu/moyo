@@ -1,7 +1,7 @@
 
-import { Console, h, Stats } from './smanmi/util.js'
-import { Network } from './smanmi/network.js'
-import { Monitor, Dump } from './smanmi/monitor.js'
+import { Console, h, Stats } from './nurulib/util.js'
+import { Network } from './nurulib/network.js'
+import { Monitor, Dump } from './nurulib/monitor.js'
 
 import { Sonar, Css, AffectWordButtons, Debug, Cmd, Subsample, Midi, Actions, Transients, Image, Header } from './widgets.js'
 import { Animations } from './animations.js'

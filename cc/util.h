@@ -1,5 +1,5 @@
-#ifndef SMANMI_UTIL_H
-#define SMANMI_UTIL_H
+#ifndef nurulib_UTIL_H
+#define nurulib_UTIL_H
 
 #include <string>
 #include <memory>

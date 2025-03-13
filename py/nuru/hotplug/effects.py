@@ -2,7 +2,7 @@ import importlib, glob
 
 import scipy
 
-from smanmi import effects as E, logic as L, util
+from nurulib import effects as E, logic as L, util
 from .. import settings
 
 

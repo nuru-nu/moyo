@@ -15,7 +15,7 @@ import re
 import json
 
 from nuru import settings, people_tracking, object_detection_lib, tracker_annotation_lib
-from smanmi import network, util
+from nurulib import network, util
 
 PERSON_ID = 0
 

@@ -22,9 +22,9 @@ from typing import Any, Mapping
 
 import numpy as np
 
-from smanmi import logic as L
-from smanmi import util
-from smanmi import network
+from nurulib import logic as L
+from nurulib import util
+from nurulib import network
 from nuru import settings
 
 from . import presets

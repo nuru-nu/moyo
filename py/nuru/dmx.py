@@ -30,7 +30,7 @@ import sys
 
 import numpy as np
 
-from smanmi import dmx_devices, hotplug, network, util
+from nurulib import dmx_devices, hotplug, network, util
 from . import settings
 
 

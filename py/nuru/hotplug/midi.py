@@ -1,6 +1,6 @@
 from typing import Dict, Sequence, Tuple
 
-from smanmi import midi
+from nurulib import midi
 from .. import state
 
 

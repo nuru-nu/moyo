@@ -7,4 +7,4 @@ export DYLD_LIBRARY_PATH="$LIBFREENECT2_PATH:$DYLD_LIBRARY_PATH"
 
 cd "$(dirname "$0")"
 PYTHONPATH=py ./env/bin/python -m "$@"
-# PYTHONPATH=py ./env/bin/python -m smanmi.restarter ./env/bin/python -m "$@"
+# PYTHONPATH=py ./env/bin/python -m nurulib.restarter ./env/bin/python -m "$@"

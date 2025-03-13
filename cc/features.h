@@ -1,5 +1,5 @@
-#ifndef SMANMI_FEATURES_H
-#define SMANMI_FEATURES_H
+#ifndef nurulib_FEATURES_H
+#define nurulib_FEATURES_H
 
 #include <opencv2/opencv.hpp>
 

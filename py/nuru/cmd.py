@@ -1,4 +1,4 @@
-from smanmi import network, util
+from nurulib import network, util
 from . import settings
 
 
